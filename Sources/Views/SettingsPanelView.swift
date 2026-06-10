@@ -1,0 +1,264 @@
+import SwiftUI
+
+/// One calm in-window settings panel: theme color, alarm sound, and end-of-timer
+/// behavior. Changes apply live — there is no Save step.
+struct SettingsPanelView: View {
+    @Environment(ThemeStore.self) private var theme
+    @Environment(SettingsStore.self) private var settings
+    @Environment(AppModel.self) private var app
+    let palette: Palette
+    @Binding var isPresented: Bool
+    var scrolls: Bool = true
+
+    @State private var customColor: Color = .orange
+    @State private var seededColor: Color?
+
+    var body: some View {
+        Group {
+            if scrolls {
+                ScrollView { contentStack }
+            } else {
+                contentStack
+            }
+        }
+        .frame(width: 320)
+        .frame(maxHeight: 520)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(palette.surface)
+                .shadow(color: .black.opacity(0.18), radius: 24, y: 8)
+        )
+        .onAppear {
+            // Seed the picker to the current custom color WITHOUT this programmatic
+            // change being mistaken for a user pick (which would force-select Custom).
+            let c = theme.customAccentColor
+            customColor = c
+            seededColor = c
+        }
+        .onExitCommand { isPresented = false }
+    }
+
+    private var contentStack: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            header
+            themeSection
+            soundSection
+            endSection
+            footer
+        }
+        .padding(20)
+    }
+
+    // MARK: Header
+
+    private var header: some View {
+        HStack {
+            Text("Settings")
+                .font(.system(size: 17, weight: .semibold, design: .rounded))
+                .foregroundStyle(palette.primaryText)
+            Spacer()
+            Button("Done") { isPresented = false }
+                .buttonStyle(.plain)
+                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .foregroundStyle(palette.accent)
+                .keyboardShortcut(.defaultAction)
+        }
+    }
+
+    // MARK: Theme
+
+    private var themeSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            sectionTitle("THEME COLOR")
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 5),
+                      spacing: 12) {
+                ForEach(theme.presets) { preset in
+                    swatch(color: preset.swatch,
+                           selected: theme.current.id == preset.id,
+                           label: preset.name) {
+                        theme.selectPreset(id: preset.id)
+                    }
+                }
+                customSwatch
+            }
+        }
+    }
+
+    private var customSwatch: some View {
+        ZStack {
+            Circle()
+                .fill(customSwatchFill)
+                .overlay(
+                    Image(systemName: "eyedropper")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(customGlyphColor)
+                        .shadow(color: .black.opacity(0.25), radius: 1)
+                        .accessibilityHidden(true)
+                )
+                .frame(width: 30, height: 30)
+                .overlay(selectionRing(theme.current.isCustom))
+            ColorPicker("", selection: $customColor, supportsOpacity: false)
+                .labelsHidden()
+                .opacity(0.02)            // invisible hit area over the swatch
+                .frame(width: 30, height: 30)
+        }
+        .help("Custom color")
+        .accessibilityLabel("Custom color")
+        .accessibilityAddTraits(theme.current.isCustom ? [.isSelected] : [])
+        .onChange(of: customColor) { _, newValue in
+            // Apply only genuine user picks, not the initial seed.
+            guard newValue != seededColor else { return }
+            theme.setCustomAccent(newValue)
+        }
+    }
+
+    /// Until the user picks a custom color, show a rainbow "pick your own" disc
+    /// (not a stray solid color that looks like a preset). Once chosen, show it.
+    private var customSwatchFill: AnyShapeStyle {
+        if theme.current.isCustom {
+            return AnyShapeStyle(theme.customAccentColor)
+        }
+        return AnyShapeStyle(AngularGradient(
+            colors: [.red, .orange, .yellow, .green, .blue, .purple, .red],
+            center: .center))
+    }
+
+    /// Keep the eyedropper visible on the rainbow or on any picked color.
+    private var customGlyphColor: Color {
+        guard theme.current.isCustom else { return .white }
+        return WCAG.luminance(theme.customAccentColor.resolvedRGB()) > 0.6 ? Color(white: 0.15) : .white
+    }
+
+    private func swatch(color: Color, selected: Bool, label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Circle()
+                .fill(color)
+                .frame(width: 30, height: 30)
+                .overlay(selectionRing(selected))
+        }
+        .buttonStyle(.plain)
+        .help(label)
+        .accessibilityLabel(label)
+        .accessibilityAddTraits(selected ? [.isSelected] : [])
+    }
+
+    private func selectionRing(_ selected: Bool) -> some View {
+        Circle()
+            .strokeBorder(palette.surface, lineWidth: selected ? 2 : 0)
+            .overlay(
+                Circle().strokeBorder(selected ? palette.primaryText.opacity(0.7) : .clear,
+                                      lineWidth: selected ? 1.5 : 0)
+                    .padding(-2)
+            )
+    }
+
+    // MARK: Sound
+
+    private var soundSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            sectionTitle("ALARM SOUND")
+            ForEach(AlarmSound.allCases) { sound in
+                let isSelected = settings.alarmSound == sound
+                HStack(spacing: 10) {
+                    // The whole left area is a real, VoiceOver/keyboard-operable
+                    // button that selects (and auditions) the sound.
+                    Button {
+                        settings.alarmSound = sound
+                        app.preview(sound)
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
+                                .foregroundStyle(isSelected ? palette.accent : palette.secondaryText)
+                            Text(sound.displayNameKey)
+                                .font(.system(size: 14, design: .rounded))
+                                .foregroundStyle(palette.primaryText)
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(sound.displayNameKey)
+                    .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+
+                    CircleIconButton(systemName: "play.fill", tint: palette.secondaryText,
+                                     soft: palette.accentSoft, size: 28,
+                                     font: .system(size: 11)) {
+                        app.preview(sound)
+                    }
+                    .accessibilityLabel(Text("Preview \(Text(sound.displayNameKey))"))
+                }
+            }
+
+            HStack(spacing: 8) {
+                Image(systemName: "speaker.fill").foregroundStyle(palette.secondaryText).font(.system(size: 11))
+                    .accessibilityHidden(true)
+                Slider(value: Binding(get: { settings.alarmVolume }, set: { settings.alarmVolume = $0 }), in: 0...1)
+                    .tint(palette.accent)
+                    .accessibilityLabel("Alarm volume")
+                Image(systemName: "speaker.wave.3.fill").foregroundStyle(palette.secondaryText).font(.system(size: 11))
+                    .accessibilityHidden(true)
+            }
+            Text("The end is also shown visually, so a muted Mac still alerts you.")
+                .font(.system(size: 11, design: .rounded))
+                .foregroundStyle(palette.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    // MARK: End behavior
+
+    private var endSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionTitle("WHEN THE TIMER ENDS")
+            toggle("Repeat sound until dismissed", \.repeatUntilDismissed)
+            toggle("Show notification", \.notificationsEnabled)
+            sectionTitle("GENERAL").padding(.top, 6)
+            toggle("Show seconds in custom entry", \.showSeconds)
+            toggle("Show timer in menu bar", \.showInMenuBar)
+            toggle("Keep Mac awake while running", \.keepAwake)
+        }
+    }
+
+    /// An explicit Binding straight off the @Observable store — avoids any
+    /// @Bindable scoping subtleties so toggles reliably persist & apply.
+    private func boolBinding(_ keyPath: ReferenceWritableKeyPath<SettingsStore, Bool>) -> Binding<Bool> {
+        Binding(get: { settings[keyPath: keyPath] }, set: { settings[keyPath: keyPath] = $0 })
+    }
+
+    private func toggle(_ label: LocalizedStringKey, _ keyPath: ReferenceWritableKeyPath<SettingsStore, Bool>) -> some View {
+        Toggle(isOn: boolBinding(keyPath)) {
+            Text(label)
+                .font(.system(size: 14, design: .rounded))
+                .foregroundStyle(palette.primaryText)
+                .fixedSize(horizontal: false, vertical: true)   // wrap long translations
+                .multilineTextAlignment(.leading)
+        }
+        .toggleStyle(.switch)
+        .tint(palette.accent)
+    }
+
+    // MARK: Footer
+
+    private var footer: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Divider().opacity(0.3)
+            HStack {
+                DonateButton(palette: palette)
+                Text("Support PomoLight")
+                    .font(.system(size: 13, design: .rounded))
+                    .foregroundStyle(palette.secondaryText)
+                Spacer()
+                Text("v1.0")
+                    .font(.system(size: 11, design: .rounded))
+                    .foregroundStyle(palette.secondaryText)
+            }
+        }
+    }
+
+    private func sectionTitle(_ text: LocalizedStringKey) -> some View {
+        Text(text)
+            .font(.system(size: 11, weight: .semibold, design: .rounded))
+            .tracking(0.6)
+            .foregroundStyle(palette.secondaryText)
+    }
+}
