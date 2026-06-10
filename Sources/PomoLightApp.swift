@@ -1,12 +1,18 @@
 import SwiftUI
 
+enum WindowID {
+    static let main = "main"
+}
+
 @main
 struct PomoLightApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var model = AppModel()
 
     var body: some Scene {
-        WindowGroup {
+        // A single, reopenable window (so "Open PomoLight" from the menu bar can
+        // bring it back after it's been closed).
+        Window("PomoLight", id: WindowID.main) {
             RootView()
                 .injectEnvironment(model)
                 // Compact by default; can shrink, and can grow up to +50% — no further.

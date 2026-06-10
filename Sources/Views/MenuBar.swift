@@ -25,6 +25,7 @@ struct MenuBarContent: View {
     @Environment(AppModel.self) private var app
     @Environment(ThemeStore.self) private var theme
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         let palette = theme.palette(for: scheme)
@@ -52,7 +53,10 @@ struct MenuBarContent: View {
                 }
             }
 
-            Button("Open PomoLight") { AppActivation.openMainWindow() }
+            Button("Open PomoLight") {
+                openWindow(id: WindowID.main)
+                NSApp.activate(ignoringOtherApps: true)
+            }
                 .buttonStyle(.plain)
                 .font(.system(size: 12, design: .rounded))
                 .foregroundStyle(palette.secondaryText)
