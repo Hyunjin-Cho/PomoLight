@@ -48,7 +48,7 @@ struct SettingsPanelView: View {
             Button("Done") { isPresented = false }
                 .buttonStyle(.plain)
                 .font(.system(size: 14, weight: .semibold, design: .rounded))
-                .foregroundStyle(palette.accent)
+                .foregroundStyle(palette.primaryText)   // fixed ink, like the title — not theme-tinted
                 .keyboardShortcut(.defaultAction)
         }
     }
