@@ -43,11 +43,12 @@ enum BellSynth {
                 notes: [Note(start: 0, freq: 659.25), Note(start: 0.55, freq: 523.25)],
                 length: 1.95, attack: 0.010, gain: 0.52)
 
-        case .pulse:       // gentle, soft sine pulse — a calm "boo… boo", not a beep
+        case .pulse:       // gentle soft-sine pulse — a calm 4-note descent
             return Voice(
                 partials: [Partial(ratio: 1, amp: 1.0, decay: 0.50), Partial(ratio: 2, amp: 0.05, decay: 0.20)],
-                notes: [Note(start: 0, freq: 523.25), Note(start: 0.42, freq: 440.0)],
-                length: 1.1, attack: 0.022, gain: 0.6)
+                notes: [Note(start: 0, freq: 523.25), Note(start: 0.28, freq: 493.88),
+                        Note(start: 0.56, freq: 440.0), Note(start: 0.84, freq: 392.0)],
+                length: 1.5, attack: 0.022, gain: 0.6)
         }
     }
 
