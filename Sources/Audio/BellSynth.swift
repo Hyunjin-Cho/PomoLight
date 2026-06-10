@@ -28,27 +28,26 @@ enum BellSynth {
                         Note(start: 0.40, freq: 783.99), Note(start: 0.62, freq: 1046.5)],
                 length: 1.35, attack: 0.006, gain: 0.72)
 
-        case .marimba:     // warm wooden tone, cozy short phrase
+        case .marimba:     // warm, rounded wood — soft and calm (less "tok")
             return Voice(
-                partials: [Partial(ratio: 1, amp: 1.0, decay: 0.34), Partial(ratio: 3.9, amp: 0.5, decay: 0.18),
-                           Partial(ratio: 10.5, amp: 0.2, decay: 0.08)],
-                notes: [Note(start: 0, freq: 392), Note(start: 0.16, freq: 523.25),
-                        Note(start: 0.32, freq: 659.25), Note(start: 0.50, freq: 523.25)],
-                length: 1.05, attack: 0.004, gain: 0.85)
+                partials: [Partial(ratio: 1, amp: 1.0, decay: 0.62), Partial(ratio: 3.01, amp: 0.26, decay: 0.22),
+                           Partial(ratio: 6.0, amp: 0.06, decay: 0.10)],
+                notes: [Note(start: 0, freq: 329.63), Note(start: 0.24, freq: 392.0),
+                        Note(start: 0.50, freq: 523.25)],
+                length: 1.5, attack: 0.014, gain: 0.66)
 
-        case .bell:        // bright glockenspiel / music-box "ding…ding"
+        case .bell:        // soft, mellow bell — low and round, no piercing shimmer
             return Voice(
-                partials: [Partial(ratio: 1, amp: 1.0, decay: 1.4), Partial(ratio: 2.76, amp: 0.5, decay: 0.9),
-                           Partial(ratio: 5.40, amp: 0.25, decay: 0.5), Partial(ratio: 8.93, amp: 0.10, decay: 0.3)],
-                notes: [Note(start: 0, freq: 1046.5), Note(start: 0.46, freq: 1318.5)],
-                length: 1.7, attack: 0.005, gain: 0.62)
+                partials: [Partial(ratio: 1, amp: 1.0, decay: 1.8), Partial(ratio: 2.0, amp: 0.38, decay: 1.1),
+                           Partial(ratio: 3.0, amp: 0.12, decay: 0.55)],
+                notes: [Note(start: 0, freq: 659.25), Note(start: 0.55, freq: 523.25)],
+                length: 1.95, attack: 0.010, gain: 0.52)
 
-        case .pulse:       // gentle two-tone digital alarm (soft "beep-beep")
+        case .pulse:       // gentle, soft sine pulse — a calm "boo… boo", not a beep
             return Voice(
-                partials: [Partial(ratio: 1, amp: 1.0, decay: 0.16), Partial(ratio: 2, amp: 0.14, decay: 0.10)],
-                notes: [Note(start: 0, freq: 880), Note(start: 0.20, freq: 880),
-                        Note(start: 0.46, freq: 660), Note(start: 0.66, freq: 660)],
-                length: 0.92, attack: 0.008, gain: 0.78)
+                partials: [Partial(ratio: 1, amp: 1.0, decay: 0.50), Partial(ratio: 2, amp: 0.05, decay: 0.20)],
+                notes: [Note(start: 0, freq: 523.25), Note(start: 0.42, freq: 440.0)],
+                length: 1.1, attack: 0.022, gain: 0.6)
         }
     }
 
