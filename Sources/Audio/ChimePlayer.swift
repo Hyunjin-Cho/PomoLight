@@ -7,8 +7,15 @@ final class ChimePlayer {
     private let engine = AVAudioEngine()
     private let player = AVAudioPlayerNode()
     private var buffers: [AlarmSound: AVAudioPCMBuffer] = [:]
-    private var repeatTimer: Timer?
+    private var ringTimer: Timer?
     private var configObserver: NSObjectProtocol?
+
+    /// One unified rhythm for every sound: ring, wait 2s, ring, wait 2s, ring…
+    private static let ringInterval: TimeInterval = 2.0
+    private static let ringsWhenNotRepeating = 3
+    private var ringsLeft = 0
+    private var alarmSound: AlarmSound = .synthBell
+    private var alarmVolume: Double = 0.7
 
     // All voices render at this fixed mono format; the player connection uses it
     // too, so a buffer never mismatches the graph (that mismatch = silent alarm).
@@ -34,33 +41,45 @@ final class ChimePlayer {
         if let configObserver { NotificationCenter.default.removeObserver(configObserver) }
     }
 
-    /// Fire the alarm for a finished timer (motif played twice, optionally repeating).
+    /// Fire the alarm for a finished timer. Same rhythm for every sound: one ring
+    /// now, then another every 2s — 3 times if not repeating, or until Dismiss.
     func playAlarm(sound: AlarmSound, volume: Double, repeatUntilDismissed: Bool) {
         stop()
-        playOnce(sound: sound, volume: volume, strikes: 2)
-        if repeatUntilDismissed {
-            let t = Timer(timeInterval: 5.0, repeats: true) { [weak self] _ in
-                MainActor.assumeIsolated { self?.playOnce(sound: sound, volume: volume, strikes: 2) }
-            }
-            RunLoop.main.add(t, forMode: .common)
-            repeatTimer = t
+        alarmSound = sound
+        alarmVolume = volume
+        ringsLeft = repeatUntilDismissed ? Int.max : ChimePlayer.ringsWhenNotRepeating
+        fireRing()   // ring #1 immediately
+        let t = Timer(timeInterval: ChimePlayer.ringInterval, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.fireRing() }
         }
+        RunLoop.main.add(t, forMode: .common)
+        ringTimer = t
     }
 
-    /// A short audition for the settings panel — one motif.
+    /// A short audition for the settings panel — one motif, no repeats.
     func preview(sound: AlarmSound, volume: Double) {
         stop()
-        playOnce(sound: sound, volume: volume, strikes: 1)
+        play(sound: sound, volume: volume)
     }
 
     /// Stop any ongoing/repeating alarm (called on Dismiss).
     func stop() {
-        repeatTimer?.invalidate()
-        repeatTimer = nil
+        ringTimer?.invalidate()
+        ringTimer = nil
+        ringsLeft = 0
         if player.isPlaying { player.stop() }
     }
 
     // MARK: - Private
+
+    private func fireRing() {
+        guard ringsLeft > 0 else {
+            ringTimer?.invalidate(); ringTimer = nil; return
+        }
+        ringsLeft -= 1
+        play(sound: alarmSound, volume: alarmVolume)
+        if ringsLeft == 0 { ringTimer?.invalidate(); ringTimer = nil }
+    }
 
     private func buffer(for sound: AlarmSound) -> AVAudioPCMBuffer? {
         if let cached = buffers[sound] { return cached }
@@ -69,16 +88,15 @@ final class ChimePlayer {
         return made
     }
 
-    private func playOnce(sound: AlarmSound, volume: Double, strikes: Int) {
+    /// Play one motif of the sound.
+    private func play(sound: AlarmSound, volume: Double) {
         guard let buffer = buffer(for: sound) else { return }
         if !engine.isRunning {
             do { try engine.start() } catch { return }
         }
         engine.mainMixerNode.outputVolume = Float(min(max(volume, 0), 1))
         if player.isPlaying { player.stop() }
-        for _ in 0..<max(1, strikes) {
-            player.scheduleBuffer(buffer, at: nil, options: [], completionHandler: nil)
-        }
+        player.scheduleBuffer(buffer, at: nil, options: [], completionHandler: nil)
         player.play()
     }
 }
