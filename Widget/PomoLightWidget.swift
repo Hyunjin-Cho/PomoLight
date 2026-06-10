@@ -48,7 +48,7 @@ struct PomoLightWidgetView: View {
         Group {
             switch family {
             case .systemSmall: small
-            default:           medium
+            default:           large    // systemLarge
             }
         }
         .containerBackground(for: .widget) {
@@ -58,7 +58,7 @@ struct PomoLightWidgetView: View {
         .widgetURL(URL(string: "pomolight://open"))
     }
 
-    // MARK: Small
+    // MARK: Small (1/4 of large)
 
     private var small: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -72,19 +72,24 @@ struct PomoLightWidgetView: View {
         }
     }
 
-    // MARK: Medium
+    // MARK: Large (big ring)
 
-    private var medium: some View {
-        HStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 6) {
+    private var large: some View {
+        VStack(spacing: 12) {
+            HStack {
                 header
-                Spacer(minLength: 0)
-                countdown
-                    .font(.system(size: 40, weight: .medium, design: .rounded))
-                progress
+                Spacer()
             }
-            ringView
-                .frame(width: 96, height: 96)
+            ZStack {
+                Circle().stroke(accent.opacity(0.18), lineWidth: 18)
+                Circle()
+                    .trim(from: 0, to: max(0.001, snap.fractionRemaining))
+                    .stroke(accent, style: StrokeStyle(lineWidth: 18, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                countdown
+                    .font(.system(size: 56, weight: .medium, design: .rounded))
+            }
+            .padding(6)
         }
     }
 
@@ -125,19 +130,6 @@ struct PomoLightWidgetView: View {
         }
     }
 
-    private var ringView: some View {
-        ZStack {
-            Circle().stroke(accent.opacity(0.18), lineWidth: 9)
-            Circle()
-                .trim(from: 0, to: max(0.001, snap.fractionRemaining))
-                .stroke(accent, style: StrokeStyle(lineWidth: 9, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-            Image(systemName: icon)
-                .font(.system(size: 22, weight: .medium))
-                .foregroundStyle(accent)
-        }
-    }
-
     private var statusKey: LocalizedStringKey {
         switch snap.phase {
         case .idle:     return "ready"
@@ -166,7 +158,7 @@ struct PomoLightWidget: Widget {
         }
         .configurationDisplayName("PomoLight")
         .description("Glance at your focus timer.")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .supportedFamilies([.systemSmall, .systemLarge])
     }
 }
 

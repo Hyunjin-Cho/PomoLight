@@ -9,9 +9,9 @@ struct PomoLightApp: App {
         WindowGroup {
             RootView()
                 .injectEnvironment(model)
-                // Cap the max so it can't balloon, but allow shrinking to stay compact.
-                .frame(minWidth: 320, idealWidth: 360, maxWidth: 360,
-                       minHeight: 430, idealHeight: 480, maxHeight: 480)
+                // Compact by default; can shrink, and can grow up to +50% — no further.
+                .frame(minWidth: 320, idealWidth: 360, maxWidth: 540,
+                       minHeight: 430, idealHeight: 480, maxHeight: 720)
                 .background(WindowConfigurator())
         }
         .windowStyle(.hiddenTitleBar)

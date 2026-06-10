@@ -3,6 +3,7 @@
 DerivedData/
 build/
 build-release/
+build-signed/
 .build/
 *.xcuserstate
 xcuserdata/

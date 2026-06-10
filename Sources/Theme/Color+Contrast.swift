@@ -27,6 +27,25 @@ struct RGB: Equatable, Hashable {
         )
     }
 
+    /// HSL → RGB. `h` in degrees 0...360, `s`/`l` in 0...1. Used to generate the
+    /// rainbow pastel theme palette from evenly-spaced hues.
+    init(h: Double, s: Double, l: Double) {
+        if s == 0 { self.init(l, l, l); return }
+        let hh = (h.truncatingRemainder(dividingBy: 360) + 360).truncatingRemainder(dividingBy: 360) / 360
+        let q = l < 0.5 ? l * (1 + s) : l + s - l * s
+        let p = 2 * l - q
+        func hue2rgb(_ t0: Double) -> Double {
+            var t = t0
+            if t < 0 { t += 1 }
+            if t > 1 { t -= 1 }
+            if t < 1.0 / 6 { return p + (q - p) * 6 * t }
+            if t < 1.0 / 2 { return q }
+            if t < 2.0 / 3 { return p + (q - p) * (2.0 / 3 - t) * 6 }
+            return p
+        }
+        self.init(hue2rgb(hh + 1.0 / 3), hue2rgb(hh), hue2rgb(hh - 1.0 / 3))
+    }
+
     var color: Color { Color(.sRGB, red: r, green: g, blue: b, opacity: 1) }
 
     var hexString: String {

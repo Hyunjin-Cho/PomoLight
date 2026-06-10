@@ -15,10 +15,18 @@ settings:
     MARKETING_VERSION: "1.0"
     CURRENT_PROJECT_VERSION: "1"
     CODE_SIGN_STYLE: Manual
-    CODE_SIGN_IDENTITY: "-"
-    DEVELOPMENT_TEAM: ""
+    PROVISIONING_PROFILE_SPECIFIER: ""
     ENABLE_HARDENED_RUNTIME: YES
     DEAD_CODE_STRIPPING: YES
+  configs:
+    # Dev/test builds are ad-hoc — no keychain password prompts.
+    Debug:
+      CODE_SIGN_IDENTITY: "-"
+      DEVELOPMENT_TEAM: ""
+    # Distribution builds are Developer ID signed (for Gumroad + notarization).
+    Release:
+      CODE_SIGN_IDENTITY: "Developer ID Application"
+      DEVELOPMENT_TEAM: 6RH6FXY82P
 
 targets:
   PomoLight:
@@ -37,11 +45,9 @@ targets:
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         COMBINE_HIDPI_IMAGES: YES
         ENABLE_HARDENED_RUNTIME: YES
-        # App Group entitlement is ready in PomoLight.entitlements. It needs an
-        # Apple Developer account (paid) + provisioning to sign, so it's left OUT of
-        # the default ad-hoc build. To activate live widget data: add
-        #   CODE_SIGN_ENTITLEMENTS: PomoLight.entitlements
-        # here and enable the App Groups capability with your team in Xcode.
+        # To turn on the widget's LIVE data, enable App Groups in Xcode (it creates
+        # the Developer ID profile), then uncomment:
+        # CODE_SIGN_ENTITLEMENTS: PomoLight.entitlements
         INFOPLIST_KEY_CFBundleDisplayName: PomoLight
         INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.productivity"
         INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 PomoLight. Free & donation-supported."
@@ -64,9 +70,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.vismo.pomolight.widget
         ENABLE_HARDENED_RUNTIME: YES
         SKIP_INSTALL: YES
-        # App Group entitlement ready in Widget/PomoLightWidget.entitlements —
-        # add `CODE_SIGN_ENTITLEMENTS: Widget/PomoLightWidget.entitlements` once you
-        # have a paid Apple Developer team, to share live timer data with the app.
+        # Enable with the app's App Groups capability in Xcode, then uncomment:
+        # CODE_SIGN_ENTITLEMENTS: Widget/PomoLightWidget.entitlements
         INFOPLIST_KEY_CFBundleDisplayName: PomoLight
     info:
       path: Widget/Info.plist

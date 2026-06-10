@@ -69,7 +69,8 @@ enum Snapshot {
         }
         .injectEnvironment(model)
         .environment(\.colorScheme, spec.scheme)
-        .frame(width: 360, height: 480)
+        .frame(width: spec.phase == .settings ? 380 : 360,
+               height: spec.phase == .settings ? 760 : 480)
     }
 
     private static func renderView<V: View>(_ view: V, to path: String) {

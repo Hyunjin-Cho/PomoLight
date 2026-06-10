@@ -17,7 +17,7 @@ struct WindowConfigurator: NSViewRepresentable {
             window.standardWindowButton(.zoomButton)?.isEnabled = false
             window.standardWindowButton(.zoomButton)?.alphaValue = 0.35
             // Hard ceiling against window-tiling tools that call setFrame directly.
-            window.maxSize = NSSize(width: 360, height: 520)
+            window.maxSize = NSSize(width: 540, height: 760)
         }
         return view
     }

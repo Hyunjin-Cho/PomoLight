@@ -79,6 +79,6 @@ struct RootView: View {
 
     private func dialDiameter(in size: CGSize) -> CGFloat {
         let available = min(size.width - 56, size.height - 240)
-        return max(180, min(available, 300))
+        return max(180, min(available, 360))
     }
 }

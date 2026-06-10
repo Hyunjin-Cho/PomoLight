@@ -1,24 +1,30 @@
 #!/usr/bin/env swift
-// Independent contrast audit for every shipped theme × appearance.
-// Enforces the design-critic's guardrails (timer >= 7:1, body text >= 4.5:1,
-// ring fill vs track >= 3:1) on the RESOLVED palette and fails (exit 1) if any
-// pair misses its tier. Run:  swift Scripts/contrast_audit.swift
-//
-// This mirrors the same WCAG + enforcement logic the app uses at runtime in
-// Color+Contrast.swift / Theme.swift, as a build-time check.
+// Independent contrast audit for the generated 15-hue pastel palette.
+// Mirrors the app's HSL generator (Theme.swift) + WCAG enforcement (Color+Contrast.swift)
+// and fails (exit 1) if any resolved pair misses its tier:
+//   timer text >= 7:1, body text >= 4.5:1, ring fill vs track >= 3:1.
+// Run:  swift Scripts/contrast_audit.swift
 
 import Foundation
 
 struct RGB {
     var r, g, b: Double
     init(_ r: Double, _ g: Double, _ b: Double) { self.r = r; self.g = g; self.b = b }
-    init(hex: String) {
-        var s = hex; if s.hasPrefix("#") { s.removeFirst() }
-        let v = UInt32(s, radix: 16) ?? 0x808080
-        self.init(Double((v >> 16) & 0xFF)/255, Double((v >> 8) & 0xFF)/255, Double(v & 0xFF)/255)
+    init(h: Double, s: Double, l: Double) {
+        if s == 0 { self.init(l, l, l); return }
+        let hh = (h.truncatingRemainder(dividingBy: 360) + 360).truncatingRemainder(dividingBy: 360) / 360
+        let q = l < 0.5 ? l * (1 + s) : l + s - l * s
+        let p = 2 * l - q
+        func f(_ t0: Double) -> Double {
+            var t = t0; if t < 0 { t += 1 }; if t > 1 { t -= 1 }
+            if t < 1.0/6 { return p + (q - p) * 6 * t }
+            if t < 1.0/2 { return q }
+            if t < 2.0/3 { return p + (q - p) * (2.0/3 - t) * 6 }
+            return p
+        }
+        self.init(f(hh + 1.0/3), f(hh), f(hh - 1.0/3))
     }
 }
-
 func lin(_ c: Double) -> Double { c <= 0.03928 ? c/12.92 : pow((c+0.055)/1.055, 2.4) }
 func lum(_ c: RGB) -> Double { 0.2126*lin(c.r) + 0.7152*lin(c.g) + 0.0722*lin(c.b) }
 func contrast(_ a: RGB, _ b: RGB) -> Double {
@@ -37,73 +43,45 @@ func enforce(_ fg: RGB, against bg: RGB, _ minRatio: Double) -> RGB {
     return best
 }
 
-typealias Colors = [String: String]
-let themes: [(String, Colors, Colors)] = [
-    ("Peach Cream",
-     ["bg":"#FBF3EC","surface":"#FFFBF7","text":"#4A3A30","textSecondary":"#9A8576","ringTrack":"#F3E5D8","ringFill":"#EC8B62"],
-     ["bg":"#221A15","surface":"#2E241D","text":"#F3E6DC","textSecondary":"#B59C8A","ringTrack":"#3D2F26","ringFill":"#F4A883"]),
-    ("Sage Mist",
-     ["bg":"#EEF3ED","surface":"#FAFCF9","text":"#33433A","textSecondary":"#7E938A","ringTrack":"#E0EBE1","ringFill":"#74B189"],
-     ["bg":"#161E1A","surface":"#202A24","text":"#E2EFE7","textSecondary":"#94AC9E","ringTrack":"#2A362E","ringFill":"#92C5A4"]),
-    ("Lavender Haze",
-     ["bg":"#F2EFF7","surface":"#FCFAFE","text":"#3F3850","textSecondary":"#8B829F","ringTrack":"#E8E3F2","ringFill":"#9686CC"],
-     ["bg":"#1A1722","surface":"#251F30","text":"#EBE6F5","textSecondary":"#A096B5","ringTrack":"#2E2838","ringFill":"#AE9FD9"]),
-    ("Sky Linen",
-     ["bg":"#ECF2F6","surface":"#FAFCFE","text":"#2F3F4A","textSecondary":"#788D99","ringTrack":"#DEEAF1","ringFill":"#67A4CE"],
-     ["bg":"#141B21","surface":"#1E272E","text":"#E1EDF4","textSecondary":"#8FA3AF","ringTrack":"#27323A","ringFill":"#87BADD"]),
-    ("Rose Quartz",
-     ["bg":"#FAEFF1","surface":"#FFFAFB","text":"#4D353B","textSecondary":"#A4838C","ringTrack":"#F4E2E6","ringFill":"#D9869A"],
-     ["bg":"#221619","surface":"#2E2024","text":"#F4E3E8","textSecondary":"#B8979F","ringTrack":"#3B2A2E","ringFill":"#E6A3B4"]),
-    ("Butter Honey",
-     ["bg":"#FBF6E9","surface":"#FFFDF6","text":"#48402B","textSecondary":"#9A8C6A","ringTrack":"#F3EAD2","ringFill":"#DDB347"],
-     ["bg":"#211C12","surface":"#2D271A","text":"#F4ECD7","textSecondary":"#B5A580","ringTrack":"#3A3322","ringFill":"#EAC774"]),
-    ("Glacier Mint",
-     ["bg":"#EAF4F2","surface":"#F8FDFC","text":"#2C433F","textSecondary":"#769590","ringTrack":"#DCEEEA","ringFill":"#5DBBAE"],
-     ["bg":"#131F1D","surface":"#1D2B28","text":"#DFF0ED","textSecondary":"#8AACA6","ringTrack":"#26352F","ringFill":"#84CFC4"]),
-    ("Greige Stone",
-     ["bg":"#F2EFEA","surface":"#FBF9F6","text":"#403B34","textSecondary":"#928A7E","ringTrack":"#E8E3DB","ringFill":"#A0937F"],
-     ["bg":"#1C1A17","surface":"#272421","text":"#EDE9E2","textSecondary":"#A89F92","ringTrack":"#332F2A","ringFill":"#C2B8A7"]),
-]
+// Same recipe as Theme.pastel(...)
+func palette(hue h: Double, sat: Double, dark: Bool) -> (bg: RGB, surface: RGB, text: RGB, sec: RGB, track: RGB, fill: RGB) {
+    func m(_ x: Double) -> Double { min(sat, x) }
+    if dark {
+        return (RGB(h:h,s:m(0.24),l:0.10), RGB(h:h,s:m(0.20),l:0.155), RGB(h:h,s:m(0.16),l:0.92),
+                RGB(h:h,s:m(0.14),l:0.70), RGB(h:h,s:m(0.26),l:0.26), RGB(h:h,s:m(0.60),l:0.68))
+    }
+    return (RGB(h:h,s:m(0.42),l:0.965), RGB(h:h,s:m(0.30),l:0.992), RGB(h:h,s:m(0.32),l:0.26),
+            RGB(h:h,s:m(0.22),l:0.50), RGB(h:h,s:m(0.38),l:0.90), RGB(h:h,s:sat,l:0.62))
+}
 
+let themes: [(String, Double, Double)] = [
+    ("Butter",48,0.58),("Peach",26,0.58),("Coral",8,0.58),("Rose",342,0.58),("Orchid",312,0.58),
+    ("Lavender",278,0.58),("Periwinkle",250,0.58),("Bluebell",224,0.58),("Sky",204,0.58),("Aqua",190,0.58),
+    ("Mint",168,0.58),("Meadow",145,0.58),("Sage",112,0.58),("Lime",84,0.58),("Greige",40,0.10),
+]
 func fmt(_ x: Double) -> String { String(format: "%.2f", x) }
 var failures = 0
-
-func audit(_ name: String, _ scheme: String, _ c: Colors) {
-    let bg = RGB(hex: c["bg"]!), surface = RGB(hex: c["surface"]!)
-    let text = RGB(hex: c["text"]!), sec = RGB(hex: c["textSecondary"]!)
-    let track = RGB(hex: c["ringTrack"]!), fill = RGB(hex: c["ringFill"]!)
-
-    let timer = enforce(enforce(text, against: bg, 7.0), against: surface, 7.0)
-    let body = enforce(enforce(sec, against: bg, 4.5), against: surface, 4.5)
-    let rf = enforce(fill, against: track, 3.0)
-
-    let checks: [(String, Double, Double)] = [
-        ("timer/bg", contrast(timer, bg), 7.0),
-        ("timer/surface", contrast(timer, surface), 7.0),
-        ("secondary/bg", contrast(body, bg), 4.5),
-        ("secondary/surface", contrast(body, surface), 4.5),
-        ("ringFill/track", contrast(rf, track), 3.0),
-    ]
-    var line = "  [\(scheme)] "
-    for (label, ratio, tier) in checks {
-        let ok = ratio >= tier - 0.001
-        if !ok { failures += 1 }
-        line += "\(label)=\(fmt(ratio))\(ok ? "✓" : "✗(<\(fmt(tier)))")  "
+print("PomoLight contrast audit — 15 generated pastels (resolved/enforced)\n")
+for (name, hue, sat) in themes {
+    for dark in [false, true] {
+        let p = palette(hue: hue, sat: sat, dark: dark)
+        let timer = enforce(enforce(p.text, against: p.bg, 7.0), against: p.surface, 7.0)
+        let body = enforce(enforce(p.sec, against: p.bg, 4.5), against: p.surface, 4.5)
+        let rf = enforce(p.fill, against: p.track, 3.0)
+        let checks: [(String, Double, Double)] = [
+            ("timer", min(contrast(timer, p.bg), contrast(timer, p.surface)), 7.0),
+            ("text",  min(contrast(body, p.bg), contrast(body, p.surface)), 4.5),
+            ("ring",  contrast(rf, p.track), 3.0),
+        ]
+        var line = "  \(name.padding(toLength: 11, withPad: " ", startingAt: 0)) [\(dark ? "dark " : "light")] "
+        for (label, ratio, tier) in checks {
+            let ok = ratio >= tier - 0.001
+            if !ok { failures += 1 }
+            line += "\(label)=\(fmt(ratio))\(ok ? "✓" : "✗")  "
+        }
+        print(line)
     }
-    print(line)
-}
-
-print("PomoLight contrast audit — enforced (resolved) palette\n")
-for (name, light, dark) in themes {
-    print("\(name):")
-    audit(name, "light", light)
-    audit(name, "dark ", dark)
 }
 print("")
-if failures == 0 {
-    print("✅ PASS — all themes meet WCAG tiers (timer 7:1, text 4.5:1, ring 3:1).")
-    exit(0)
-} else {
-    print("❌ FAIL — \(failures) contrast pair(s) below tier.")
-    exit(1)
-}
+if failures == 0 { print("✅ PASS — all 15 themes meet WCAG tiers in light & dark."); exit(0) }
+else { print("❌ FAIL — \(failures) pair(s) below tier."); exit(1) }

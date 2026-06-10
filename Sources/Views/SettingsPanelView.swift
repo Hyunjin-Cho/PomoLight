@@ -10,9 +10,6 @@ struct SettingsPanelView: View {
     @Binding var isPresented: Bool
     var scrolls: Bool = true
 
-    @State private var customColor: Color = .orange
-    @State private var seededColor: Color?
-
     var body: some View {
         Group {
             if scrolls {
@@ -22,19 +19,10 @@ struct SettingsPanelView: View {
             }
         }
         .frame(width: 320)
-        .frame(maxHeight: 520)
-        .background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(palette.surface)
-                .shadow(color: .black.opacity(0.18), radius: 24, y: 8)
-        )
-        .onAppear {
-            // Seed the picker to the current custom color WITHOUT this programmatic
-            // change being mistaken for a user pick (which would force-select Custom).
-            let c = theme.customAccentColor
-            customColor = c
-            seededColor = c
-        }
+        .frame(maxHeight: 540)
+        .background(RoundedRectangle(cornerRadius: 22, style: .continuous).fill(palette.surface))
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))   // keep content inside the card
+        .shadow(color: .black.opacity(0.18), radius: 24, y: 8)
         .onExitCommand { isPresented = false }
     }
 
@@ -79,54 +67,8 @@ struct SettingsPanelView: View {
                         theme.selectPreset(id: preset.id)
                     }
                 }
-                customSwatch
             }
         }
-    }
-
-    private var customSwatch: some View {
-        ZStack {
-            Circle()
-                .fill(customSwatchFill)
-                .overlay(
-                    Image(systemName: "eyedropper")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(customGlyphColor)
-                        .shadow(color: .black.opacity(0.25), radius: 1)
-                        .accessibilityHidden(true)
-                )
-                .frame(width: 30, height: 30)
-                .overlay(selectionRing(theme.current.isCustom))
-            ColorPicker("", selection: $customColor, supportsOpacity: false)
-                .labelsHidden()
-                .opacity(0.02)            // invisible hit area over the swatch
-                .frame(width: 30, height: 30)
-        }
-        .help("Custom color")
-        .accessibilityLabel("Custom color")
-        .accessibilityAddTraits(theme.current.isCustom ? [.isSelected] : [])
-        .onChange(of: customColor) { _, newValue in
-            // Apply only genuine user picks, not the initial seed.
-            guard newValue != seededColor else { return }
-            theme.setCustomAccent(newValue)
-        }
-    }
-
-    /// Until the user picks a custom color, show a rainbow "pick your own" disc
-    /// (not a stray solid color that looks like a preset). Once chosen, show it.
-    private var customSwatchFill: AnyShapeStyle {
-        if theme.current.isCustom {
-            return AnyShapeStyle(theme.customAccentColor)
-        }
-        return AnyShapeStyle(AngularGradient(
-            colors: [.red, .orange, .yellow, .green, .blue, .purple, .red],
-            center: .center))
-    }
-
-    /// Keep the eyedropper visible on the rainbow or on any picked color.
-    private var customGlyphColor: Color {
-        guard theme.current.isCustom else { return .white }
-        return WCAG.luminance(theme.customAccentColor.resolvedRGB()) > 0.6 ? Color(white: 0.15) : .white
     }
 
     private func swatch(color: Color, selected: Bool, label: String, action: @escaping () -> Void) -> some View {
@@ -169,7 +111,7 @@ struct SettingsPanelView: View {
                         HStack(spacing: 10) {
                             Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
                                 .foregroundStyle(isSelected ? palette.accent : palette.secondaryText)
-                            Text(sound.displayNameKey)
+                            Text(verbatim: sound.displayName)   // sound names stay English
                                 .font(.system(size: 14, design: .rounded))
                                 .foregroundStyle(palette.primaryText)
                             Spacer()
@@ -177,7 +119,7 @@ struct SettingsPanelView: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(sound.displayNameKey)
+                    .accessibilityLabel(sound.displayName)
                     .accessibilityAddTraits(isSelected ? [.isSelected] : [])
 
                     CircleIconButton(systemName: "play.fill", tint: palette.secondaryText,
@@ -185,7 +127,7 @@ struct SettingsPanelView: View {
                                      font: .system(size: 11)) {
                         app.preview(sound)
                     }
-                    .accessibilityLabel(Text("Preview \(Text(sound.displayNameKey))"))
+                    .accessibilityLabel(Text("Preview \(sound.displayName)"))
                 }
             }
 
