@@ -42,12 +42,12 @@ struct SettingsPanelView: View {
     private var header: some View {
         HStack {
             Text("Settings")
-                .font(.system(size: 17, weight: .semibold, design: .rounded))
+                .font(.system(size: 16, weight: .semibold, design: .rounded))
                 .foregroundStyle(palette.primaryText)
             Spacer()
             Button("Done") { isPresented = false }
                 .buttonStyle(.plain)
-                .font(.system(size: 17, weight: .semibold, design: .rounded))   // match the "Settings" title size
+                .font(.system(size: 16, weight: .semibold, design: .rounded))   // same size as the title
                 .foregroundStyle(palette.primaryText)   // fixed ink, like the title — not theme-tinted
                 .keyboardShortcut(.defaultAction)
         }
@@ -153,6 +153,11 @@ struct SettingsPanelView: View {
         VStack(alignment: .leading, spacing: 8) {
             sectionTitle("WHEN THE TIMER ENDS")
             toggle("Repeat sound until dismissed", \.repeatUntilDismissed)
+            Text("Otherwise the alarm rings 3 times.")
+                .font(.system(size: 11, design: .rounded))
+                .foregroundStyle(palette.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, -4)
             toggle("Show notification", \.notificationsEnabled)
             sectionTitle("GENERAL").padding(.top, 6)
             toggle("Show seconds in custom entry", \.showSeconds)
@@ -190,11 +195,15 @@ struct SettingsPanelView: View {
                     .font(.system(size: 13, design: .rounded))
                     .foregroundStyle(palette.secondaryText)
                 Spacer()
-                Text("v1.0")
+                Text(verbatim: "v\(appVersion)")
                     .font(.system(size: 11, design: .rounded))
                     .foregroundStyle(palette.secondaryText)
             }
         }
+    }
+
+    private var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "2026.01"
     }
 
     private func sectionTitle(_ text: LocalizedStringKey) -> some View {
