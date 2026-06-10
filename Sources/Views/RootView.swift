@@ -16,7 +16,9 @@ struct RootView: View {
 
         GeometryReader { geo in
             ZStack {
-                palette.bg.ignoresSafeArea()
+                LinearGradient(colors: [palette.bg, palette.bgDeep],
+                               startPoint: .top, endPoint: .bottom)
+                    .ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     topBar(palette)

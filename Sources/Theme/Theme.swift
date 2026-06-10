@@ -35,28 +35,33 @@ struct Theme: Identifiable, Hashable {
 extension Theme {
     /// Generates a cozy pastel palette (light + dark) from a single hue. The Palette
     /// layer enforces WCAG contrast on top, so legibility is guaranteed for any hue.
-    // Recipe tuned by the color team for a genuine soft-pastel feel (master
-    // saturation 0.44, raised lightness) — pastel yet still 15 distinct hues.
-    private static func pastel(_ id: String, _ name: String,
-                               hue h: Double, sat: Double = 0.44) -> Theme {
+    // Recipe tuned by the color team (Fable 5 + GPT-5.5): bright "candy pastels"
+    // — high saturation kept soft by high lightness — plus a clearly-tinted
+    // background. text/textSecondary/ringFill are WCAG-auto-corrected in Palette.
+    private static func pastel(_ id: String, _ name: String, hue h: Double) -> Theme {
+        // Perceptual evening-out: yellows read too light, cyans/blues read flatter.
+        let yellowDip = (40.0 ..< 100.0).contains(h) ? 0.05 : 0.0
+        let cyanBoost = (170.0 ..< 255.0).contains(h) ? 0.06 : 0.0
+        func clampS(_ s: Double) -> Double { min(s + cyanBoost, 1.0) }
+
         let light = ThemeColors(
-            bg:            RGB(h: h, s: min(sat, 0.30), l: 0.972).hexString,
-            surface:       RGB(h: h, s: min(sat, 0.22), l: 0.994).hexString,
-            accent:        RGB(h: h, s: sat,            l: 0.74).hexString,
-            accentSoft:    RGB(h: h, s: min(sat, 0.40), l: 0.91).hexString,
-            text:          RGB(h: h, s: min(sat, 0.30), l: 0.26).hexString,
-            textSecondary: RGB(h: h, s: min(sat, 0.20), l: 0.50).hexString,
-            ringTrack:     RGB(h: h, s: min(sat, 0.30), l: 0.915).hexString,
-            ringFill:      RGB(h: h, s: sat,            l: 0.64).hexString)
+            bg:            RGB(h: h, s: 0.85, l: 0.95 - yellowDip * 0.4).hexString,
+            surface:       RGB(h: h, s: 0.70, l: 0.982).hexString,
+            accent:        RGB(h: h, s: clampS(0.89), l: 0.74 - yellowDip).hexString,
+            accentSoft:    RGB(h: h, s: 0.88, l: 0.87).hexString,
+            text:          RGB(h: h, s: 0.45, l: 0.25).hexString,
+            textSecondary: RGB(h: h, s: 0.30, l: 0.47).hexString,
+            ringTrack:     RGB(h: h, s: 0.74, l: 0.89).hexString,
+            ringFill:      RGB(h: h, s: clampS(0.84), l: 0.62 - yellowDip).hexString)
         let dark = ThemeColors(
-            bg:            RGB(h: h, s: min(sat, 0.20), l: 0.105).hexString,
-            surface:       RGB(h: h, s: min(sat, 0.17), l: 0.16).hexString,
-            accent:        RGB(h: h, s: min(sat, 0.48), l: 0.72).hexString,
-            accentSoft:    RGB(h: h, s: min(sat, 0.32), l: 0.32).hexString,
-            text:          RGB(h: h, s: min(sat, 0.16), l: 0.92).hexString,
-            textSecondary: RGB(h: h, s: min(sat, 0.14), l: 0.70).hexString,
-            ringTrack:     RGB(h: h, s: min(sat, 0.24), l: 0.265).hexString,
-            ringFill:      RGB(h: h, s: min(sat, 0.48), l: 0.68).hexString)
+            bg:            RGB(h: h, s: 0.46, l: 0.12).hexString,
+            surface:       RGB(h: h, s: 0.40, l: 0.17).hexString,
+            accent:        RGB(h: h, s: clampS(0.86), l: 0.70 - yellowDip * 0.6).hexString,
+            accentSoft:    RGB(h: h, s: 0.52, l: 0.30).hexString,
+            text:          RGB(h: h, s: 0.22, l: 0.92).hexString,
+            textSecondary: RGB(h: h, s: 0.17, l: 0.71).hexString,
+            ringTrack:     RGB(h: h, s: 0.43, l: 0.25).hexString,
+            ringFill:      RGB(h: h, s: clampS(0.82), l: 0.67).hexString)
         return Theme(id: id, name: name, mood: "", light: light, dark: dark)
     }
 
@@ -92,6 +97,7 @@ extension Theme {
 
 struct Palette {
     let bg: Color
+    let bgDeep: Color          // slightly deeper bg for a soft vertical gradient
     let surface: Color
     let accent: Color          // raw accent — used only for non-text accents (glow, idle ring, swatch)
     let accentSoft: Color      // soft fills (chips at rest, halos)
@@ -115,6 +121,7 @@ struct Palette {
         let ringFill = RGB(hex: c.ringFill)
 
         self.bg = bg.color
+        self.bgDeep = RGB(bg.r * 0.965, bg.g * 0.965, bg.b * 0.965).color
         self.surface = surface.color
         self.accent = accent.color
         self.accentSoft = accentSoft.color

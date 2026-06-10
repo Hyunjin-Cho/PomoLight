@@ -44,14 +44,16 @@ func enforce(_ fg: RGB, against bg: RGB, _ minRatio: Double) -> RGB {
 }
 
 // Same recipe as Theme.pastel(...)
-func palette(hue h: Double, sat: Double, dark: Bool) -> (bg: RGB, surface: RGB, text: RGB, sec: RGB, track: RGB, fill: RGB) {
-    func m(_ x: Double) -> Double { min(sat, x) }
+func palette(hue h: Double, dark: Bool) -> (bg: RGB, surface: RGB, text: RGB, sec: RGB, track: RGB, fill: RGB) {
+    let yellowDip = (40.0 ..< 100.0).contains(h) ? 0.05 : 0.0
+    let cyanBoost = (170.0 ..< 255.0).contains(h) ? 0.06 : 0.0
+    func cs(_ s: Double) -> Double { min(s + cyanBoost, 1.0) }
     if dark {
-        return (RGB(h:h,s:m(0.20),l:0.105), RGB(h:h,s:m(0.17),l:0.16), RGB(h:h,s:m(0.16),l:0.92),
-                RGB(h:h,s:m(0.14),l:0.70), RGB(h:h,s:m(0.24),l:0.265), RGB(h:h,s:m(0.48),l:0.68))
+        return (RGB(h:h,s:0.46,l:0.12), RGB(h:h,s:0.40,l:0.17), RGB(h:h,s:0.22,l:0.92),
+                RGB(h:h,s:0.17,l:0.71), RGB(h:h,s:0.43,l:0.25), RGB(h:h,s:cs(0.82),l:0.67))
     }
-    return (RGB(h:h,s:m(0.30),l:0.972), RGB(h:h,s:m(0.22),l:0.994), RGB(h:h,s:m(0.30),l:0.26),
-            RGB(h:h,s:m(0.20),l:0.50), RGB(h:h,s:m(0.30),l:0.915), RGB(h:h,s:sat,l:0.64))
+    return (RGB(h:h,s:0.85,l:0.95 - yellowDip*0.4), RGB(h:h,s:0.70,l:0.982), RGB(h:h,s:0.45,l:0.25),
+            RGB(h:h,s:0.30,l:0.47), RGB(h:h,s:0.74,l:0.89), RGB(h:h,s:cs(0.84),l:0.62 - yellowDip))
 }
 
 let themes: [(String, Double, Double)] = [
@@ -62,9 +64,9 @@ let themes: [(String, Double, Double)] = [
 func fmt(_ x: Double) -> String { String(format: "%.2f", x) }
 var failures = 0
 print("PomoLight contrast audit — 15 generated pastels (resolved/enforced)\n")
-for (name, hue, sat) in themes {
+for (name, hue, _) in themes {
     for dark in [false, true] {
-        let p = palette(hue: hue, sat: sat, dark: dark)
+        let p = palette(hue: hue, dark: dark)
         let timer = enforce(enforce(p.text, against: p.bg, 7.0), against: p.surface, 7.0)
         let body = enforce(enforce(p.sec, against: p.bg, 4.5), against: p.surface, 4.5)
         let rf = enforce(p.fill, against: p.track, 3.0)

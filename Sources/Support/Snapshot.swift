@@ -19,12 +19,12 @@ enum Snapshot {
     enum RenderPhase { case idle, running, finished, settings }
 
     private static let specs: [Spec] = [
-        Spec(name: "01_default_idle_peach_light", themeID: "peach", scheme: .light, phase: .idle),
-        Spec(name: "02_running_sage_light", themeID: "sage", scheme: .light, phase: .running),
-        Spec(name: "03_running_lavender_dark", themeID: "lavender", scheme: .dark, phase: .running),
+        Spec(name: "01_idle_sky_light", themeID: "sky", scheme: .light, phase: .idle),
+        Spec(name: "02_running_lime_light", themeID: "lime", scheme: .light, phase: .running),
+        Spec(name: "03_running_violet_dark", themeID: "violet", scheme: .dark, phase: .running),
         Spec(name: "04_finished_rose_light", themeID: "rose", scheme: .light, phase: .finished),
-        Spec(name: "05_settings_glacier_light", themeID: "glacier", scheme: .light, phase: .settings),
-        Spec(name: "06_idle_butter_dark", themeID: "butter", scheme: .dark, phase: .idle),
+        Spec(name: "05_settings_mint_light", themeID: "mint", scheme: .light, phase: .settings),
+        Spec(name: "06_idle_yellow_dark", themeID: "yellow", scheme: .dark, phase: .idle),
     ]
 
     static func render(into dir: String) {
