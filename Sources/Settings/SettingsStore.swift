@@ -2,39 +2,23 @@ import Foundation
 import Observation
 import SwiftUI
 
-/// The gentle alarm sounds the user can choose from. The default is our own
-/// synthesized soft bell; the rest map to the calm entries in
-/// /System/Library/Sounds (jarring ones like Basso/Funk are deliberately omitted).
+/// The gentle alarm sounds the user can choose from. All are synthesized in-app
+/// (license-clean, fully tunable) — macOS system sounds are notification blips that
+/// read as "button" sounds, so they're not used. Names stay English.
 enum AlarmSound: String, CaseIterable, Identifiable {
-    case synthBell
-    case glass
-    case submarine
+    case synthBell      // rawValue kept for back-compat with stored prefs
+    case marimba
+    case bell
+    case pulse
 
     var id: String { rawValue }
 
     var displayName: String {
         switch self {
         case .synthBell: return "Soft Chime"
-        case .glass:     return "Glass"
-        case .submarine: return "Submarine"
-        }
-    }
-
-    /// Localized label for the UI (the system-sound names stay as proper nouns).
-    var displayNameKey: LocalizedStringKey {
-        switch self {
-        case .synthBell: return "Soft Chime"
-        case .glass:     return "Glass"
-        case .submarine: return "Submarine"
-        }
-    }
-
-    /// The matching NSSound name for system sounds (nil for the synthesized chime).
-    var systemSoundName: String? {
-        switch self {
-        case .synthBell: return nil
-        case .glass:     return "Glass"
-        case .submarine: return "Submarine"
+        case .marimba:   return "Marimba"
+        case .bell:      return "Bell"
+        case .pulse:     return "Pulse"
         }
     }
 }

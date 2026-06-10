@@ -1,26 +1,22 @@
 import AVFoundation
-import AppKit
 
-/// Plays the gentle alarm. The default is our synthesized soft bell (two soft
-/// "ding…ding" strikes); the alternatives are calm macOS system sounds. Also
-/// supports "repeat until dismissed" by gently re-chiming on an interval.
+/// Plays the gentle alarm. Every sound is synthesized in-app (a short motif played
+/// twice); "repeat until dismissed" re-chimes on an interval until Dismiss.
 @MainActor
 final class ChimePlayer {
     private let engine = AVAudioEngine()
     private let player = AVAudioPlayerNode()
-    private var bellBuffer: AVAudioPCMBuffer?
-    private var systemSound: NSSound?
+    private var buffers: [AlarmSound: AVAudioPCMBuffer] = [:]
     private var repeatTimer: Timer?
     private var configObserver: NSObjectProtocol?
 
+    // All voices render at this fixed mono format; the player connection uses it
+    // too, so a buffer never mismatches the graph (that mismatch = silent alarm).
+    private static let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1)
+
     init() {
-        // Build the buffer FIRST, then connect the player using the buffer's exact
-        // format. Connecting with `nil` lets the mixer pick a different format
-        // (e.g. stereo @ the device's 48 kHz), and scheduling our mono 44.1 kHz
-        // buffer into that mismatched connection plays SILENCE — that was the bug.
-        bellBuffer = BellSynth.makeAlarmBuffer()
         engine.attach(player)
-        engine.connect(player, to: engine.mainMixerNode, format: bellBuffer?.format)
+        engine.connect(player, to: engine.mainMixerNode, format: ChimePlayer.format)
         engine.prepare()
         // AVAudioEngine stops itself on output-route / sample-rate changes
         // (headphones, dock, device switch). Reconnect so the next alarm restarts.
@@ -29,7 +25,7 @@ final class ChimePlayer {
         ) { [weak self] _ in
             MainActor.assumeIsolated {
                 guard let self else { return }
-                self.engine.connect(self.player, to: self.engine.mainMixerNode, format: self.bellBuffer?.format)
+                self.engine.connect(self.player, to: self.engine.mainMixerNode, format: ChimePlayer.format)
             }
         }
     }
@@ -38,7 +34,7 @@ final class ChimePlayer {
         if let configObserver { NotificationCenter.default.removeObserver(configObserver) }
     }
 
-    /// Fire the alarm for a finished timer.
+    /// Fire the alarm for a finished timer (motif played twice, optionally repeating).
     func playAlarm(sound: AlarmSound, volume: Double, repeatUntilDismissed: Bool) {
         stop()
         playOnce(sound: sound, volume: volume, strikes: 2)
@@ -51,7 +47,7 @@ final class ChimePlayer {
         }
     }
 
-    /// A short audition for the settings panel — always a single strike.
+    /// A short audition for the settings panel — one motif.
     func preview(sound: AlarmSound, volume: Double) {
         stop()
         playOnce(sound: sound, volume: volume, strikes: 1)
@@ -62,31 +58,23 @@ final class ChimePlayer {
         repeatTimer?.invalidate()
         repeatTimer = nil
         if player.isPlaying { player.stop() }
-        systemSound?.stop()
-        systemSound = nil
     }
 
     // MARK: - Private
 
-    private func playOnce(sound: AlarmSound, volume: Double, strikes: Int) {
-        let vol = min(max(volume, 0), 1)
-        if sound == .synthBell {
-            playBell(volume: vol, strikes: strikes)
-        } else if let name = sound.systemSoundName, let ns = NSSound(named: name) {
-            ns.volume = Float(vol)
-            ns.play()
-            systemSound = ns
-        } else {
-            playBell(volume: vol, strikes: strikes)   // fallback
-        }
+    private func buffer(for sound: AlarmSound) -> AVAudioPCMBuffer? {
+        if let cached = buffers[sound] { return cached }
+        let made = BellSynth.makeBuffer(for: sound)
+        if let made { buffers[sound] = made }
+        return made
     }
 
-    private func playBell(volume: Double, strikes: Int) {
-        guard let buffer = bellBuffer else { return }
+    private func playOnce(sound: AlarmSound, volume: Double, strikes: Int) {
+        guard let buffer = buffer(for: sound) else { return }
         if !engine.isRunning {
             do { try engine.start() } catch { return }
         }
-        engine.mainMixerNode.outputVolume = Float(volume)
+        engine.mainMixerNode.outputVolume = Float(min(max(volume, 0), 1))
         if player.isPlaying { player.stop() }
         for _ in 0..<max(1, strikes) {
             player.scheduleBuffer(buffer, at: nil, options: [], completionHandler: nil)
