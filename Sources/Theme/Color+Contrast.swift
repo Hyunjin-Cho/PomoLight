@@ -117,21 +117,28 @@ struct LegibleFill {
 
     init(accent: RGB) {
         let white = RGB(1, 1, 1)
-        let ink = RGB(0.16, 0.16, 0.18)
-        // Prefer white text (the classic filled look); deepen the accent until it passes.
+        let ink = RGB(0.13, 0.12, 0.15)
+        let cWhite = WCAG.contrast(white, accent)
+        let cInk = WCAG.contrast(ink, accent)
+        // KEEP the bright candy accent whenever a label reads well on it — light
+        // accents (yellow, mint…) take dark ink. This avoids muddy "deepened"
+        // buttons (e.g. yellow turning olive to host white text).
+        if max(cWhite, cInk) >= 4.5 {
+            self.fill = accent
+            self.label = cInk >= cWhite ? ink : white
+            return
+        }
+        // Mid-tone accent that neither label clears: deepen until white passes.
         var fill = accent
         var amount = 0.0
-        while amount <= 1.0 {
-            if WCAG.contrast(white, fill) >= 4.5 {
-                self.fill = fill; self.label = white; return
-            }
+        while amount < 1.0 {
             amount += 0.04
             fill = RGB(accent.r * (1 - amount),
                        accent.g * (1 - amount),
                        accent.b * (1 - amount))
+            if WCAG.contrast(white, fill) >= 4.5 { break }
         }
-        // Extremely unlikely fallback: dark accent already, use ink on the raw accent.
-        self.fill = accent
-        self.label = WCAG.contrast(white, accent) >= WCAG.contrast(ink, accent) ? white : ink
+        self.fill = fill
+        self.label = white
     }
 }

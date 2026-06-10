@@ -39,24 +39,26 @@ extension Theme {
     // — high saturation kept soft by high lightness — plus a clearly-tinted
     // background. text/textSecondary/ringFill are WCAG-auto-corrected in Palette.
     private static func pastel(_ id: String, _ name: String, hue h: Double) -> Theme {
-        // Perceptual evening-out: yellows read too light, cyans/blues read flatter.
-        let yellowDip = (40.0 ..< 100.0).contains(h) ? 0.05 : 0.0
+        // Yellows are intrinsically light → darken only the BACKGROUND a touch so its
+        // tint stays visible (NOT the accent/ring — that would make yellow olive).
+        // Cyans/blues read flatter → nudge their saturation up.
+        let bgYellowDip = (40.0 ..< 95.0).contains(h) ? 0.03 : 0.0
         let cyanBoost = (170.0 ..< 255.0).contains(h) ? 0.06 : 0.0
         func clampS(_ s: Double) -> Double { min(s + cyanBoost, 1.0) }
 
         let light = ThemeColors(
-            bg:            RGB(h: h, s: 0.85, l: 0.95 - yellowDip * 0.4).hexString,
+            bg:            RGB(h: h, s: 0.85, l: 0.95 - bgYellowDip).hexString,
             surface:       RGB(h: h, s: 0.70, l: 0.982).hexString,
-            accent:        RGB(h: h, s: clampS(0.89), l: 0.74 - yellowDip).hexString,
+            accent:        RGB(h: h, s: clampS(0.89), l: 0.74).hexString,
             accentSoft:    RGB(h: h, s: 0.88, l: 0.87).hexString,
             text:          RGB(h: h, s: 0.45, l: 0.25).hexString,
             textSecondary: RGB(h: h, s: 0.30, l: 0.47).hexString,
             ringTrack:     RGB(h: h, s: 0.74, l: 0.89).hexString,
-            ringFill:      RGB(h: h, s: clampS(0.84), l: 0.62 - yellowDip).hexString)
+            ringFill:      RGB(h: h, s: clampS(0.84), l: 0.62).hexString)
         let dark = ThemeColors(
             bg:            RGB(h: h, s: 0.46, l: 0.12).hexString,
             surface:       RGB(h: h, s: 0.40, l: 0.17).hexString,
-            accent:        RGB(h: h, s: clampS(0.86), l: 0.70 - yellowDip * 0.6).hexString,
+            accent:        RGB(h: h, s: clampS(0.86), l: 0.70).hexString,
             accentSoft:    RGB(h: h, s: 0.52, l: 0.30).hexString,
             text:          RGB(h: h, s: 0.22, l: 0.92).hexString,
             textSecondary: RGB(h: h, s: 0.17, l: 0.71).hexString,

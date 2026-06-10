@@ -24,7 +24,7 @@ enum Snapshot {
         Spec(name: "03_running_violet_dark", themeID: "violet", scheme: .dark, phase: .running),
         Spec(name: "04_finished_rose_light", themeID: "rose", scheme: .light, phase: .finished),
         Spec(name: "05_settings_mint_light", themeID: "mint", scheme: .light, phase: .settings),
-        Spec(name: "06_idle_yellow_dark", themeID: "yellow", scheme: .dark, phase: .idle),
+        Spec(name: "06_idle_yellow_light", themeID: "yellow", scheme: .light, phase: .idle),
     ]
 
     static func render(into dir: String) {

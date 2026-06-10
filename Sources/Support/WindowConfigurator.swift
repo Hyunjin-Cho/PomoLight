@@ -10,6 +10,9 @@ struct WindowConfigurator: NSViewRepresentable {
         let view = NSView(frame: .zero)
         DispatchQueue.main.async { [weak view] in
             guard let window = view?.window else { return }
+            // Drag the window from anywhere (empty areas), not just the title bar.
+            // Interactive controls (buttons/sliders) still capture their clicks.
+            window.isMovableByWindowBackground = true
             // Keep `.resizable` so the user can still drag it SMALLER; the content
             // max-frame prevents it from growing past the comfortable size.
             window.collectionBehavior.remove(.fullScreenPrimary)

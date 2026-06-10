@@ -45,15 +45,15 @@ func enforce(_ fg: RGB, against bg: RGB, _ minRatio: Double) -> RGB {
 
 // Same recipe as Theme.pastel(...)
 func palette(hue h: Double, dark: Bool) -> (bg: RGB, surface: RGB, text: RGB, sec: RGB, track: RGB, fill: RGB) {
-    let yellowDip = (40.0 ..< 100.0).contains(h) ? 0.05 : 0.0
+    let bgYellowDip = (40.0 ..< 95.0).contains(h) ? 0.03 : 0.0
     let cyanBoost = (170.0 ..< 255.0).contains(h) ? 0.06 : 0.0
     func cs(_ s: Double) -> Double { min(s + cyanBoost, 1.0) }
     if dark {
         return (RGB(h:h,s:0.46,l:0.12), RGB(h:h,s:0.40,l:0.17), RGB(h:h,s:0.22,l:0.92),
                 RGB(h:h,s:0.17,l:0.71), RGB(h:h,s:0.43,l:0.25), RGB(h:h,s:cs(0.82),l:0.67))
     }
-    return (RGB(h:h,s:0.85,l:0.95 - yellowDip*0.4), RGB(h:h,s:0.70,l:0.982), RGB(h:h,s:0.45,l:0.25),
-            RGB(h:h,s:0.30,l:0.47), RGB(h:h,s:0.74,l:0.89), RGB(h:h,s:cs(0.84),l:0.62 - yellowDip))
+    return (RGB(h:h,s:0.85,l:0.95 - bgYellowDip), RGB(h:h,s:0.70,l:0.982), RGB(h:h,s:0.45,l:0.25),
+            RGB(h:h,s:0.30,l:0.47), RGB(h:h,s:0.74,l:0.89), RGB(h:h,s:cs(0.84),l:0.62))
 }
 
 let themes: [(String, Double, Double)] = [
