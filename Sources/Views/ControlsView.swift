@@ -25,9 +25,10 @@ struct ControlsView: View {
                 HStack(spacing: 8) {
                     Image(systemName: primaryIcon)
                         .font(.system(size: 14, weight: .bold))
-                        .contentTransition(.symbolEffect(.replace))
+                        .frame(width: 18, height: 18)   // fixed slot — icon swap can't shift the label
                     Text(primaryTitle)
                 }
+                .animation(nil, value: engine.phase)    // no morph/jitter on Start↔Pause
             }
             .buttonStyle(PomoPrimaryButtonStyle(fill: palette.buttonFill,
                                                 label: palette.buttonLabel,

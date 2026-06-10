@@ -35,26 +35,28 @@ struct Theme: Identifiable, Hashable {
 extension Theme {
     /// Generates a cozy pastel palette (light + dark) from a single hue. The Palette
     /// layer enforces WCAG contrast on top, so legibility is guaranteed for any hue.
+    // Recipe tuned by the color team for a genuine soft-pastel feel (master
+    // saturation 0.44, raised lightness) — pastel yet still 15 distinct hues.
     private static func pastel(_ id: String, _ name: String,
-                               hue h: Double, sat: Double = 0.58) -> Theme {
+                               hue h: Double, sat: Double = 0.44) -> Theme {
         let light = ThemeColors(
-            bg:            RGB(h: h, s: min(sat, 0.42), l: 0.965).hexString,
-            surface:       RGB(h: h, s: min(sat, 0.30), l: 0.992).hexString,
-            accent:        RGB(h: h, s: sat,            l: 0.68).hexString,
-            accentSoft:    RGB(h: h, s: min(sat, 0.52), l: 0.88).hexString,
-            text:          RGB(h: h, s: min(sat, 0.32), l: 0.26).hexString,
-            textSecondary: RGB(h: h, s: min(sat, 0.22), l: 0.50).hexString,
-            ringTrack:     RGB(h: h, s: min(sat, 0.38), l: 0.90).hexString,
-            ringFill:      RGB(h: h, s: sat,            l: 0.62).hexString)
+            bg:            RGB(h: h, s: min(sat, 0.30), l: 0.972).hexString,
+            surface:       RGB(h: h, s: min(sat, 0.22), l: 0.994).hexString,
+            accent:        RGB(h: h, s: sat,            l: 0.74).hexString,
+            accentSoft:    RGB(h: h, s: min(sat, 0.40), l: 0.91).hexString,
+            text:          RGB(h: h, s: min(sat, 0.30), l: 0.26).hexString,
+            textSecondary: RGB(h: h, s: min(sat, 0.20), l: 0.50).hexString,
+            ringTrack:     RGB(h: h, s: min(sat, 0.30), l: 0.915).hexString,
+            ringFill:      RGB(h: h, s: sat,            l: 0.64).hexString)
         let dark = ThemeColors(
-            bg:            RGB(h: h, s: min(sat, 0.24), l: 0.10).hexString,
-            surface:       RGB(h: h, s: min(sat, 0.20), l: 0.155).hexString,
-            accent:        RGB(h: h, s: min(sat, 0.60), l: 0.70).hexString,
-            accentSoft:    RGB(h: h, s: min(sat, 0.35), l: 0.30).hexString,
+            bg:            RGB(h: h, s: min(sat, 0.20), l: 0.105).hexString,
+            surface:       RGB(h: h, s: min(sat, 0.17), l: 0.16).hexString,
+            accent:        RGB(h: h, s: min(sat, 0.48), l: 0.72).hexString,
+            accentSoft:    RGB(h: h, s: min(sat, 0.32), l: 0.32).hexString,
             text:          RGB(h: h, s: min(sat, 0.16), l: 0.92).hexString,
             textSecondary: RGB(h: h, s: min(sat, 0.14), l: 0.70).hexString,
-            ringTrack:     RGB(h: h, s: min(sat, 0.26), l: 0.26).hexString,
-            ringFill:      RGB(h: h, s: min(sat, 0.60), l: 0.68).hexString)
+            ringTrack:     RGB(h: h, s: min(sat, 0.24), l: 0.265).hexString,
+            ringFill:      RGB(h: h, s: min(sat, 0.48), l: 0.68).hexString)
         return Theme(id: id, name: name, mood: "", light: light, dark: dark)
     }
 

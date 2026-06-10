@@ -10,7 +10,7 @@ struct DurationPickerView: View {
 
     private enum Field { case minutes, seconds }
 
-    private let presets = [10, 15, 25, 45, 60]
+    private let presets = [10, 15, 30, 45, 60]
     @State private var showingCustom = false
     @State private var minutes = 25
     @State private var seconds = 0

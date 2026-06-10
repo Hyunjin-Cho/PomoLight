@@ -47,17 +47,17 @@ func enforce(_ fg: RGB, against bg: RGB, _ minRatio: Double) -> RGB {
 func palette(hue h: Double, sat: Double, dark: Bool) -> (bg: RGB, surface: RGB, text: RGB, sec: RGB, track: RGB, fill: RGB) {
     func m(_ x: Double) -> Double { min(sat, x) }
     if dark {
-        return (RGB(h:h,s:m(0.24),l:0.10), RGB(h:h,s:m(0.20),l:0.155), RGB(h:h,s:m(0.16),l:0.92),
-                RGB(h:h,s:m(0.14),l:0.70), RGB(h:h,s:m(0.26),l:0.26), RGB(h:h,s:m(0.60),l:0.68))
+        return (RGB(h:h,s:m(0.20),l:0.105), RGB(h:h,s:m(0.17),l:0.16), RGB(h:h,s:m(0.16),l:0.92),
+                RGB(h:h,s:m(0.14),l:0.70), RGB(h:h,s:m(0.24),l:0.265), RGB(h:h,s:m(0.48),l:0.68))
     }
-    return (RGB(h:h,s:m(0.42),l:0.965), RGB(h:h,s:m(0.30),l:0.992), RGB(h:h,s:m(0.32),l:0.26),
-            RGB(h:h,s:m(0.22),l:0.50), RGB(h:h,s:m(0.38),l:0.90), RGB(h:h,s:sat,l:0.62))
+    return (RGB(h:h,s:m(0.30),l:0.972), RGB(h:h,s:m(0.22),l:0.994), RGB(h:h,s:m(0.30),l:0.26),
+            RGB(h:h,s:m(0.20),l:0.50), RGB(h:h,s:m(0.30),l:0.915), RGB(h:h,s:sat,l:0.64))
 }
 
 let themes: [(String, Double, Double)] = [
-    ("Butter",48,0.58),("Peach",26,0.58),("Coral",8,0.58),("Rose",342,0.58),("Orchid",312,0.58),
-    ("Lavender",278,0.58),("Periwinkle",250,0.58),("Bluebell",224,0.58),("Sky",204,0.58),("Aqua",190,0.58),
-    ("Mint",168,0.58),("Meadow",145,0.58),("Sage",112,0.58),("Lime",84,0.58),("Greige",40,0.10),
+    ("Butter",48,0.44),("Peach",26,0.44),("Coral",8,0.44),("Rose",342,0.44),("Orchid",312,0.44),
+    ("Lavender",278,0.44),("Periwinkle",250,0.44),("Bluebell",224,0.44),("Sky",204,0.44),("Aqua",190,0.44),
+    ("Mint",168,0.44),("Meadow",145,0.44),("Sage",112,0.44),("Lime",84,0.44),("Greige",40,0.10),
 ]
 func fmt(_ x: Double) -> String { String(format: "%.2f", x) }
 var failures = 0
