@@ -55,9 +55,9 @@ func palette(hue h: Double, sat: Double, dark: Bool) -> (bg: RGB, surface: RGB, 
 }
 
 let themes: [(String, Double, Double)] = [
-    ("Butter",48,0.44),("Peach",26,0.44),("Coral",8,0.44),("Rose",342,0.44),("Orchid",312,0.44),
-    ("Lavender",278,0.44),("Periwinkle",250,0.44),("Bluebell",224,0.44),("Sky",204,0.44),("Aqua",190,0.44),
-    ("Mint",168,0.44),("Meadow",145,0.44),("Sage",112,0.44),("Lime",84,0.44),("Greige",40,0.10),
+    ("Pink",334,0.44),("Rose",350,0.44),("Red",8,0.44),("Coral",22,0.44),("Orange",36,0.44),
+    ("Yellow",52,0.44),("Lime",84,0.44),("Green",128,0.44),("Mint",158,0.44),("Teal",182,0.44),
+    ("Sky",202,0.44),("Blue",224,0.44),("Indigo",252,0.44),("Violet",282,0.44),("Magenta",312,0.44),
 ]
 func fmt(_ x: Double) -> String { String(format: "%.2f", x) }
 var failures = 0

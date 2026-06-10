@@ -60,26 +60,27 @@ extension Theme {
         return Theme(id: id, name: name, mood: "", light: light, dark: dark)
     }
 
-    /// 15 distinct pastels sweeping the hue wheel (warm → cool → neutral).
+    /// 15 pastels in a rainbow sweep — pink → red → orange → yellow → green →
+    /// blue → indigo → violet → magenta (빨주노초파남보 + pinks). No greys.
     static let presets: [Theme] = [
-        pastel("butter",     "Butter",     hue: 48),
-        pastel("peach",      "Peach",      hue: 26),
-        pastel("coral",      "Coral",      hue: 8),
-        pastel("rose",       "Rose",       hue: 342),
-        pastel("orchid",     "Orchid",     hue: 312),
-        pastel("lavender",   "Lavender",   hue: 278),
-        pastel("periwinkle", "Periwinkle", hue: 250),
-        pastel("bluebell",   "Bluebell",   hue: 224),
-        pastel("sky",        "Sky",        hue: 204),
-        pastel("aqua",       "Aqua",       hue: 190),
-        pastel("mint",       "Mint",       hue: 168),
-        pastel("meadow",     "Meadow",     hue: 145),
-        pastel("sage",       "Sage",       hue: 112),
-        pastel("lime",       "Lime",       hue: 84),
-        pastel("greige",     "Greige",     hue: 40, sat: 0.10),
+        pastel("pink",    "Pink",    hue: 334),
+        pastel("rose",    "Rose",    hue: 350),
+        pastel("red",     "Red",     hue: 8),
+        pastel("coral",   "Coral",   hue: 22),
+        pastel("orange",  "Orange",  hue: 36),
+        pastel("yellow",  "Yellow",  hue: 52),
+        pastel("lime",    "Lime",    hue: 84),
+        pastel("green",   "Green",   hue: 128),
+        pastel("mint",    "Mint",    hue: 158),
+        pastel("teal",    "Teal",    hue: 182),
+        pastel("sky",     "Sky",     hue: 202),
+        pastel("blue",    "Blue",    hue: 224),
+        pastel("indigo",  "Indigo",  hue: 252),
+        pastel("violet",  "Violet",  hue: 282),
+        pastel("magenta", "Magenta", hue: 312),
     ]
 
-    static var `default`: Theme { preset(id: "peach") ?? presets[0] }
+    static var `default`: Theme { preset(id: "coral") ?? presets[0] }
 
     static func preset(id: String) -> Theme? { presets.first { $0.id == id } }
 }

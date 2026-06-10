@@ -77,7 +77,7 @@ final class SettingsStore {
         self.defaults = defaults
         defaults.register(defaults: [
             Key.lastDurationMinutes: 30.0,
-            Key.selectedThemeID: "peach",
+            Key.selectedThemeID: "coral",
             Key.customAccentHex: "",
             Key.alarmSound: AlarmSound.synthBell.rawValue,
             Key.alarmVolume: 0.7,

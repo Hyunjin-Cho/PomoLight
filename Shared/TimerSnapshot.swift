@@ -22,9 +22,9 @@ struct TimerSnapshot: Codable, Equatable {
     var updatedAt: Date
 
     static let placeholder = TimerSnapshot(
-        phase: .idle, deadline: nil, remaining: 25 * 60,
-        configuredDuration: 25 * 60, fractionRemaining: 1,
-        accentHex: "#EC8B62", updatedAt: Date(timeIntervalSince1970: 0))
+        phase: .idle, deadline: nil, remaining: 30 * 60,
+        configuredDuration: 30 * 60, fractionRemaining: 1,
+        accentHex: "#E79A86", updatedAt: Date(timeIntervalSince1970: 0))
 
     /// "MM:SS" / "H:MM:SS" for the non-running (static) display.
     func formatted(_ t: TimeInterval) -> String {
