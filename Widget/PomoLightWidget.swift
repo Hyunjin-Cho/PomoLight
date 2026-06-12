@@ -20,16 +20,34 @@ struct PomoProvider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<PomoEntry>) -> Void) {
         let snap = SharedStore.read()
-        let entry = PomoEntry(date: Date(), snapshot: snap)
-        // While running, refresh once at the deadline (to flip to "done"). Otherwise
-        // the app drives reloads when state changes.
-        let policy: TimelineReloadPolicy
-        if snap.phase == .running, let deadline = snap.deadline, deadline > Date() {
-            policy = .after(deadline)
-        } else {
-            policy = .never
+        let now = Date()
+
+        // While running, pre-bake one entry per minute so the RING steps down over
+        // time (widgets can't animate custom shapes; only the system-drawn countdown
+        // text/progress bars are live). The numerals stay smooth via timerInterval.
+        if snap.phase == .running, let deadline = snap.deadline, deadline > now {
+            var entries: [PomoEntry] = [PomoEntry(date: now, snapshot: snap)]
+            let total = max(1, snap.configuredDuration)
+            let remaining = deadline.timeIntervalSince(now)
+            let step = max(60.0, remaining / 58)        // ≤ ~60 entries, ≥ 1-minute steps
+            var t = step
+            while t < remaining {
+                let date = now.addingTimeInterval(t)
+                var stepped = snap
+                stepped.remaining = remaining - t
+                stepped.fractionRemaining = max(0, min(1, (remaining - t) / total))
+                entries.append(PomoEntry(date: date, snapshot: stepped))
+                t += step
+            }
+            var done = snap                              // flips to the finished look at 0
+            done.remaining = 0
+            done.fractionRemaining = 0
+            entries.append(PomoEntry(date: deadline, snapshot: done))
+            completion(Timeline(entries: entries, policy: .after(deadline)))
+            return
         }
-        completion(Timeline(entries: [entry], policy: policy))
+
+        completion(Timeline(entries: [PomoEntry(date: now, snapshot: snap)], policy: .never))
     }
 }
 
