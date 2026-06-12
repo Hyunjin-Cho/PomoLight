@@ -40,6 +40,11 @@ enum SharedStore {
     private static let key = "pl.snapshot"
     private static var defaults: UserDefaults? { UserDefaults(suiteName: AppGroup.id) }
 
+    /// Darwin notification posted by WIDGET intents after they mutate the snapshot,
+    /// so a running app adopts the change instantly. (The app itself never posts
+    /// this — that would echo back and loop.)
+    static let widgetChangeNote = "com.vismo.pomolight.widgetStateChanged"
+
     static func write(_ snapshot: TimerSnapshot) {
         guard let data = try? JSONEncoder().encode(snapshot) else { return }
         defaults?.set(data, forKey: key)
@@ -51,6 +56,13 @@ enum SharedStore {
             return .placeholder
         }
         return snap
+    }
+
+    static func postWidgetChange() {
+        CFNotificationCenterPostNotification(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            CFNotificationName(widgetChangeNote as CFString),
+            nil, nil, true)
     }
 }
 

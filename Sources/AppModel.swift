@@ -1,6 +1,7 @@
 import SwiftUI
 import Observation
 import WidgetKit
+import UserNotifications
 
 /// The top-level object graph. Owns the timer, theme, settings, audio, and
 /// notifications, and wires the "timer finished" behavior together in one place.
@@ -23,7 +24,42 @@ final class AppModel {
 
         engine.onFinish = { [weak self] in self?.handleFinish() }
         notifications.configureDelegate()
+
+        // If the WIDGET drove the timer while the app was closed (interactive
+        // buttons), pick that state up on launch instead of clobbering it.
+        let snap = SharedStore.read()
+        if snap.phase == .running || snap.phase == .paused {
+            engine.adopt(snapshot: snap)
+            // The live app owns the alarm again — drop any backup notification.
+            UNUserNotificationCenter.current()
+                .removePendingNotificationRequests(withIdentifiers: ["pl.widget.finish"])
+        }
+        observeWidgetChanges()
         publishSnapshot()
+    }
+
+    /// Live sync: widget intents post a Darwin notification after mutating the
+    /// shared snapshot; adopt it immediately so the open app mirrors the widget.
+    private func observeWidgetChanges() {
+        let center = CFNotificationCenterGetDarwinNotifyCenter()
+        let observer = Unmanaged.passUnretained(self).toOpaque()
+        CFNotificationCenterAddObserver(center, observer, { _, observer, _, _, _ in
+            guard let observer else { return }
+            let model = Unmanaged<AppModel>.fromOpaque(observer).takeUnretainedValue()
+            Task { @MainActor in model.adoptWidgetState() }
+        }, SharedStore.widgetChangeNote as CFString, nil, .deliverImmediately)
+    }
+
+    private func adoptWidgetState() {
+        let snap = SharedStore.read()
+        engine.adopt(snapshot: snap)
+        if engine.phase != .finished { chime.stop() }   // widget dismissed/reset the alarm
+        if engine.phase == .running {
+            // The live app owns the alarm now — drop the widget's backup notification.
+            UNUserNotificationCenter.current()
+                .removePendingNotificationRequests(withIdentifiers: ["pl.widget.finish"])
+        }
+        updatePowerAssertion()
     }
 
     // MARK: - Actions used by the views

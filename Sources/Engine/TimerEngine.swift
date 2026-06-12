@@ -212,6 +212,39 @@ final class TimerEngine {
         onFinish?()
     }
 
+    /// Adopt a state change made by the WIDGET (via the shared snapshot). Mirrors
+    /// the widget's intent into the live engine so both stay in lockstep; if the
+    /// widget-started timer already expired, the normal finish path fires (chime).
+    func adopt(snapshot: TimerSnapshot) {
+        switch snapshot.phase {
+        case .running:
+            guard let d = snapshot.deadline else { return }
+            configuredDuration = max(1, snapshot.configuredDuration)
+            deadline = d
+            frozenRemaining = nil
+            phase = .running
+            startTicker()
+            checkExpiry()                       // fires finish (alarm) if already past
+        case .paused:
+            configuredDuration = max(1, snapshot.configuredDuration)
+            frozenRemaining = max(0, snapshot.remaining)
+            deadline = nil
+            phase = .paused
+            stopTicker()
+        case .idle:
+            stopTicker()
+            deadline = nil
+            frozenRemaining = nil
+            configuredDuration = max(1, snapshot.configuredDuration)
+            phase = .idle
+        case .finished:
+            stopTicker()
+            deadline = nil
+            frozenRemaining = nil
+            phase = .finished
+        }
+    }
+
     #if DEBUG
     /// Jump straight to the finished look (for snapshots/tests) without the alarm.
     func debugForceFinish() {

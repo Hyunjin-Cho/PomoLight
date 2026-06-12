@@ -43,6 +43,12 @@ struct PomoLightWidgetView: View {
         if case .running = snap.phase, let d = snap.deadline, d > entry.date { return true }
         return false
     }
+    /// Snapshot may still say "running" after its deadline passed while the app was
+    /// closed — display (and label buttons for) the truth.
+    private var effectivePhase: TimerSnapshot.Phase {
+        if case .running = snap.phase, let d = snap.deadline, d <= entry.date { return .finished }
+        return snap.phase
+    }
 
     var body: some View {
         Group {
@@ -62,7 +68,11 @@ struct PomoLightWidgetView: View {
 
     private var small: some View {
         VStack(alignment: .leading, spacing: 0) {
-            header
+            HStack {
+                header
+                Spacer()
+                toggleButton(size: 28, font: 11)
+            }
             Spacer(minLength: 2)
             countdown
                 .font(.system(size: 30, weight: .medium, design: .rounded))
@@ -75,21 +85,64 @@ struct PomoLightWidgetView: View {
     // MARK: Large (big ring)
 
     private var large: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 10) {
             HStack {
                 header
                 Spacer()
             }
             ZStack {
-                Circle().stroke(accent.opacity(0.18), lineWidth: 18)
+                Circle().stroke(accent.opacity(0.18), lineWidth: 16)
                 Circle()
                     .trim(from: 0, to: max(0.001, snap.fractionRemaining))
-                    .stroke(accent, style: StrokeStyle(lineWidth: 18, lineCap: .round))
+                    .stroke(accent, style: StrokeStyle(lineWidth: 16, lineCap: .round))
                     .rotationEffect(.degrees(-90))
                 countdown
-                    .font(.system(size: 56, weight: .medium, design: .rounded))
+                    .font(.system(size: 50, weight: .medium, design: .rounded))
             }
-            .padding(6)
+            .padding(4)
+            HStack(spacing: 14) {
+                if effectivePhase == .running || effectivePhase == .paused {
+                    Button(intent: TimerResetIntent()) {
+                        Image(systemName: "arrow.counterclockwise")
+                            .font(.system(size: 14, weight: .semibold))
+                            .frame(width: 38, height: 38)
+                            .background(Circle().fill(accent.opacity(0.16)))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Reset")
+                }
+                toggleButton(size: 44, font: 17)
+            }
+        }
+    }
+
+    /// The state-aware primary control (start / pause / resume / dismiss).
+    private func toggleButton(size: CGFloat, font: CGFloat) -> some View {
+        Button(intent: TimerToggleIntent()) {
+            Image(systemName: toggleIcon)
+                .font(.system(size: font, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: size, height: size)
+                .background(Circle().fill(accent))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(toggleLabel)
+    }
+
+    private var toggleIcon: String {
+        switch effectivePhase {
+        case .idle, .paused: return "play.fill"
+        case .running:       return "pause.fill"
+        case .finished:      return "checkmark"
+        }
+    }
+
+    private var toggleLabel: LocalizedStringKey {
+        switch effectivePhase {
+        case .idle:     return "Start"
+        case .running:  return "Pause"
+        case .paused:   return "Resume"
+        case .finished: return "Dismiss"
         }
     }
 
@@ -110,6 +163,10 @@ struct PomoLightWidgetView: View {
                 .monospacedDigit()
                 .foregroundStyle(.primary)
                 .multilineTextAlignment(.center)
+        } else if effectivePhase == .finished {
+            Text(snap.formatted(0))
+                .monospacedDigit()
+                .foregroundStyle(.primary)
         } else {
             Text(snap.formatted(snap.remaining))
                 .monospacedDigit()
@@ -131,7 +188,7 @@ struct PomoLightWidgetView: View {
     }
 
     private var statusKey: LocalizedStringKey {
-        switch snap.phase {
+        switch effectivePhase {
         case .idle:     return "ready"
         case .running:  return "left"
         case .paused:   return "paused"
@@ -140,7 +197,7 @@ struct PomoLightWidgetView: View {
     }
 
     private var icon: String {
-        switch snap.phase {
+        switch effectivePhase {
         case .idle:     return "timer"
         case .running:  return "hourglass"
         case .paused:   return "pause.circle"
