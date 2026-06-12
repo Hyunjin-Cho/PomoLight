@@ -23,9 +23,11 @@ settings:
     Debug:
       CODE_SIGN_IDENTITY: "-"
       DEVELOPMENT_TEAM: ""
-    # Distribution builds are Developer ID signed (for Gumroad + notarization).
+    # Distribution: AUTOMATIC signing with the team — Xcode manages the App Group
+    # provisioning; the developer-id export re-signs with Developer ID Application.
     Release:
-      CODE_SIGN_IDENTITY: "Developer ID Application"
+      CODE_SIGN_STYLE: Automatic
+      CODE_SIGN_IDENTITY: "Apple Development"
       DEVELOPMENT_TEAM: 6RH6FXY82P
 
 targets:
@@ -45,20 +47,25 @@ targets:
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         COMBINE_HIDPI_IMAGES: YES
         ENABLE_HARDENED_RUNTIME: YES
-        # To turn on the widget's LIVE data, enable App Groups in Xcode (it creates
-        # the Developer ID profile), then uncomment:
-        # CODE_SIGN_ENTITLEMENTS: PomoLight.entitlements
         INFOPLIST_KEY_CFBundleDisplayName: PomoLight
         INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.productivity"
         INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 PomoLight. Free & donation-supported."
         INFOPLIST_KEY_LSUIElement: NO
         INFOPLIST_KEY_NSPrincipalClass: NSApplication
+      configs:
+        # App Group (shared widget data) only in distribution builds — Debug stays
+        # ad-hoc/entitlement-free so local test builds never prompt for signing.
+        Release:
+          CODE_SIGN_ENTITLEMENTS: PomoLight.entitlements
     dependencies:
       - target: PomoLightWidget
         embed: true
 
   PomoLightWidget:
-    type: app-extension
+    # ExtensionKit-style widget (Contents/Extensions + EXAppExtensionAttributes):
+    # required for widget-gallery discovery on modern macOS; the legacy
+    # PlugIns/NSExtension form was never picked up by chronod on Tahoe.
+    type: extensionkit-extension
     platform: macOS
     sources:
       - path: Widget
@@ -70,12 +77,13 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.vismo.pomolight.widget
         ENABLE_HARDENED_RUNTIME: YES
         SKIP_INSTALL: YES
-        # Enable with the app's App Groups capability in Xcode, then uncomment:
-        # CODE_SIGN_ENTITLEMENTS: Widget/PomoLightWidget.entitlements
         INFOPLIST_KEY_CFBundleDisplayName: PomoLight
+      configs:
+        Release:
+          CODE_SIGN_ENTITLEMENTS: Widget/PomoLightWidget.entitlements
     info:
       path: Widget/Info.plist
       properties:
         CFBundleDisplayName: PomoLight
-        NSExtension:
-          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+        EXAppExtensionAttributes:
+          EXExtensionPointIdentifier: com.apple.widgetkit-extension

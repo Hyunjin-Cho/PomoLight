@@ -30,4 +30,9 @@ echo "▸ Repackaging stapled app…"
 ( cd dist && rm -f PomoLight.zip PomoLight-notary.zip && ditto -c -k --keepParent PomoLight.app PomoLight.zip )
 ./Scripts/make_dmg.sh
 
+# Clean loose .app copies so Spotlight/the app launcher only ever sees the one
+# in /Applications (duplicates here made the launcher list PomoLight 2-3 times).
+echo "▸ Cleaning loose app copies (zip/dmg keep the distributable)…"
+rm -rf dist/PomoLight.app build-release
+
 echo "✅ Notarized & stapled. Ship dist/PomoLight.dmg (or dist/PomoLight.zip) on Gumroad."
