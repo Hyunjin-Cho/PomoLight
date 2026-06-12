@@ -21,6 +21,17 @@ enum AlarmSound: String, CaseIterable, Identifiable {
         case .pulse:     return "Pulse"
         }
     }
+
+    /// Pre-rendered .caf in the app bundle (Resources/NotificationSounds) so local
+    /// notifications can play this voice when the app isn't running.
+    var notificationSoundFile: String {
+        switch self {
+        case .synthBell: return "SoftChime.caf"
+        case .marimba:   return "Marimba.caf"
+        case .bell:      return "Bell.caf"
+        case .pulse:     return "Pulse.caf"
+        }
+    }
 }
 
 /// Centralized, typed access to all persisted preferences. `@Observable` so views

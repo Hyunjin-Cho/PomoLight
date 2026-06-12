@@ -4,6 +4,9 @@ import AppKit
 /// surfaces and the user can't miss the gentle alarm.
 enum AppActivation {
     static func bringToFront() {
+        // NSApp is nil during very early App.main() startup (e.g. background launch
+        // for a widget intent) — activating then would crash.
+        guard NSApp != nil else { return }
         NSApp.activate(ignoringOtherApps: true)
         for window in NSApp.windows where window.canBecomeMain && !window.isMiniaturized {
             window.makeKeyAndOrderFront(nil)
@@ -13,6 +16,7 @@ enum AppActivation {
     }
 
     static func openMainWindow() {
+        guard NSApp != nil else { return }
         NSApp.activate(ignoringOtherApps: true)
         for window in NSApp.windows where window.canBecomeMain {
             window.makeKeyAndOrderFront(nil)

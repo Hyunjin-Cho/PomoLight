@@ -24,6 +24,10 @@ final class AppModel {
 
         engine.onFinish = { [weak self] in self?.handleFinish() }
         notifications.configureDelegate()
+        // Ask for notification permission at launch (not at first timer start):
+        // the widget's backup alarm depends on it, and a widget-first user might
+        // never start a timer from inside the app.
+        notifications.requestAuthorizationIfNeeded()
 
         // If the WIDGET drove the timer while the app was closed (interactive
         // buttons), pick that state up on launch instead of clobbering it.
@@ -135,7 +139,8 @@ final class AppModel {
             configuredDuration: engine.configuredDuration,
             fractionRemaining: engine.fractionRemaining(),
             accentHex: theme.current.light.accent,
-            updatedAt: Date())
+            updatedAt: Date(),
+            alarmSoundFile: settings.alarmSound.notificationSoundFile)
         SharedStore.write(snapshot)
         WidgetCenter.shared.reloadAllTimelines()
     }

@@ -11,12 +11,18 @@ import Foundation
 
 private let widgetFinishNotificationID = "pl.widget.finish"
 
-private func scheduleFinishNotification(at deadline: Date) {
+private func scheduleFinishNotification(at deadline: Date, soundFile: String?) {
     let center = UNUserNotificationCenter.current()
     let content = UNMutableNotificationContent()
     content.title = "PomoLight"
     content.body = String(localized: "Time's up — your timer finished.")
-    content.sound = .default
+    // Play the user's chosen chime (pre-rendered .caf in the app bundle); fall
+    // back to the system sound if the file is missing.
+    if let soundFile {
+        content.sound = UNNotificationSound(named: UNNotificationSoundName(soundFile))
+    } else {
+        content.sound = .default
+    }
     let interval = max(1, deadline.timeIntervalSinceNow)
     let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
     center.add(UNNotificationRequest(identifier: widgetFinishNotificationID,
@@ -50,7 +56,7 @@ struct TimerToggleIntent: AppIntent {
             snap.deadline = now.addingTimeInterval(duration)
             snap.remaining = duration
             snap.fractionRemaining = 1
-            scheduleFinishNotification(at: snap.deadline!)
+            scheduleFinishNotification(at: snap.deadline!, soundFile: snap.alarmSoundFile)
         case .running:
             let remaining = max(0, snap.deadline?.timeIntervalSince(now) ?? 0)
             cancelFinishNotification()
@@ -68,7 +74,7 @@ struct TimerToggleIntent: AppIntent {
         case .paused:
             snap.phase = .running
             snap.deadline = now.addingTimeInterval(snap.remaining)
-            scheduleFinishNotification(at: snap.deadline!)
+            scheduleFinishNotification(at: snap.deadline!, soundFile: snap.alarmSoundFile)
         case .finished:
             snap.phase = .idle
             snap.deadline = nil

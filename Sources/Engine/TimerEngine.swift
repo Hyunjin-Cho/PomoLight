@@ -220,11 +220,21 @@ final class TimerEngine {
         case .running:
             guard let d = snapshot.deadline else { return }
             configuredDuration = max(1, snapshot.configuredDuration)
+            if d.timeIntervalSinceNow <= 0 {
+                // Expired while the app wasn't watching (e.g. widget-started timer,
+                // app launched later): show the finished state QUIETLY. Calling the
+                // full finish path here would touch NSApp during App.main() startup
+                // and crash — and the moment has passed anyway.
+                deadline = nil
+                frozenRemaining = nil
+                stopTicker()
+                phase = .finished
+                return
+            }
             deadline = d
             frozenRemaining = nil
             phase = .running
             startTicker()
-            checkExpiry()                       // fires finish (alarm) if already past
         case .paused:
             configuredDuration = max(1, snapshot.configuredDuration)
             frozenRemaining = max(0, snapshot.remaining)

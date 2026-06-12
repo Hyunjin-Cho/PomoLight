@@ -22,7 +22,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let content = UNMutableNotificationContent()
         content.title = "PomoLight"
         content.body = String(localized: "Time's up — your timer finished.")
-        content.sound = .default
+        if let file = snap.alarmSoundFile {
+            content.sound = UNNotificationSound(named: UNNotificationSoundName(file))
+        } else {
+            content.sound = .default
+        }
         let trigger = UNTimeIntervalNotificationTrigger(
             timeInterval: max(1, deadline.timeIntervalSinceNow), repeats: false)
         UNUserNotificationCenter.current().add(

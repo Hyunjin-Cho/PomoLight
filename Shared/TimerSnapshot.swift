@@ -20,11 +20,15 @@ struct TimerSnapshot: Codable, Equatable {
     var fractionRemaining: Double  // 1 = full, 0 = empty
     var accentHex: String
     var updatedAt: Date
+    /// Bundled .caf the widget's backup notification should play (optional so old
+    /// stored snapshots still decode).
+    var alarmSoundFile: String?
 
     static let placeholder = TimerSnapshot(
         phase: .idle, deadline: nil, remaining: 30 * 60,
         configuredDuration: 30 * 60, fractionRemaining: 1,
-        accentHex: "#E79A86", updatedAt: Date(timeIntervalSince1970: 0))
+        accentHex: "#E79A86", updatedAt: Date(timeIntervalSince1970: 0),
+        alarmSoundFile: "SoftChime.caf")
 
     /// "MM:SS" / "H:MM:SS" for the non-running (static) display.
     func formatted(_ t: TimeInterval) -> String {
