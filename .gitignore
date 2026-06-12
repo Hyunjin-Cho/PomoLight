@@ -19,3 +19,6 @@ dist/*.zip
 # Misc
 *.swiftpm
 .swiftpm/
+
+# Xcode-exported notarized app (lives in repo root after Organizer export)
+/PomoLight.app
