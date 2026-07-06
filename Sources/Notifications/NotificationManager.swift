@@ -16,11 +16,9 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     /// Ask for permission the first time the user starts a timer (in context, not at
     /// launch) so the first completion can deliver a banner. No-op if already decided.
     func requestAuthorizationIfNeeded() {
-        center.getNotificationSettings { [weak self] settings in
-            guard settings.authorizationStatus == .notDetermined else { return }
-            Task { @MainActor in
-                self?.center.requestAuthorization(options: [.alert, .sound]) { _, _ in }
-            }
+        Task {
+            guard await center.notificationSettings().authorizationStatus == .notDetermined else { return }
+            _ = try? await center.requestAuthorization(options: [.alert, .sound])
         }
     }
 
@@ -28,20 +26,16 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     /// time (per the UX spec — no upfront prompt at launch).
     func notifyTimerFinished(enabled: Bool) {
         guard enabled else { return }
-        center.getNotificationSettings { [weak self] settings in
-            let status = settings.authorizationStatus
-            Task { @MainActor in
-                guard let self else { return }
-                switch status {
-                case .authorized, .provisional:
-                    self.post()
-                case .notDetermined:
-                    self.center.requestAuthorization(options: [.alert, .sound]) { [weak self] granted, _ in
-                        if granted { Task { @MainActor in self?.post() } }
-                    }
-                default:
-                    break   // denied — the in-app chime + window-raise still alert the user
+        Task {
+            switch await center.notificationSettings().authorizationStatus {
+            case .authorized, .provisional:
+                post()
+            case .notDetermined:
+                if let granted = try? await center.requestAuthorization(options: [.alert, .sound]), granted {
+                    post()
                 }
+            default:
+                break   // denied — the in-app chime + window-raise still alert the user
             }
         }
     }

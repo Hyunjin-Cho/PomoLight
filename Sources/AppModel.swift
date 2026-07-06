@@ -140,7 +140,8 @@ final class AppModel {
             fractionRemaining: engine.fractionRemaining(),
             accentHex: theme.current.light.accent,
             updatedAt: Date(),
-            alarmSoundFile: settings.alarmSound.notificationSoundFile)
+            alarmSoundFile: settings.alarmSound.notificationSoundFile,
+            notificationsEnabled: settings.notificationsEnabled)
         SharedStore.write(snapshot)
         WidgetCenter.shared.reloadAllTimelines()
     }

@@ -36,18 +36,28 @@ enum AlarmSound: String, CaseIterable, Identifiable {
 
 /// Centralized, typed access to all persisted preferences. `@Observable` so views
 /// update live; each setter writes through to UserDefaults immediately.
+/// One way to support PomoLight. The heart button shows these as a small menu
+/// (Stats-style) so Korean and international users each get a convenient option.
+struct DonationLink: Identifiable {
+    let id: String
+    let title: String      // proper noun — shown as-is, not localized
+    let urlString: String
+}
+
 @MainActor
 @Observable
 final class SettingsStore {
-    /// The Donate link. Replace with your real Gumroad / Ko-fi / Buy-Me-a-Coffee URL.
-    static let donateURLString = "https://www.buymeacoffee.com/pomolight"
+    /// Replace the URLs with the real accounts before release.
+    static let donationLinks: [DonationLink] = [
+        DonationLink(id: "toss", title: "Toss", urlString: "https://toss.me/pomolight"),
+        DonationLink(id: "bmc", title: "Buy Me a Coffee", urlString: "https://www.buymeacoffee.com/pomolight"),
+    ]
 
     private let defaults: UserDefaults
 
     private enum Key {
         static let lastDurationMinutes = "pl.lastDurationMinutes"
         static let selectedThemeID = "pl.selectedThemeID"
-        static let customAccentHex = "pl.customAccentHex"
         static let alarmSound = "pl.alarmSound"
         static let alarmVolume = "pl.alarmVolume"
         static let repeatUntilDismissed = "pl.repeatUntilDismissed"
@@ -59,7 +69,6 @@ final class SettingsStore {
 
     var lastDurationMinutes: Double { didSet { defaults.set(lastDurationMinutes, forKey: Key.lastDurationMinutes) } }
     var selectedThemeID: String { didSet { defaults.set(selectedThemeID, forKey: Key.selectedThemeID) } }
-    var customAccentHex: String { didSet { defaults.set(customAccentHex, forKey: Key.customAccentHex) } }
     var alarmSound: AlarmSound { didSet { defaults.set(alarmSound.rawValue, forKey: Key.alarmSound) } }
     var alarmVolume: Double { didSet { defaults.set(alarmVolume, forKey: Key.alarmVolume) } }
     var repeatUntilDismissed: Bool { didSet { defaults.set(repeatUntilDismissed, forKey: Key.repeatUntilDismissed) } }
@@ -73,7 +82,6 @@ final class SettingsStore {
         defaults.register(defaults: [
             Key.lastDurationMinutes: 30.0,
             Key.selectedThemeID: "coral",
-            Key.customAccentHex: "",
             Key.alarmSound: AlarmSound.synthBell.rawValue,
             Key.alarmVolume: 0.7,
             Key.repeatUntilDismissed: false,
@@ -83,8 +91,7 @@ final class SettingsStore {
             Key.notificationsEnabled: true,
         ])
         self.lastDurationMinutes = defaults.double(forKey: Key.lastDurationMinutes)
-        self.selectedThemeID = defaults.string(forKey: Key.selectedThemeID) ?? "peach"
-        self.customAccentHex = defaults.string(forKey: Key.customAccentHex) ?? ""
+        self.selectedThemeID = defaults.string(forKey: Key.selectedThemeID) ?? "coral"
         self.alarmSound = AlarmSound(rawValue: defaults.string(forKey: Key.alarmSound) ?? "") ?? .synthBell
         self.alarmVolume = defaults.double(forKey: Key.alarmVolume)
         self.repeatUntilDismissed = defaults.bool(forKey: Key.repeatUntilDismissed)

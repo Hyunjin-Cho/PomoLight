@@ -18,7 +18,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         let snap = SharedStore.read()
         guard snap.phase == .running, let deadline = snap.deadline,
-              deadline.timeIntervalSinceNow > 0 else { return }
+              deadline.timeIntervalSinceNow > 0,
+              snap.notificationsEnabled ?? true else { return }
         let content = UNMutableNotificationContent()
         content.title = "PomoLight"
         content.body = String(localized: "Time's up — your timer finished.")

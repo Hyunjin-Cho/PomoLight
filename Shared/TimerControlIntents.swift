@@ -11,7 +11,8 @@ import Foundation
 
 private let widgetFinishNotificationID = "pl.widget.finish"
 
-private func scheduleFinishNotification(at deadline: Date, soundFile: String?) {
+private func scheduleFinishNotification(at deadline: Date, soundFile: String?, enabled: Bool?) {
+    guard enabled ?? true else { return }
     let center = UNUserNotificationCenter.current()
     let content = UNMutableNotificationContent()
     content.title = "PomoLight"
@@ -56,7 +57,7 @@ struct TimerToggleIntent: AppIntent {
             snap.deadline = now.addingTimeInterval(duration)
             snap.remaining = duration
             snap.fractionRemaining = 1
-            scheduleFinishNotification(at: snap.deadline!, soundFile: snap.alarmSoundFile)
+            scheduleFinishNotification(at: snap.deadline!, soundFile: snap.alarmSoundFile, enabled: snap.notificationsEnabled)
         case .running:
             let remaining = max(0, snap.deadline?.timeIntervalSince(now) ?? 0)
             cancelFinishNotification()
@@ -74,7 +75,7 @@ struct TimerToggleIntent: AppIntent {
         case .paused:
             snap.phase = .running
             snap.deadline = now.addingTimeInterval(snap.remaining)
-            scheduleFinishNotification(at: snap.deadline!, soundFile: snap.alarmSoundFile)
+            scheduleFinishNotification(at: snap.deadline!, soundFile: snap.alarmSoundFile, enabled: snap.notificationsEnabled)
         case .finished:
             snap.phase = .idle
             snap.deadline = nil

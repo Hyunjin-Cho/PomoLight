@@ -12,7 +12,7 @@ settings:
   base:
     SWIFT_VERSION: "5.0"
     SWIFT_STRICT_CONCURRENCY: minimal
-    MARKETING_VERSION: "2026.01"
+    MARKETING_VERSION: "1.0"
     CURRENT_PROJECT_VERSION: "1"
     CODE_SIGN_STYLE: Manual
     PROVISIONING_PROFILE_SPECIFIER: ""
@@ -42,21 +42,28 @@ targets:
       base:
         PRODUCT_NAME: PomoLight
         PRODUCT_BUNDLE_IDENTIFIER: com.vismo.pomolight
-        GENERATE_INFOPLIST_FILE: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         COMBINE_HIDPI_IMAGES: YES
         ENABLE_HARDENED_RUNTIME: YES
-        INFOPLIST_KEY_CFBundleDisplayName: PomoLight
-        INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.productivity"
-        INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 PomoLight. Free & donation-supported."
-        INFOPLIST_KEY_LSUIElement: NO
-        INFOPLIST_KEY_NSPrincipalClass: NSApplication
       configs:
         # App Group (shared widget data) only in distribution builds — Debug stays
         # ad-hoc/entitlement-free so local test builds never prompt for signing.
         Release:
           CODE_SIGN_ENTITLEMENTS: PomoLight.entitlements
+    info:
+      path: Sources/Info.plist
+      properties:
+        CFBundleDisplayName: PomoLight
+        LSApplicationCategoryType: "public.app-category.productivity"
+        LSMinimumSystemVersion: "$(MACOSX_DEPLOYMENT_TARGET)"
+        LSUIElement: NO
+        NSHumanReadableCopyright: "© 2026 PomoLight. Free & donation-supported."
+        NSPrincipalClass: NSApplication
+        CFBundleURLTypes:
+          - CFBundleURLName: com.vismo.pomolight
+            CFBundleURLSchemes:
+              - pomolight
     dependencies:
       - target: PomoLightWidget
         embed: true

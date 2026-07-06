@@ -23,12 +23,17 @@ struct TimerSnapshot: Codable, Equatable {
     /// Bundled .caf the widget's backup notification should play (optional so old
     /// stored snapshots still decode).
     var alarmSoundFile: String?
+    /// Mirrors `SettingsStore.notificationsEnabled` so the widget process — which
+    /// can't see the app's own UserDefaults — knows whether to skip its backup
+    /// notification. Optional so old stored snapshots still decode; nil is
+    /// treated as enabled (the prior, unconditional behavior).
+    var notificationsEnabled: Bool?
 
     static let placeholder = TimerSnapshot(
         phase: .idle, deadline: nil, remaining: 30 * 60,
         configuredDuration: 30 * 60, fractionRemaining: 1,
         accentHex: "#E79A86", updatedAt: Date(timeIntervalSince1970: 0),
-        alarmSoundFile: "SoftChime.caf")
+        alarmSoundFile: "SoftChime.caf", notificationsEnabled: true)
 
     /// "MM:SS" / "H:MM:SS" for the non-running (static) display.
     func formatted(_ t: TimeInterval) -> String {

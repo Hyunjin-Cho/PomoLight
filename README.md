@@ -2,7 +2,7 @@
 
 A calm, pastel **focus timer** for macOS. Free and donation-supported.
 
-PomoLight is a small desk-clock-like timer: pick any number of minutes, hit Start, and a **gentle synthesized bell** chimes when time's up. The whole UI is soft pastel, and you can switch the accent color live (8 built-in themes + a custom color). Light & dark mode, a live menu-bar countdown, and a Donate heart.
+PomoLight is a small desk-clock-like timer: pick any number of minutes, hit Start, and a **gentle synthesized bell** chimes when time's up. The whole UI is soft pastel, and you can switch the accent color live (15 built-in rainbow pastel themes). Light & dark mode, a live menu-bar countdown, and a Donate heart.
 
 > Native SwiftUI · macOS 14+ (built on macOS 26 / Xcode 26) · Apple Silicon · zero third-party dependencies.
 
@@ -10,15 +10,15 @@ PomoLight is a small desk-clock-like timer: pick any number of minutes, hit Star
 
 ## Features
 
-- ⏱️ **Free duration** — quick presets (10 / 15 / 25 / 45 / 60) **or** type any value in Custom (optional seconds).
+- ⏱️ **Free duration** — quick presets (10 / 15 / 30 / 45 / 60) **or** type any value in Custom (optional seconds).
 - 🔔 **Gentle alarm** — a self-synthesized soft chime: a calm rising arpeggio (no audio files, license-clean), clearly an alarm but never harsh. Plus calm system sounds (Glass, Submarine) with live Preview + volume.
-- 🎨 **Pastel themes** — 8 hand-tuned palettes (Peach Cream, Sage Mist, Lavender Haze, Sky Linen, Rose Quartz, Butter Honey, Glacier Mint, Greige Stone) + a custom accent color (rainbow picker). Switching crossfades live.
+- 🎨 **Pastel themes** — 15 candy-pastel hues generated around the color wheel (Pink, Rose, Red, Coral, Orange, Yellow, Lime, Green, Mint, Teal, Sky, Blue, Indigo, Violet, Magenta), default Coral. Switching crossfades live.
 - 🌗 **Light & dark** — every theme is authored for both (no muddy auto-darkened pastels).
 - 📊 **Drift-free timer** — deadline/wall-clock based, so it stays correct across App Nap and system sleep; the alarm fires on wake even if the Mac slept through zero.
 - 🖥️ **Menu-bar countdown** — glanceable MM:SS in the menu bar (toggle off if you want a pure window app), with mini controls.
 - 🪟 **Compact, fixed window** — a timer never needs to grow, so the window is capped at a tidy size (no ballooning / full screen); you can still shrink it.
 - 🌍 **29 languages** — the UI follows the system language: English, Korean, Japanese, Chinese (Simp/Trad), Thai, Vietnamese, Indonesian, Malay, Filipino, German, French, Italian, Spanish, Portuguese (PT/BR), Dutch, Swedish, Norwegian, Danish, Finnish, Polish, Russian, Ukrainian, Czech, Turkish, Greek, Romanian, Hungarian.
-- 🧩 **Widget (prepared)** — a WidgetKit extension shows a live countdown on the desktop / Notification Center. Builds and appears today; live data turns on once App Groups is enabled (needs a paid Apple Developer team).
+- 🧩 **Widget** — a WidgetKit extension shows a live countdown on the desktop / Notification Center, with interactive Start/Pause/Resume/Reset buttons. Backed by a shared App Group, so it stays in sync with the app in both directions.
 - ♿ **Accessible** — WCAG-checked contrast (timer digits ≥ 7:1 in every theme), VoiceOver labels, Reduce Motion support, keyboard shortcuts.
 - ❤️ **Donation model** — a quiet Donate heart links to your page.
 
@@ -51,18 +51,15 @@ These are placeholders the owner needs to fill in (see also "Escalations" below)
 
 | What | Where | Default |
 |------|-------|---------|
-| **Donate URL** | `Sources/Settings/SettingsStore.swift` → `donateURLString` | `https://www.buymeacoffee.com/pomolight` |
+| **Donate links** | `Sources/Settings/SettingsStore.swift` → `donationLinks` | Toss `toss.me/pomolight`, BMC `buymeacoffee.com/pomolight` |
 | **Bundle ID** | `project.yml` → `PRODUCT_BUNDLE_IDENTIFIER` | `com.vismo.pomolight` |
 
 ### Distribution (Gumroad)
-- `build_app.sh` ad-hoc signs the app, so it **runs locally** but unverified downloaders hit Gatekeeper ("unidentified developer" → right-click → Open).
+- `build_app.sh` archives and exports with your **Developer ID** (`Scripts/ExportOptions.plist`), ready for `Scripts/notarize.sh` — Gatekeeper accepts it once notarized/stapled, no right-click-Open needed.
 - For a **clean public release**, you need an **Apple Developer account ($99/yr)** to Developer-ID-sign + **notarize** (`xcrun notarytool` + `stapler staple`). Then ship the `.dmg` on Gumroad.
 
 ### Widget live data (App Groups)
-The widget extension is fully wired but ships with App Groups **off** (it needs the paid Apple Developer team to sign). To turn on live data once you enroll:
-1. In `project.yml`, add `CODE_SIGN_ENTITLEMENTS: PomoLight.entitlements` to the **PomoLight** target and `CODE_SIGN_ENTITLEMENTS: Widget/PomoLightWidget.entitlements` to **PomoLightWidget**.
-2. `xcodegen generate`, open in Xcode, set your team, and enable the **App Groups** capability (`group.com.vismo.pomolight`) on both targets.
-Until then the widget builds and appears, showing a placeholder timer.
+Release builds already wire App Groups (`group.com.vismo.pomolight`) via `CODE_SIGN_ENTITLEMENTS` on both the **PomoLight** and **PomoLightWidget** targets in `project.yml`. Debug builds stay entitlement-free/ad-hoc on purpose, so local runs never prompt for signing.
 
 ---
 
