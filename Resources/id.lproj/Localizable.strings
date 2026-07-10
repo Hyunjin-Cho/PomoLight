@@ -40,3 +40,5 @@
 "Glass" = "Glass";
 "Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Jika tidak, alarm berbunyi 3 kali.";
+"%@ remaining" = "Tersisa %@";
+"Notifications off" = "Notifikasi nonaktif";

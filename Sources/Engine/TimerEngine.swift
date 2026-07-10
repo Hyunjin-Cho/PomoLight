@@ -278,13 +278,21 @@ final class TimerEngine {
                      : String(format: "%02d:%02d", m, s)
     }
 
-    /// VoiceOver-friendly phrasing, e.g. "12 minutes 30 seconds remaining".
+    /// Localized duration phrasing for VoiceOver ("12 minutes, 30 seconds" etc.) —
+    /// the system formatter speaks every app language, unlike hand-built English.
+    private static let accessibleFormatter: DateComponentsFormatter = {
+        let f = DateComponentsFormatter()
+        f.allowedUnits = [.minute, .second]
+        f.unitsStyle = .full
+        f.zeroFormattingBehavior = .dropLeading
+        return f
+    }()
+
+    /// VoiceOver-friendly phrasing, e.g. "12 minutes, 30 seconds remaining",
+    /// in the user's language.
     func accessibleRemaining(_ t: TimeInterval) -> String {
-        let total = max(0, Int(ceil(t)))
-        let m = total / 60, s = total % 60
-        var parts: [String] = []
-        if m > 0 { parts.append("\(m) minute\(m == 1 ? "" : "s")") }
-        parts.append("\(s) second\(s == 1 ? "" : "s")")
-        return parts.joined(separator: " ") + " remaining"
+        let total = TimeInterval(max(0, Int(ceil(t))))
+        let duration = TimerEngine.accessibleFormatter.string(from: total) ?? formatted(total)
+        return String(format: String(localized: "%@ remaining"), duration)
     }
 }

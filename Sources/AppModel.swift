@@ -39,7 +39,35 @@ final class AppModel {
                 .removePendingNotificationRequests(withIdentifiers: ["pl.widget.finish"])
         }
         observeWidgetChanges()
+        observeSettingChanges()
         publishSnapshot()
+    }
+
+    /// Settings can change outside any timer action (panel toggles, theme swatch),
+    /// but their side effects — the sleep assertion and the shared snapshot the
+    /// widget/backup notification read — only ran via `sync()`. Watch the relevant
+    /// properties so a mid-session change applies immediately, not on the next
+    /// timer action. (`withObservationTracking` is one-shot, so the handler re-arms.)
+    private func observeSettingChanges() {
+        withObservationTracking {
+            _ = settings.keepAwake
+            _ = settings.alarmSound
+            _ = settings.notificationsEnabled
+            _ = theme.current
+        } onChange: { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.updatePowerAssertion()
+                self.publishSnapshot()
+                if !self.settings.notificationsEnabled {
+                    // The user just opted out — a pending widget/quit backup
+                    // notification must not fire with the old preference.
+                    UNUserNotificationCenter.current()
+                        .removePendingNotificationRequests(withIdentifiers: ["pl.widget.finish"])
+                }
+                self.observeSettingChanges()
+            }
+        }
     }
 
     /// Live sync: widget intents post a Darwin notification after mutating the

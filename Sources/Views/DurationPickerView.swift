@@ -39,6 +39,10 @@ struct DurationPickerView: View {
                 if showingCustom { pushToEngine() }
             }
         }
+        .onChange(of: focusedField) { _, focus in
+            // Editing ended — 0:00 in the fields snaps to the engine's floor.
+            if focus == nil { snapFieldsToFloor() }
+        }
     }
 
     private func chipRow(spacing: CGFloat, hPad: CGFloat) -> some View {
@@ -132,9 +136,22 @@ struct DurationPickerView: View {
         // didn't actually use (e.g. typing 5000 → clamps to 999).
         if m != minutes { minutes = m }
         if s != seconds { seconds = s }
-        let total = max(1, m * 60 + s)
+        // Floor: 1 second with the seconds field, a whole minute without it —
+        // "0" in minutes-only mode must not silently mean a 1-second timer.
+        let total = max(settings.showSeconds ? 1 : 60, m * 60 + s)
         engine.setDuration(seconds: Double(total))
         settings.lastDurationMinutes = Double(total) / 60
         app.publishSnapshot()
+        // Mid-typing the fields may briefly read 0:00 — leave them alone while
+        // focused, but snap button-driven changes to the floor immediately.
+        if focusedField == nil { snapFieldsToFloor() }
+    }
+
+    /// The engine never goes below its floor, but the FIELDS could keep showing
+    /// 0:00 after editing — make them show the value the engine actually holds.
+    private func snapFieldsToFloor() {
+        guard showingCustom, minutes == 0, seconds == 0 else { return }
+        if settings.showSeconds { seconds = 1 } else { minutes = 1 }
+        // (the field's onChange re-runs pushToEngine, which is now a no-op)
     }
 }

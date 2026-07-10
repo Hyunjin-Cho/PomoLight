@@ -40,7 +40,9 @@ struct TimerDial: View {
                      glowStrength: reduceMotion ? 0 : glow)
 
             VStack(spacing: 6) {
-                Text(finished ? "Time's up" : engine.formatted(remaining))
+                // Two Text branches, NOT one Text(ternary): a `String` ternary
+                // silently picks the verbatim initializer and skips localization.
+                (finished ? Text("Time's up") : Text(verbatim: engine.formatted(remaining)))
                     .font(finished
                           ? .system(size: diameter * 0.13, weight: .semibold, design: .rounded)
                           : .system(size: diameter * 0.25, weight: .medium, design: .rounded))
@@ -58,7 +60,8 @@ struct TimerDial: View {
             .padding(diameter * 0.2)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(finished ? "Time's up" : engine.accessibleRemaining(remaining))
+        .accessibilityLabel(finished ? Text("Time's up")
+                                     : Text(verbatim: engine.accessibleRemaining(remaining)))
     }
 
     private var stateLabel: LocalizedStringKey {

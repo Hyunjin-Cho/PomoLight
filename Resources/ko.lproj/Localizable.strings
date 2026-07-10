@@ -40,3 +40,5 @@
 "Glass" = "Glass";
 "Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "끄면 종료 알람이 3번 울리고 멈춰요.";
+"%@ remaining" = "%@ 남음";
+"Notifications off" = "알림 꺼짐";

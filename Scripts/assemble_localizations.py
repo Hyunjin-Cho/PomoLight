@@ -18,6 +18,40 @@ by_lang = result["byLang"]
 # Proper-noun system-sound names: identity in every language.
 extra = {"Glass": "Glass", "Submarine": "Submarine"}
 
+# Keys added AFTER the original workflow ran, hand-translated (2026-07: VoiceOver
+# remaining-time phrase; widget bell-slash badge). Merged so re-assembling from
+# the old workflow JSON never drops them. A future workflow that includes these
+# keys wins over this table.
+MANUAL = {
+    "%@ remaining": {
+        "cs": "Zbývá %@", "da": "%@ tilbage", "de": "Noch %@",
+        "el": "Απομένουν %@", "es": "Quedan %@", "fi": "%@ jäljellä",
+        "fil": "Natitirang %@", "fr": "Il reste %@", "hu": "%@ van hátra",
+        "id": "Tersisa %@", "it": "Mancano %@", "ja": "残り%@",
+        "ko": "%@ 남음", "ms": "Tinggal %@", "nb": "%@ igjen",
+        "nl": "Nog %@", "pl": "Pozostało %@", "pt-BR": "Faltam %@",
+        "pt-PT": "Faltam %@", "ro": "Au mai rămas %@", "ru": "Осталось %@",
+        "sv": "%@ kvar", "th": "เหลืออีก %@", "tr": "%@ kaldı",
+        "uk": "Залишилося %@", "vi": "Còn lại %@",
+        "zh-Hans": "剩余%@", "zh-Hant": "剩餘%@",
+    },
+    "Notifications off": {
+        "cs": "Oznámení vypnuta", "da": "Notifikationer er slået fra",
+        "de": "Mitteilungen aus", "el": "Ειδοποιήσεις ανενεργές",
+        "es": "Notificaciones desactivadas", "fi": "Ilmoitukset pois käytöstä",
+        "fil": "Naka-off ang mga notification", "fr": "Notifications désactivées",
+        "hu": "Értesítések kikapcsolva", "id": "Notifikasi nonaktif",
+        "it": "Notifiche disattivate", "ja": "通知オフ", "ko": "알림 꺼짐",
+        "ms": "Pemberitahuan dimatikan", "nb": "Varsler av", "nl": "Meldingen uit",
+        "pl": "Powiadomienia wyłączone", "pt-BR": "Notificações desativadas",
+        "pt-PT": "Notificações desativadas", "ro": "Notificări dezactivate",
+        "ru": "Уведомления выключены", "sv": "Notiser av",
+        "th": "การแจ้งเตือนปิดอยู่", "tr": "Bildirimler kapalı",
+        "uk": "Сповіщення вимкнено", "vi": "Đã tắt thông báo",
+        "zh-Hans": "通知已关闭", "zh-Hant": "通知已關閉",
+    },
+}
+
 def esc(s: str) -> str:
     return s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
 
@@ -29,8 +63,11 @@ for code, trans in by_lang.items():
     os.makedirs(lproj, exist_ok=True)
     lines = [f"/* PomoLight — {code} (auto-assembled) */"]
     missing = 0
-    for k in keys:
+    all_keys = list(keys) + [k for k in MANUAL if k not in keys]
+    for k in all_keys:
         v = trans.get(k)
+        if not v or not str(v).strip():
+            v = MANUAL.get(k, {}).get(code)
         if not v or not str(v).strip():
             v = k          # fall back to English
             missing += 1

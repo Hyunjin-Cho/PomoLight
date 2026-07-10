@@ -40,3 +40,5 @@
 "Glass" = "Glass";
 "Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Sinon, l'alarme sonne 3 fois.";
+"%@ remaining" = "Il reste %@";
+"Notifications off" = "Notifications désactivées";

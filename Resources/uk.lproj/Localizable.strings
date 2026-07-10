@@ -40,3 +40,5 @@
 "Glass" = "Glass";
 "Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Інакше сигнал пролунає 3 рази.";
+"%@ remaining" = "Залишилося %@";
+"Notifications off" = "Сповіщення вимкнено";

@@ -40,3 +40,5 @@
 "Glass" = "Glass";
 "Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Egyébként a riasztó 3-szor szól.";
+"%@ remaining" = "%@ van hátra";
+"Notifications off" = "Értesítések kikapcsolva";

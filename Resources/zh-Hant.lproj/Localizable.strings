@@ -40,3 +40,5 @@
 "Glass" = "Glass";
 "Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "否則鬧鈴會響 3 次。";
+"%@ remaining" = "剩餘%@";
+"Notifications off" = "通知已關閉";

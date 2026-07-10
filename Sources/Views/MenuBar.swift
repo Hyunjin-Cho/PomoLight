@@ -31,7 +31,10 @@ struct MenuBarContent: View {
         let palette = theme.palette(for: scheme)
         let _ = engine.menuBarTick
         VStack(spacing: 14) {
-            Text(engine.phase == .finished ? "Time's up" : engine.formatted(engine.remaining()))
+            // Two Text branches so "Time's up" goes through localization
+            // (a String ternary would render the raw English key).
+            (engine.phase == .finished ? Text("Time's up")
+                                       : Text(verbatim: engine.formatted(engine.remaining())))
                 .font(.system(size: 36, weight: .medium, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(palette.timerText)

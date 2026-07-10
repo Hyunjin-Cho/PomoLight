@@ -40,3 +40,5 @@
 "Glass" = "Glass";
 "Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "หากปิด เสียงปลุกจะดัง 3 ครั้ง";
+"%@ remaining" = "เหลืออีก %@";
+"Notifications off" = "การแจ้งเตือนปิดอยู่";

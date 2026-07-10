@@ -28,6 +28,11 @@ struct TimerSnapshot: Codable, Equatable {
     /// notification. Optional so old stored snapshots still decode; nil is
     /// treated as enabled (the prior, unconditional behavior).
     var notificationsEnabled: Bool?
+    /// Whether a WIDGET-driven running timer managed to arrange an end-of-timer
+    /// alert. `false` = it will end silently (notification permission missing or
+    /// scheduling failed) — the widget shows a bell-slash badge for that. nil =
+    /// not applicable (not widget-driven, or the open app owns the alarm).
+    var backupAlarmScheduled: Bool? = nil
 
     static let placeholder = TimerSnapshot(
         phase: .idle, deadline: nil, remaining: 30 * 60,

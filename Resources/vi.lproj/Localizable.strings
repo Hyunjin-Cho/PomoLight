@@ -40,3 +40,5 @@
 "Glass" = "Glass";
 "Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Nếu tắt, chuông báo sẽ reo 3 lần.";
+"%@ remaining" = "Còn lại %@";
+"Notifications off" = "Đã tắt thông báo";

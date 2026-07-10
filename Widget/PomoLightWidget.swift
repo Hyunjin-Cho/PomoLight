@@ -135,13 +135,17 @@ struct PomoLightWidgetView: View {
     }
 
     /// The state-aware primary control (start / pause / resume / dismiss).
+    /// Colors come from the same `LegibleFill` derivation the app's buttons use —
+    /// a white icon on the raw pastel accent fails 3:1 contrast on 14 of the 15
+    /// themes (e.g. white on Lime is 1.22:1).
     private func toggleButton(size: CGFloat, font: CGFloat) -> some View {
-        Button(intent: TimerToggleIntent()) {
+        let legible = LegibleFill(accent: RGB(hex: snap.accentHex))
+        return Button(intent: TimerToggleIntent()) {
             Image(systemName: toggleIcon)
                 .font(.system(size: font, weight: .bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(legible.label.color)
                 .frame(width: size, height: size)
-                .background(Circle().fill(accent))
+                .background(Circle().fill(legible.fill.color))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(toggleLabel)
@@ -172,6 +176,15 @@ struct PomoLightWidgetView: View {
             Text(statusKey)
                 .font(.system(size: 12, weight: .medium, design: .rounded))
                 .foregroundStyle(.secondary)
+            // A running widget-only timer that could NOT arrange its end alert
+            // (notification permission missing) must not count down toward
+            // silence without saying so.
+            if effectivePhase == .running && snap.backupAlarmScheduled == false {
+                Image(systemName: "bell.slash")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel("Notifications off")
+            }
         }
     }
 
@@ -194,7 +207,10 @@ struct PomoLightWidgetView: View {
 
     @ViewBuilder private var progress: some View {
         if isLiveRunning, let d = snap.deadline {
-            ProgressView(timerInterval: entry.date...d, countsDown: true) {
+            // Anchor the bar at the SESSION start, not this timeline entry's date —
+            // otherwise every entry (and every reload) restarts the bar at 100%.
+            let start = d.addingTimeInterval(-max(1, snap.configuredDuration))
+            ProgressView(timerInterval: start...d, countsDown: true) {
                 EmptyView()
             } currentValueLabel: { EmptyView() }
                 .tint(accent)

@@ -50,8 +50,16 @@ rm -rf dist/PomoLight.app
 cp -R "$APP" dist/PomoLight.app
 
 echo "▸ Verifying signature…"
-codesign --verify --strict --verbose=1 dist/PomoLight.app || echo "  (signature check reported issues)"
-codesign -dv --verbose=2 dist/PomoLight.app 2>&1 | grep -E "Authority=Developer ID|TeamIdentifier|Timestamp|flags" || true
+# A bad signature must NOT produce a "ready to ship" ZIP — fail loudly here
+# instead of letting Gatekeeper reject the app on a user's Mac.
+codesign --verify --strict --verbose=1 dist/PomoLight.app \
+  || { echo "✗ Signature verification FAILED — not packaging"; exit 1; }
+SIGN_INFO=$(codesign -dv --verbose=2 dist/PomoLight.app 2>&1)
+echo "$SIGN_INFO" | grep -E "Authority=Developer ID|TeamIdentifier|Timestamp|flags" || true
+echo "$SIGN_INFO" | grep -q "Authority=Developer ID Application" \
+  || { echo "✗ Not signed with a Developer ID Application identity"; exit 1; }
+echo "$SIGN_INFO" | grep -q "TeamIdentifier=6RH6FXY82P" \
+  || { echo "✗ Unexpected TeamIdentifier (want 6RH6FXY82P)"; exit 1; }
 
 echo "▸ Zipping…"
 ( cd dist && rm -f PomoLight.zip && ditto -c -k --keepParent PomoLight.app PomoLight.zip )

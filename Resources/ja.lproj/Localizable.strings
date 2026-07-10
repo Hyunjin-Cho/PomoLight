@@ -40,3 +40,5 @@
 "Glass" = "Glass";
 "Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "オフのときは、アラームが3回鳴って止まります。";
+"%@ remaining" = "残り%@";
+"Notifications off" = "通知オフ";
