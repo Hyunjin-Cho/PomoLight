@@ -136,13 +136,6 @@ final class AppModel {
         engine.setDuration(seconds: settings.lastDurationMinutes * 60)
     }
 
-    func addMinute() {
-        engine.addMinute()
-        if engine.phase == .idle {
-            settings.lastDurationMinutes = engine.configuredDuration / 60
-        }
-        sync()
-    }
 
     /// Call after any state change: keep the sleep assertion and the widget's
     /// shared snapshot in step with the engine.

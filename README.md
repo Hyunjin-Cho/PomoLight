@@ -22,7 +22,7 @@ PomoLight is a small desk-clock-like timer: pick any number of minutes, hit Star
 - ♿ **Accessible** — WCAG-checked contrast (timer digits ≥ 7:1 in every theme), VoiceOver labels, Reduce Motion support, keyboard shortcuts.
 - ❤️ **Donation model** — a quiet Donate heart links to your page.
 
-Keyboard: **Space** = Start/Pause/Resume · **R** = Reset · **=** = +1 min · **1–5** = presets · **⌘,** = Settings.
+Keyboard: **Space** = Start/Pause/Resume · **R** = Reset · **1–5** = presets · **⌘,** = Settings.
 
 ---
 

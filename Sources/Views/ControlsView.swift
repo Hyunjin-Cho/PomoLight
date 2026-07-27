@@ -1,8 +1,14 @@
 import SwiftUI
 
-/// The action row beneath the dial: the primary button, plus Reset and +1 min
-/// while a timer is active. Buttons appear/disappear by state so an irrelevant
-/// action is never shown.
+/// The action row beneath the dial: the primary button, plus Reset while a timer
+/// is active. Buttons appear/disappear by state so an irrelevant action is never
+/// shown.
+///
+/// There used to be a "+1 min" button here. It was removed: one minute is the wrong
+/// unit for the ask it served (wanting five or ten meant five or ten clicks), the
+/// bare `+` never said what it did, and the widget — which offers start/pause/reset
+/// only — had always managed without it. With no session history in the app, resetting
+/// and picking a new duration loses nothing but the countdown's position.
 struct ControlsView: View {
     @Environment(TimerEngine.self) private var engine
     @Environment(AppModel.self) private var app
@@ -38,14 +44,11 @@ struct ControlsView: View {
             .accessibilityLabel(primaryTitle)
 
             if engine.isActive {
-                CircleIconButton(systemName: "plus",
-                                 tint: palette.secondaryText,
-                                 soft: palette.accentSoft, size: 44) {
-                    app.addMinute()
-                }
-                .keyboardShortcut("=", modifiers: [])
-                .help("Add one minute")
-                .accessibilityLabel("Add one minute")
+                // Balances the Reset button so the primary action stays centred under
+                // the dial instead of sliding ~28 pt to the right.
+                Color.clear
+                    .frame(width: 44, height: 44)
+                    .accessibilityHidden(true)
             }
         }
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: engine.isActive)

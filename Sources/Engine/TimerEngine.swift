@@ -130,29 +130,6 @@ final class TimerEngine {
         }
     }
 
-    /// Adds one minute of focus, working while running, paused, or idle. Honors
-    /// the same 999-minute ceiling as the picker.
-    func addMinute() {
-        let cap: TimeInterval = 999 * 60
-        let bump: TimeInterval = 60
-        switch phase {
-        case .running:
-            let newDuration = min(configuredDuration + bump, cap)
-            let applied = newDuration - configuredDuration
-            deadline = (deadline ?? Date()).addingTimeInterval(applied)
-            configuredDuration = newDuration
-        case .paused:
-            let newDuration = min(configuredDuration + bump, cap)
-            let applied = newDuration - configuredDuration
-            frozenRemaining = (frozenRemaining ?? 0) + applied
-            configuredDuration = newDuration
-        case .idle:
-            setDuration(seconds: configuredDuration + bump)
-        case .finished:
-            break   // +1 is only offered while running/paused/idle
-        }
-    }
-
     /// Back to idle at the last chosen duration.
     func reset() {
         stopTicker()

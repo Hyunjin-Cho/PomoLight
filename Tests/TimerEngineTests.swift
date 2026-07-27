@@ -128,65 +128,6 @@ final class TimerEngineTests: XCTestCase {
         XCTAssertEqual(engine.phase, .running)
     }
 
-    // MARK: - +1 minute
-
-    func testAddMinuteWhileRunningExtendsBothTheDeadlineAndTheRing() {
-        let engine = TimerEngine(durationSeconds: 120)
-        let t0 = Date()
-        engine.start()
-        engine.addMinute()
-
-        XCTAssertEqual(engine.configuredDuration, 180, accuracy: 0.001)
-        XCTAssertEqual(engine.remaining(at: t0), 180, accuracy: 0.5)
-        // Ring proportion stays honest: 180 s left out of a 180 s session.
-        XCTAssertEqual(engine.fractionRemaining(at: t0), 1, accuracy: 0.01)
-    }
-
-    func testAddMinuteWhilePausedExtendsTheFrozenRemainder() {
-        let engine = TimerEngine(durationSeconds: 120)
-        engine.start()
-        engine.pause()
-        engine.addMinute()
-
-        XCTAssertEqual(engine.phase, .paused)
-        XCTAssertEqual(engine.configuredDuration, 180, accuracy: 0.001)
-        XCTAssertEqual(engine.remaining, 180, accuracy: 0.5)
-    }
-
-    func testAddMinuteWhileIdleJustGrowsTheDuration() {
-        let engine = TimerEngine(durationSeconds: 120)
-        engine.addMinute()
-
-        XCTAssertEqual(engine.phase, .idle)
-        XCTAssertEqual(engine.configuredDuration, 180, accuracy: 0.001)
-        XCTAssertEqual(engine.remaining, 180, accuracy: 0.001)
-    }
-
-    func testAddMinuteStopsAtTheCeilingWithoutOvershooting() {
-        let engine = TimerEngine(durationSeconds: cap - 30)   // 30 s of headroom
-        let t0 = Date()
-        engine.start()
-        engine.addMinute()
-
-        XCTAssertEqual(engine.configuredDuration, cap, accuracy: 0.001,
-                       "the ceiling is absolute")
-        XCTAssertEqual(engine.remaining(at: t0), cap, accuracy: 0.5,
-                       "only the 30 s that fit may be added to the deadline")
-
-        engine.addMinute()                                    // already at the cap
-        XCTAssertEqual(engine.configuredDuration, cap, accuracy: 0.001)
-        XCTAssertEqual(engine.remaining(at: t0), cap, accuracy: 0.5)
-    }
-
-    func testAddMinuteIsIgnoredOnceFinished() {
-        let engine = TimerEngine(durationSeconds: 60)
-        engine.adopt(snapshot: Self.snapshot(phase: .finished))
-        engine.addMinute()
-
-        XCTAssertEqual(engine.phase, .finished)
-        XCTAssertEqual(engine.remaining, 0, accuracy: 0.001)
-    }
-
     // MARK: - Reset / dismiss
 
     func testResetReturnsToIdleAtTheLastChosenDuration() {
