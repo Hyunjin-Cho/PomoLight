@@ -68,6 +68,30 @@ targets:
       - target: PomoLightWidget
         embed: true
 
+  PomoLightTests:
+    # HOST-LESS unit tests: the bundle compiles the units under test directly
+    # instead of hosting PomoLight.app. That keeps `xcodebuild test` from
+    # launching the UI, playing the chime, or touching the real App Group state —
+    # and keeps the suite fast enough to run on every change.
+    # Adding a file here is only needed when a test needs a NEW production type.
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests
+      - path: Sources/Engine/TimerEngine.swift
+      - path: Sources/Theme/Theme.swift
+      - path: Shared/Color+Contrast.swift
+      - path: Shared/TimerSnapshot.swift
+    settings:
+      base:
+        PRODUCT_NAME: PomoLightTests
+        PRODUCT_BUNDLE_IDENTIFIER: com.vismo.pomolight.tests
+        GENERATE_INFOPLIST_FILE: YES
+        # Tests only ever run locally/CI — stay ad-hoc so no config needs the team.
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "-"
+        DEVELOPMENT_TEAM: ""
+
   PomoLightWidget:
     # ExtensionKit-style widget (Contents/Extensions + EXAppExtensionAttributes):
     # required for widget-gallery discovery on modern macOS; the legacy
@@ -94,3 +118,15 @@ targets:
         CFBundleDisplayName: PomoLight
         EXAppExtensionAttributes:
           EXExtensionPointIdentifier: com.apple.widgetkit-extension
+
+# A shared scheme so `xcodebuild test -scheme PomoLightTests` works from a clean
+# checkout (without relying on Xcode auto-creating schemes).
+schemes:
+  PomoLightTests:
+    build:
+      targets:
+        PomoLightTests: [test]
+    test:
+      config: Debug
+      targets:
+        - PomoLightTests

@@ -102,7 +102,11 @@ extension RGB {
             if WCAG.contrast(candidate, background) >= minRatio { return candidate }
             amount += 0.02
         }
-        return best // fully toward black/white — best achievable
+        // Target unreachable against this background (e.g. 7:1 on a mid-grey): give
+        // back the far end of the search — the last 0.02 step, so ~98% of the way to
+        // black/white rather than exactly there. Close enough that the difference is
+        // invisible, and none of the shipped themes take this path.
+        return best
     }
 }
 

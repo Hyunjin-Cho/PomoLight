@@ -97,6 +97,72 @@ extension Theme {
 // Every color a view actually draws comes from here. Text and ring colors are
 // passed through WCAG enforcement so legibility never depends on the pastel.
 
+/// The palette resolved to raw `RGB` — the one place every contrast decision is
+/// actually made. `Palette` below is just this converted to SwiftUI `Color`s.
+///
+/// It exists separately because `Color` is not introspectable: anything that wants
+/// to VERIFY a ratio (`Scripts/contrast_audit.sh`, the unit tests) has to read the
+/// numbers. Keeping the math here means those checks run the real derivation
+/// instead of a copy that can silently drift.
+struct ResolvedPalette {
+    let bg: RGB
+    let bgDeep: RGB            // slightly deeper bg for a soft vertical gradient
+    let surface: RGB
+    let accent: RGB            // raw accent — used only for non-text accents (glow, idle ring, swatch)
+    let accentSoft: RGB        // soft fills (chips at rest, halos)
+    let ringTrack: RGB
+    let ringFill: RGB          // >= 3:1 vs ringTrack
+    let timerText: RGB         // >= 7:1 vs background (the hero numerals)
+    let primaryText: RGB       // >= 7:1 vs surface/bg
+    let secondaryText: RGB     // >= 4.5:1 vs surface/bg
+    let buttonFill: RGB        // accent (or deepened accent) that hosts a legible label
+    let buttonLabel: RGB       // >= 4.5:1 vs buttonFill
+    let onAccentSoft: RGB      // legible label on an accentSoft fill
+
+    init(_ c: ThemeColors) {
+        let bg = RGB(hex: c.bg)
+        let surface = RGB(hex: c.surface)
+        let accent = RGB(hex: c.accent)
+        let accentSoft = RGB(hex: c.accentSoft)
+        let text = RGB(hex: c.text)
+        let secondary = RGB(hex: c.textSecondary)
+        let ringTrack = RGB(hex: c.ringTrack)
+        let ringFill = RGB(hex: c.ringFill)
+
+        self.bg = bg
+        self.bgDeep = RGB(bg.r * 0.965, bg.g * 0.965, bg.b * 0.965)
+        self.surface = surface
+        self.accent = accent
+        self.accentSoft = accentSoft
+        self.ringTrack = ringTrack
+
+        // Hero numerals: AAA (7:1) against whichever backdrop is harder.
+        self.timerText = text
+            .enforcingContrast(against: bg, minRatio: 7.0)
+            .enforcingContrast(against: surface, minRatio: 7.0)
+        self.primaryText = text
+            .enforcingContrast(against: bg, minRatio: 7.0)
+            .enforcingContrast(against: surface, minRatio: 7.0)
+        self.secondaryText = secondary
+            .enforcingContrast(against: bg, minRatio: 4.5)
+            .enforcingContrast(against: surface, minRatio: 4.5)
+
+        // Ring fill must be distinguishable from its track (UI element, 3:1).
+        self.ringFill = ringFill.enforcingContrast(against: ringTrack, minRatio: 3.0)
+
+        // Deepen accent until a label clears AA, for filled buttons/chips.
+        // The widget's toggle button derives its colors the same way (from the
+        // light accent it receives in the shared snapshot).
+        let legible = LegibleFill(accent: accent)
+        self.buttonFill = legible.fill
+        self.buttonLabel = legible.label
+
+        // Legible label on the pale accentSoft fill.
+        self.onAccentSoft = text
+            .enforcingContrast(against: accentSoft, minRatio: 4.5)
+    }
+}
+
 struct Palette {
     let bg: Color
     let bgDeep: Color          // slightly deeper bg for a soft vertical gradient
@@ -113,47 +179,19 @@ struct Palette {
     let onAccentSoft: Color    // legible label on an accentSoft fill
 
     init(_ c: ThemeColors) {
-        let bg = RGB(hex: c.bg)
-        let surface = RGB(hex: c.surface)
-        let accent = RGB(hex: c.accent)
-        let accentSoft = RGB(hex: c.accentSoft)
-        let text = RGB(hex: c.text)
-        let secondary = RGB(hex: c.textSecondary)
-        let ringTrack = RGB(hex: c.ringTrack)
-        let ringFill = RGB(hex: c.ringFill)
-
-        self.bg = bg.color
-        self.bgDeep = RGB(bg.r * 0.965, bg.g * 0.965, bg.b * 0.965).color
-        self.surface = surface.color
-        self.accent = accent.color
-        self.accentSoft = accentSoft.color
-        self.ringTrack = ringTrack.color
-
-        // Hero numerals: AAA (7:1) against whichever backdrop is harder.
-        self.timerText = text
-            .enforcingContrast(against: bg, minRatio: 7.0)
-            .enforcingContrast(against: surface, minRatio: 7.0)
-            .color
-        self.primaryText = text
-            .enforcingContrast(against: bg, minRatio: 7.0)
-            .enforcingContrast(against: surface, minRatio: 7.0)
-            .color
-        self.secondaryText = secondary
-            .enforcingContrast(against: bg, minRatio: 4.5)
-            .enforcingContrast(against: surface, minRatio: 4.5)
-            .color
-
-        // Ring fill must be distinguishable from its track (UI element, 3:1).
-        self.ringFill = ringFill.enforcingContrast(against: ringTrack, minRatio: 3.0).color
-
-        // Deepen accent until a white label clears AA, for filled buttons/chips.
-        let legible = LegibleFill(accent: accent)
-        self.buttonFill = legible.fill.color
-        self.buttonLabel = legible.label.color
-
-        // Legible label on the pale accentSoft fill.
-        self.onAccentSoft = text
-            .enforcingContrast(against: accentSoft, minRatio: 4.5)
-            .color
+        let r = ResolvedPalette(c)
+        self.bg = r.bg.color
+        self.bgDeep = r.bgDeep.color
+        self.surface = r.surface.color
+        self.accent = r.accent.color
+        self.accentSoft = r.accentSoft.color
+        self.ringTrack = r.ringTrack.color
+        self.ringFill = r.ringFill.color
+        self.timerText = r.timerText.color
+        self.primaryText = r.primaryText.color
+        self.secondaryText = r.secondaryText.color
+        self.buttonFill = r.buttonFill.color
+        self.buttonLabel = r.buttonLabel.color
+        self.onAccentSoft = r.onAccentSoft.color
     }
 }

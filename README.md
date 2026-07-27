@@ -65,9 +65,13 @@ Release builds already wire App Groups (`group.com.vismo.pomolight`) via `CODE_S
 
 ## Verify
 
-- **Contrast audit** (no Xcode needed) — checks every theme × light/dark meets WCAG tiers:
+- **Contrast audit** (no Xcode needed) — checks every theme × light/dark meets WCAG tiers, plus the widget's toggle button. Compiles the app's own `ResolvedPalette`/`LegibleFill`, so it can't drift from what ships:
   ```bash
-  swift Scripts/contrast_audit.swift
+  bash Scripts/contrast_audit.sh
+  ```
+- **Unit tests** — timer state machine, widget-snapshot compatibility, contrast invariants. Host-less, so nothing launches and no real widget state is touched (run `xcodegen generate` first on a fresh checkout):
+  ```bash
+  xcodebuild test -project PomoLight.xcodeproj -scheme PomoLightTests -destination 'platform=macOS'
   ```
 - **UI snapshots** — render the real screens to PNGs offscreen (no Screen Recording permission needed):
   ```bash
