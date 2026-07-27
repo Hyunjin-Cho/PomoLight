@@ -21,14 +21,6 @@ private func pad(_ s: String, _ n: Int) -> String {
     s.count >= n ? s : s.padding(toLength: n, withPad: " ", startingAt: 0)
 }
 
-/// Flattens a translucent color over a backdrop in sRGB space — an approximation
-/// of what the compositor does, used only for the advisory widget-backdrop line.
-private func over(_ backdrop: RGB, _ top: RGB, alpha: Double) -> RGB {
-    RGB(top.r * alpha + backdrop.r * (1 - alpha),
-        top.g * alpha + backdrop.g * (1 - alpha),
-        top.b * alpha + backdrop.b * (1 - alpha))
-}
-
 private struct Check {
     let label: String
     let ratio: Double
@@ -71,18 +63,20 @@ struct ContrastAudit {
             }
         }
 
-        // MARK: Widget toggle button
+        // MARK: Widget controls
         //
-        // The widget process can't see the app's palette — it rebuilds the button
-        // colors from the single accent hex in the shared snapshot, which
+        // The widget process can't see the app's palette — it rebuilds its colors
+        // from the single accent hex in the shared snapshot, which
         // `AppModel.publishSnapshot()` fills with the theme's LIGHT accent. Derive
-        // it exactly that way here. (Before PR #2 the icon was hardcoded white,
-        // which failed 3:1 on 14 of the 15 themes.)
-        print("\nWidget toggle button — icon on button fill (widget uses the LIGHT accent)\n")
-        // Approximate widget backdrops: the container gradient is accent at 20%…6%
-        // over the system widget material. Advisory only — see note below.
-        let lightBackdrop = RGB(1, 1, 1)
-        let darkBackdrop = RGB(0.12, 0.12, 0.13)
+        // them exactly that way here. Two independent jobs:
+        //
+        //   icon    — readable ON the button (4.5:1). Before PR #2 the icon was
+        //             hardcoded white and failed even 3:1 on 14 of the 15 themes.
+        //   outline — the button distinguishable FROM the widget's own accent tint
+        //             (3:1, WCAG 1.4.11). The fills are shades of that same accent,
+        //             so without the outline the control has no visible shape:
+        //             `fill-vs-bg` below is what it would be on its own.
+        print("\nWidget controls — icon on the button, outline against the widget tint\n")
         for theme in Theme.presets {
             let accent = RGB(hex: theme.light.accent)
             let legible = LegibleFill(accent: accent)
@@ -91,19 +85,29 @@ struct ContrastAudit {
             if !icon.passes {
                 failures.append("\(theme.name) widget icon: \(fmt(icon.ratio)) < 4.50")
             }
-            // Advisory: can a low-vision user FIND the circular button at all?
-            let onLight = WCAG.contrast(legible.fill, over(lightBackdrop, accent, alpha: 0.20))
-            let onDark = WCAG.contrast(legible.fill, over(darkBackdrop, accent, alpha: 0.20))
-            let shape = min(onLight, onDark)
-            print("  \(pad(theme.name, 11)) icon=\(fmt(icon.ratio))\(icon.passes ? "✓" : "✗")"
-                  + "   shape-vs-backdrop≈\(fmt(shape))\(shape >= 3.0 ? "" : " (advisory)")")
+
+            var line = "  \(pad(theme.name, 11)) icon=\(fmt(icon.ratio))\(icon.passes ? "✓" : "✗")  "
+            for dark in [false, true] {
+                let backdrop = WidgetChrome.backdrop(accent: accent, dark: dark)
+                let outline = Check(label: dark ? "outline[dark ]" : "outline[light]",
+                                    ratio: WCAG.contrast(WidgetChrome.controlOutline(accent: accent, dark: dark),
+                                                         backdrop), tier: 3.0)
+                if !outline.passes {
+                    failures.append("\(theme.name) widget \(outline.label): \(fmt(outline.ratio)) < 3.00")
+                }
+                // Informational: what the un-outlined fill would have scored.
+                let bare = WCAG.contrast(legible.fill, backdrop)
+                line += "\(outline.label)=\(fmt(outline.ratio))\(outline.passes ? "✓" : "✗")"
+                    + " (fill-vs-bg \(fmt(bare)))  "
+            }
+            print(line)
         }
 
         print("""
 
-              Note: "shape-vs-backdrop" is advisory, not a gate — it approximates the
-              translucent widget background and is about spotting the button, not
-              reading the icon in it.
+              Note: the widget's background is translucent, so `backdrop` is modelled —
+              the accent at 20% over near-white / near-black. The outline is derived
+              from that same model in the widget itself, so both agree by construction.
               """)
 
         print("")

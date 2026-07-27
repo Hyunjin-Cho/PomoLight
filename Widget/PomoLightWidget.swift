@@ -54,9 +54,16 @@ struct PomoProvider: TimelineProvider {
 struct PomoLightWidgetView: View {
     let entry: PomoEntry
     @Environment(\.widgetFamily) private var family
+    @Environment(\.colorScheme) private var scheme
 
     private var snap: TimerSnapshot { entry.snapshot }
     private var accent: Color { Color(appHex: snap.accentHex) }
+    /// Both round buttons are filled with a shade of the accent the container is also
+    /// tinted with, so their outline is what makes them identifiable as controls.
+    /// `WidgetChrome` derives one that clears 3:1 (WCAG 1.4.11) in this appearance.
+    private var controlOutline: Color {
+        WidgetChrome.controlOutline(accent: RGB(hex: snap.accentHex), dark: scheme == .dark).color
+    }
     private var isLiveRunning: Bool {
         if case .running = snap.phase, let d = snap.deadline, d > entry.date { return true }
         return false
@@ -124,7 +131,14 @@ struct PomoLightWidgetView: View {
                         Image(systemName: "arrow.counterclockwise")
                             .font(.system(size: 14, weight: .semibold))
                             .frame(width: 38, height: 38)
-                            .background(Circle().fill(accent.opacity(0.16)))
+                            // A 16% accent fill on a 20%-accent container is very
+                            // nearly the same color — without the outline this
+                            // control has no visible shape at all.
+                            .background(
+                                Circle()
+                                    .fill(accent.opacity(0.16))
+                                    .overlay(Circle().strokeBorder(controlOutline, lineWidth: 1.5))
+                            )
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Reset")
@@ -135,9 +149,12 @@ struct PomoLightWidgetView: View {
     }
 
     /// The state-aware primary control (start / pause / resume / dismiss).
-    /// Colors come from the same `LegibleFill` derivation the app's buttons use —
-    /// a white icon on the raw pastel accent fails 3:1 contrast on 14 of the 15
-    /// themes (e.g. white on Lime is 1.22:1).
+    ///
+    /// Two contrast jobs, and they're separate: the ICON must be readable on the
+    /// button (`LegibleFill`, the same derivation the app's buttons use — a hardcoded
+    /// white icon on the raw pastel accent failed even 3:1 on 14 of the 15 themes,
+    /// e.g. 1.22:1 on Lime), and the BUTTON must be distinguishable from the widget's
+    /// accent-tinted background (`controlOutline`, since the fill is that same accent).
     private func toggleButton(size: CGFloat, font: CGFloat) -> some View {
         let legible = LegibleFill(accent: RGB(hex: snap.accentHex))
         return Button(intent: TimerToggleIntent()) {
@@ -145,7 +162,11 @@ struct PomoLightWidgetView: View {
                 .font(.system(size: font, weight: .bold))
                 .foregroundStyle(legible.label.color)
                 .frame(width: size, height: size)
-                .background(Circle().fill(legible.fill.color))
+                .background(
+                    Circle()
+                        .fill(legible.fill.color)
+                        .overlay(Circle().strokeBorder(controlOutline, lineWidth: 1.5))
+                )
         }
         .buttonStyle(.plain)
         .accessibilityLabel(toggleLabel)
