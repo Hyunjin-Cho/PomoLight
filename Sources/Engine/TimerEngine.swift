@@ -174,6 +174,11 @@ final class TimerEngine {
         let t = Timer(timeInterval: 0.2, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.tick() }
         }
+        // Let the system slide each fire by up to 50 ms so it can coalesce our
+        // wakeups with other work instead of waking the CPU on its own schedule.
+        // Nothing here is sub-100 ms sensitive: this timer only drives the 1 Hz
+        // menu-bar label and notices the zero crossing.
+        t.tolerance = 0.05
         RunLoop.main.add(t, forMode: .common)
         ticker = t
     }
