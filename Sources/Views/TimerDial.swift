@@ -12,28 +12,17 @@ struct TimerDial: View {
 
     @State private var pulseScale: CGFloat = 1.0
 
-    /// How often the dial redraws while running.
-    ///
-    /// Every update rebuilds the ring, its glow and the numerals, and each one costs a
-    /// full window layout pass — so this one number is essentially the whole cost of
-    /// having PomoLight open. It used to ask for 30 fps, which measured **11.3% of a
-    /// CPU core on an M1 Max**, and nearly all of that bought nothing visible: the
-    /// ring advances by *distance*, and a 25-minute session moves it ≈0.7 px per
-    /// SECOND at this size — about 1/40 px per frame at 30 fps.
-    ///
-    /// Measured (Release build, 30-minute timer, window visible, avg CPU over 3-5 min):
-    ///
-    ///     30 fps 11.25%  |  2 fps 2.38%  |  1 fps 1.93%  |  no redraws 1.40%
-    ///
-    /// 2 fps keeps the numerals within half a second of the clock and the
-    /// final-10-second glow ramp smooth, for a fifth of the power. The 1.40% floor is
-    /// the 1 Hz menu-bar label plus the engine's ticker, which this doesn't control —
-    /// so 1 fps would only save 0.45 pp more while doubling the lag.
-    private static let frameInterval: Double = 0.5
+    /// Redraw cadence, from the ring's own speed — see `DialFrameRate` for the rule
+    /// and the power measurements behind it. Short timers get a fast ring and earn a
+    /// high rate; a 25-minute ring crawls and doesn't.
+    private var frameInterval: Double {
+        DialFrameRate.interval(dialDiameter: Double(diameter),
+                               duration: engine.configuredDuration)
+    }
 
     var body: some View {
         let running = engine.phase == .running
-        TimelineView(.animation(minimumInterval: running ? Self.frameInterval : nil,
+        TimelineView(.animation(minimumInterval: running ? frameInterval : nil,
                                 paused: !running)) { context in
             content(at: context.date)
         }

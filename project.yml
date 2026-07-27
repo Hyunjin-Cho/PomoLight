@@ -79,6 +79,7 @@ targets:
     sources:
       - path: Tests
       - path: Sources/Engine/TimerEngine.swift
+      - path: Sources/Views/DialFrameRate.swift
       - path: Sources/Theme/Theme.swift
       - path: Shared/Color+Contrast.swift
       - path: Shared/TimerSnapshot.swift
