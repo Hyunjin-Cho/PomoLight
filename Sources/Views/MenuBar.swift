@@ -1,8 +1,9 @@
 import SwiftUI
 
 /// The live countdown shown in the macOS menu bar (MM:SS while active, a small
-/// timer glyph when idle). `menuBarTick` drives a ~1 Hz refresh without redrawing
-/// the menu bar 30×/second.
+/// timer glyph when idle). The engine's 0.2 s ticker bumps `menuBarTick` only when
+/// the whole second changes, so this label refreshes at ~1 Hz instead of five times
+/// a second. Unrelated to the dial's frame rate — the two redraw independently.
 struct MenuBarLabel: View {
     @Environment(TimerEngine.self) private var engine
 
