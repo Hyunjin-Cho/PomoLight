@@ -40,7 +40,11 @@ final class AppModel {
         }
         observeWidgetChanges()
         observeSettingChanges()
-        publishSnapshot()
+        // 2026-08-15: sync(), not publishSnapshot() alone. Launch is a state change
+        // like any other — adopting a widget-started countdown above has to arm the
+        // sleep assertion too, or a "keep the Mac awake" user who started from the
+        // widget gets the countdown back but no wake lock.
+        sync()
     }
 
     /// Settings can change outside any timer action (panel toggles, theme swatch),
@@ -80,6 +84,20 @@ final class AppModel {
             let model = Unmanaged<AppModel>.fromOpaque(observer).takeUnretainedValue()
             Task { @MainActor in model.adoptWidgetState() }
         }, SharedStore.widgetChangeNote as CFString, nil, .deliverImmediately)
+    }
+
+    // 2026-08-15: the Darwin observer is registered with an UNRETAINED pointer to
+    // self, so it has to be torn down here — otherwise the notify center keeps
+    // calling back into freed memory. The live app never hit this (one AppModel
+    // for the whole process life), but the DEBUG snapshot renderer builds several
+    // in a row, and each dead one left a live callback behind.
+    // Touches no isolated state — just the raw pointer — so it is safe in deinit.
+    deinit {
+        CFNotificationCenterRemoveObserver(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            Unmanaged.passUnretained(self).toOpaque(),
+            CFNotificationName(SharedStore.widgetChangeNote as CFString),
+            nil)
     }
 
     private func adoptWidgetState() {
