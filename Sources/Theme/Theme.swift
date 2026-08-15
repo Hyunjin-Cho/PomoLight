@@ -136,13 +136,18 @@ struct ResolvedPalette {
         self.accentSoft = accentSoft
         self.ringTrack = ringTrack
 
-        // Hero numerals: AAA (7:1) against whichever backdrop is harder.
-        self.timerText = text
+        // The AAA (7:1) ink, corrected against whichever backdrop is harder.
+        let aaaInk = text
             .enforcingContrast(against: bg, minRatio: 7.0)
             .enforcingContrast(against: surface, minRatio: 7.0)
-        self.primaryText = text
-            .enforcingContrast(against: bg, minRatio: 7.0)
-            .enforcingContrast(against: surface, minRatio: 7.0)
+        // 2026-08-15: timerText and primaryText were two copies of this exact
+        // formula. Deriving both from one value means they can no longer drift
+        // apart by accident. The two NAMES stay because they answer different
+        // questions — "the hero numerals" vs "every other primary label" — and a
+        // future tweak (say, a slightly bolder ink for the big countdown) should
+        // have somewhere to land. Change one only when that is the intent.
+        self.timerText = aaaInk
+        self.primaryText = aaaInk
         self.secondaryText = secondary
             .enforcingContrast(against: bg, minRatio: 4.5)
             .enforcingContrast(against: surface, minRatio: 4.5)

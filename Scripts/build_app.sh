@@ -22,6 +22,14 @@ EXPORT="build-release/export"
 
 echo "▸ Archiving (Release)…"
 rm -rf "$ARCHIVE"
+# The trailing grep only condenses xcodebuild's very long log; it is NOT the
+# thing that decides success. A clean build matches none of these patterns, so
+# grep exits 1 and `pipefail` would report a false failure — which is why this
+# line used to end in `|| true`. That also swallowed REAL xcodebuild failures.
+# So: judge xcodebuild by its own status via ${PIPESTATUS[0]}. `set +e` is
+# required around the pipeline because errexit would abort the script before
+# PIPESTATUS could be read. (2026-08-15)
+set +e
 xcodebuild \
   -project PomoLight.xcodeproj \
   -scheme PomoLight \
@@ -29,18 +37,26 @@ xcodebuild \
   -derivedDataPath ./build-release \
   -archivePath "$ARCHIVE" \
   archive \
-  | grep -E "error:|ARCHIVE SUCCEEDED|ARCHIVE FAILED|BUILD FAILED" || true
+  | grep -E "error:|ARCHIVE SUCCEEDED|ARCHIVE FAILED|BUILD FAILED"
+ARCHIVE_STATUS=${PIPESTATUS[0]}
+set -e
+[ "$ARCHIVE_STATUS" -eq 0 ] || { echo "✗ Archive failed — xcodebuild exited $ARCHIVE_STATUS"; exit 1; }
 
 [ -d "$ARCHIVE" ] || { echo "✗ Archive failed — $ARCHIVE not found"; exit 1; }
 
 echo "▸ Exporting (Developer ID)…"
 rm -rf "$EXPORT"
+# Same shape as the archive step above: grep summarizes, ${PIPESTATUS[0]} judges.
+set +e
 xcodebuild \
   -exportArchive \
   -archivePath "$ARCHIVE" \
   -exportOptionsPlist Scripts/ExportOptions.plist \
   -exportPath "$EXPORT" \
-  | grep -E "error:|EXPORT SUCCEEDED|Exported" || true
+  | grep -E "error:|EXPORT SUCCEEDED|Exported"
+EXPORT_STATUS=${PIPESTATUS[0]}
+set -e
+[ "$EXPORT_STATUS" -eq 0 ] || { echo "✗ Export failed — xcodebuild exited $EXPORT_STATUS"; exit 1; }
 
 APP="$EXPORT/PomoLight.app"
 [ -d "$APP" ] || { echo "✗ Export failed — $APP not found"; exit 1; }

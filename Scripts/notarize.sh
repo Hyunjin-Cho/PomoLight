@@ -3,11 +3,17 @@
 # Run Scripts/build_app.sh first (Developer ID signed app in dist/).
 #
 # ONE-TIME setup — create an app-specific password at https://appleid.apple.com
-# (Sign-In & Security → App-Specific Passwords), then store a notary profile:
+# (Sign-In & Security → App-Specific Passwords), then store a notary profile.
+# Pass your own Apple ID through the environment so no personal address is
+# committed to this repo (2026-08-15):
 #
+#   export APPLE_ID="you@example.com"
 #   xcrun notarytool store-credentials pomolight-notary \
-#     --apple-id "you@example.com" --team-id 6RH6FXY82P \
+#     --apple-id "$APPLE_ID" --team-id 6RH6FXY82P \
 #     --password "<your-app-specific-password>"
+#
+# That is setup only — this script never reads APPLE_ID. Once the profile
+# exists in the keychain, the credentials come from it alone.
 #
 # Then just run:  ./Scripts/notarize.sh
 set -euo pipefail
