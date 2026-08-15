@@ -5,8 +5,6 @@
 "ALARM SOUND" = "鬧鈴聲音";
 "WHEN THE TIMER ENDS" = "計時結束時";
 "GENERAL" = "一般";
-"Custom color" = "自訂顏色";
-"Soft Chime" = "輕柔鈴聲";
 "Alarm volume" = "鬧鈴音量";
 "The end is also shown visually, so a muted Mac still alerts you." = "結束時也會以畫面提示，因此即使 Mac 靜音也能通知你。";
 "Repeat sound until dismissed" = "重複播放直到關閉";
@@ -36,8 +34,6 @@
 "Preview %@" = "試聽 %@";
 "%lld minutes" = "%lld 分鐘";
 "Time's up — your timer finished." = "時間到 — 你的計時器已結束。";
-"Glass" = "Glass";
-"Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "否則鬧鈴會響 3 次。";
 "%@ remaining" = "剩餘%@";
 "Notifications off" = "通知已關閉";

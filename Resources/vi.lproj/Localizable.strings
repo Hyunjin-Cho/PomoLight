@@ -5,8 +5,6 @@
 "ALARM SOUND" = "Âm báo";
 "WHEN THE TIMER ENDS" = "Khi hết giờ";
 "GENERAL" = "Chung";
-"Custom color" = "Màu tùy chỉnh";
-"Soft Chime" = "Chuông nhẹ";
 "Alarm volume" = "Âm lượng báo";
 "The end is also shown visually, so a muted Mac still alerts you." = "Lúc hết giờ cũng hiển thị trực quan, nên dù Mac đang tắt tiếng bạn vẫn nhận được thông báo.";
 "Repeat sound until dismissed" = "Lặp âm cho đến khi tắt";
@@ -36,8 +34,6 @@
 "Preview %@" = "Nghe thử %@";
 "%lld minutes" = "%lld phút";
 "Time's up — your timer finished." = "Hết giờ — bộ đếm của bạn đã kết thúc.";
-"Glass" = "Glass";
-"Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Nếu tắt, chuông báo sẽ reo 3 lần.";
 "%@ remaining" = "Còn lại %@";
 "Notifications off" = "Đã tắt thông báo";

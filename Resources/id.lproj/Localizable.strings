@@ -5,8 +5,6 @@
 "ALARM SOUND" = "SUARA ALARM";
 "WHEN THE TIMER ENDS" = "SAAT TIMER BERAKHIR";
 "GENERAL" = "UMUM";
-"Custom color" = "Warna khusus";
-"Soft Chime" = "Dentingan Lembut";
 "Alarm volume" = "Volume alarm";
 "The end is also shown visually, so a muted Mac still alerts you." = "Akhir timer juga ditampilkan secara visual, jadi Mac yang dibisukan tetap memberi tahu Anda.";
 "Repeat sound until dismissed" = "Ulangi suara sampai ditutup";
@@ -36,8 +34,6 @@
 "Preview %@" = "Pratinjau %@";
 "%lld minutes" = "%lld menit";
 "Time's up — your timer finished." = "Waktu habis — timer Anda selesai.";
-"Glass" = "Glass";
-"Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Jika tidak, alarm berbunyi 3 kali.";
 "%@ remaining" = "Tersisa %@";
 "Notifications off" = "Notifikasi nonaktif";

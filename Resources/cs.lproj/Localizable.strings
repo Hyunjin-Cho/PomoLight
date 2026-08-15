@@ -5,8 +5,6 @@
 "ALARM SOUND" = "ZVUK ALARMU";
 "WHEN THE TIMER ENDS" = "KDYŽ ČASOVAČ SKONČÍ";
 "GENERAL" = "OBECNÉ";
-"Custom color" = "Vlastní barva";
-"Soft Chime" = "Jemné zvonkohra";
 "Alarm volume" = "Hlasitost alarmu";
 "The end is also shown visually, so a muted Mac still alerts you." = "Konec se zobrazí i vizuálně, takže vás Mac upozorní i ztlumený.";
 "Repeat sound until dismissed" = "Opakovat zvuk až do zavření";
@@ -36,8 +34,6 @@
 "Preview %@" = "Přehrát %@";
 "%lld minutes" = "%lld minut";
 "Time's up — your timer finished." = "Čas vypršel — váš časovač skončil.";
-"Glass" = "Glass";
-"Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Jinak budík zazvoní 3krát.";
 "%@ remaining" = "Zbývá %@";
 "Notifications off" = "Oznámení vypnuta";

@@ -5,8 +5,6 @@
 "ALARM SOUND" = "SOM DO ALARME";
 "WHEN THE TIMER ENDS" = "QUANDO O TEMPORIZADOR TERMINA";
 "GENERAL" = "GERAL";
-"Custom color" = "Cor personalizada";
-"Soft Chime" = "Toque Suave";
 "Alarm volume" = "Volume do alarme";
 "The end is also shown visually, so a muted Mac still alerts you." = "O fim também é mostrado visualmente, por isso um Mac sem som continua a avisar-te.";
 "Repeat sound until dismissed" = "Repetir o som até ser dispensado";
@@ -36,8 +34,6 @@
 "Preview %@" = "Pré-visualizar %@";
 "%lld minutes" = "%lld minutos";
 "Time's up — your timer finished." = "Tempo esgotado — o teu temporizador terminou.";
-"Glass" = "Glass";
-"Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Caso contrário, o alarme toca 3 vezes.";
 "%@ remaining" = "Faltam %@";
 "Notifications off" = "Notificações desativadas";

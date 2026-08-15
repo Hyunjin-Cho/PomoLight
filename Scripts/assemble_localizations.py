@@ -15,8 +15,15 @@ result = data["result"]
 keys = result["keys"]
 by_lang = result["byLang"]
 
-# Proper-noun system-sound names: identity in every language.
-extra = {"Glass": "Glass", "Submarine": "Submarine"}
+# Keys the old workflow JSON still carries but the app never looks up. They are
+# dropped here so a re-assembly can't resurrect them (2026-08-15):
+#   "Custom color" — the custom accent-color feature was removed in PR #2.
+#   "Soft Chime"   — alarm-sound names are drawn with Text(verbatim:) in
+#                    SettingsPanelView, so they never go through this table.
+# Also gone in the same pass: the hardcoded "Glass"/"Submarine" system-sound
+# names, which were never even values of AlarmSound. If sound names are ever
+# localized, take "Soft Chime" back out of this set.
+SKIP_KEYS = {"Custom color", "Soft Chime"}
 
 # Keys added AFTER the original workflow ran, hand-translated (2026-07: VoiceOver
 # remaining-time phrase; widget bell-slash badge). Merged so re-assembling from
@@ -63,7 +70,8 @@ for code, trans in by_lang.items():
     os.makedirs(lproj, exist_ok=True)
     lines = [f"/* PomoLight — {code} (auto-assembled) */"]
     missing = 0
-    all_keys = list(keys) + [k for k in MANUAL if k not in keys]
+    all_keys = [k for k in list(keys) + [k for k in MANUAL if k not in keys]
+                if k not in SKIP_KEYS]
     for k in all_keys:
         v = trans.get(k)
         if not v or not str(v).strip():
@@ -72,8 +80,6 @@ for code, trans in by_lang.items():
             v = k          # fall back to English
             missing += 1
         lines.append(f'"{esc(k)}" = "{esc(str(v))}";')
-    for k, v in extra.items():
-        lines.append(f'"{esc(k)}" = "{esc(v)}";')
     with open(os.path.join(lproj, "Localizable.strings"), "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
     written.append((code, len(trans), missing))

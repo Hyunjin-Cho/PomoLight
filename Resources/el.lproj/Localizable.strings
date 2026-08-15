@@ -5,8 +5,6 @@
 "ALARM SOUND" = "ΗΧΟΣ ΕΙΔΟΠΟΙΗΣΗΣ";
 "WHEN THE TIMER ENDS" = "ΟΤΑΝ ΛΗΞΕΙ Ο ΧΡΟΝΟΜΕΤΡΗΤΗΣ";
 "GENERAL" = "ΓΕΝΙΚΑ";
-"Custom color" = "Προσαρμοσμένο χρώμα";
-"Soft Chime" = "Απαλό κουδούνισμα";
 "Alarm volume" = "Ένταση ειδοποίησης";
 "The end is also shown visually, so a muted Mac still alerts you." = "Η λήξη εμφανίζεται και οπτικά, ώστε να ειδοποιείστε ακόμη κι αν ο Mac είναι σε σίγαση.";
 "Repeat sound until dismissed" = "Επανάληψη ήχου μέχρι να κλείσει";
@@ -36,8 +34,6 @@
 "Preview %@" = "Προεπισκόπηση %@";
 "%lld minutes" = "%lld λεπτά";
 "Time's up — your timer finished." = "Ο χρόνος έληξε — ο χρονομετρητής σας ολοκληρώθηκε.";
-"Glass" = "Glass";
-"Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Διαφορετικά το ξυπνητήρι χτυπά 3 φορές.";
 "%@ remaining" = "Απομένουν %@";
 "Notifications off" = "Ειδοποιήσεις ανενεργές";

@@ -5,8 +5,6 @@
 "ALARM SOUND" = "ЗВУК СИГНАЛУ";
 "WHEN THE TIMER ENDS" = "КОЛИ ТАЙМЕР ЗАВЕРШУЄТЬСЯ";
 "GENERAL" = "ЗАГАЛЬНІ";
-"Custom color" = "Власний колір";
-"Soft Chime" = "М'який передзвін";
 "Alarm volume" = "Гучність сигналу";
 "The end is also shown visually, so a muted Mac still alerts you." = "Завершення також показано візуально, тож Mac без звуку все одно вас сповістить.";
 "Repeat sound until dismissed" = "Повторювати звук до закриття";
@@ -36,8 +34,6 @@
 "Preview %@" = "Прослухати %@";
 "%lld minutes" = "%lld хвилин";
 "Time's up — your timer finished." = "Час вийшов — ваш таймер завершився.";
-"Glass" = "Glass";
-"Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Інакше сигнал пролунає 3 рази.";
 "%@ remaining" = "Залишилося %@";
 "Notifications off" = "Сповіщення вимкнено";

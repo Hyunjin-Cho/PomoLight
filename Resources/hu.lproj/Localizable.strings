@@ -5,8 +5,6 @@
 "ALARM SOUND" = "Riasztáshang";
 "WHEN THE TIMER ENDS" = "Amikor lejár az időzítő";
 "GENERAL" = "Általános";
-"Custom color" = "Egyéni szín";
-"Soft Chime" = "Lágy csengés";
 "Alarm volume" = "Riasztás hangereje";
 "The end is also shown visually, so a muted Mac still alerts you." = "A lejárat vizuálisan is megjelenik, így a néma Mac is figyelmeztet.";
 "Repeat sound until dismissed" = "Hang ismétlése elvetésig";
@@ -36,8 +34,6 @@
 "Preview %@" = "%@ előhallgatása";
 "%lld minutes" = "%lld perc";
 "Time's up — your timer finished." = "Lejárt az idő – az időzítő befejeződött.";
-"Glass" = "Glass";
-"Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Egyébként a riasztó 3-szor szól.";
 "%@ remaining" = "%@ van hátra";
 "Notifications off" = "Értesítések kikapcsolva";

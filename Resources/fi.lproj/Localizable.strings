@@ -5,8 +5,6 @@
 "ALARM SOUND" = "Hälytysääni";
 "WHEN THE TIMER ENDS" = "Kun ajastin päättyy";
 "GENERAL" = "Yleiset";
-"Custom color" = "Mukautettu väri";
-"Soft Chime" = "Pehmeä kilahdus";
 "Alarm volume" = "Hälytyksen äänenvoimakkuus";
 "The end is also shown visually, so a muted Mac still alerts you." = "Päättyminen näytetään myös visuaalisesti, joten saat ilmoituksen vaikka Mac olisi mykistetty.";
 "Repeat sound until dismissed" = "Toista ääntä, kunnes se ohitetaan";
@@ -36,8 +34,6 @@
 "Preview %@" = "Esikuuntele %@";
 "%lld minutes" = "%lld minuuttia";
 "Time's up — your timer finished." = "Aika loppui — ajastimesi päättyi.";
-"Glass" = "Glass";
-"Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Muuten hälytys soi 3 kertaa.";
 "%@ remaining" = "%@ jäljellä";
 "Notifications off" = "Ilmoitukset pois käytöstä";

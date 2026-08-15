@@ -5,8 +5,6 @@
 "ALARM SOUND" = "เสียงปลุก";
 "WHEN THE TIMER ENDS" = "เมื่อจับเวลาสิ้นสุด";
 "GENERAL" = "ทั่วไป";
-"Custom color" = "สีที่กำหนดเอง";
-"Soft Chime" = "เสียงระฆังนุ่มนวล";
 "Alarm volume" = "ระดับเสียงปลุก";
 "The end is also shown visually, so a muted Mac still alerts you." = "เมื่อหมดเวลาจะมีการแจ้งเตือนด้วยภาพด้วย แม้ปิดเสียง Mac ก็ยังเตือนคุณได้";
 "Repeat sound until dismissed" = "เล่นเสียงซ้ำจนกว่าจะปิด";
@@ -36,8 +34,6 @@
 "Preview %@" = "ฟังตัวอย่าง %@";
 "%lld minutes" = "%lld นาที";
 "Time's up — your timer finished." = "หมดเวลาแล้ว — ตัวจับเวลาของคุณสิ้นสุดลง";
-"Glass" = "Glass";
-"Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "หากปิด เสียงปลุกจะดัง 3 ครั้ง";
 "%@ remaining" = "เหลืออีก %@";
 "Notifications off" = "การแจ้งเตือนปิดอยู่";

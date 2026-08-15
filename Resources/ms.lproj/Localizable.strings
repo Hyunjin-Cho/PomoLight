@@ -5,8 +5,6 @@
 "ALARM SOUND" = "BUNYI PENGGERA";
 "WHEN THE TIMER ENDS" = "APABILA PEMASA TAMAT";
 "GENERAL" = "UMUM";
-"Custom color" = "Warna tersuai";
-"Soft Chime" = "Loceng Lembut";
 "Alarm volume" = "Kelantangan penggera";
 "The end is also shown visually, so a muted Mac still alerts you." = "Penamat juga dipaparkan secara visual, jadi Mac yang dibisukan tetap memberi amaran.";
 "Repeat sound until dismissed" = "Ulang bunyi sehingga ditutup";
@@ -36,8 +34,6 @@
 "Preview %@" = "Pratonton %@";
 "%lld minutes" = "%lld minit";
 "Time's up — your timer finished." = "Masa tamat — pemasa anda telah selesai.";
-"Glass" = "Glass";
-"Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Jika tidak, penggera berbunyi 3 kali.";
 "%@ remaining" = "Tinggal %@";
 "Notifications off" = "Pemberitahuan dimatikan";

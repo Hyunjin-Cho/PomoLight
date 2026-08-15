@@ -5,8 +5,6 @@
 "ALARM SOUND" = "ALARMGELUID";
 "WHEN THE TIMER ENDS" = "ALS DE TIMER AFLOOPT";
 "GENERAL" = "ALGEMEEN";
-"Custom color" = "Aangepaste kleur";
-"Soft Chime" = "Zachte bel";
 "Alarm volume" = "Alarmvolume";
 "The end is also shown visually, so a muted Mac still alerts you." = "Het einde wordt ook visueel getoond, zodat een gedempte Mac je toch waarschuwt.";
 "Repeat sound until dismissed" = "Geluid herhalen tot je het sluit";
@@ -36,8 +34,6 @@
 "Preview %@" = "Voorbeeld van %@";
 "%lld minutes" = "%lld minuten";
 "Time's up — your timer finished." = "Tijd is om — je timer is afgelopen.";
-"Glass" = "Glass";
-"Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Anders gaat het alarm 3 keer af.";
 "%@ remaining" = "Nog %@";
 "Notifications off" = "Meldingen uit";

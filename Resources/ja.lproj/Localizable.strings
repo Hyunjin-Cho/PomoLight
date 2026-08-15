@@ -5,8 +5,6 @@
 "ALARM SOUND" = "アラーム音";
 "WHEN THE TIMER ENDS" = "タイマー終了時";
 "GENERAL" = "一般";
-"Custom color" = "カスタムカラー";
-"Soft Chime" = "ソフトチャイム";
 "Alarm volume" = "アラームの音量";
 "The end is also shown visually, so a muted Mac still alerts you." = "終了は画面でも表示されるので、消音中のMacでも気づけます。";
 "Repeat sound until dismissed" = "解除するまで音を繰り返す";
@@ -36,8 +34,6 @@
 "Preview %@" = "%@をプレビュー";
 "%lld minutes" = "%lld分";
 "Time's up — your timer finished." = "時間です — タイマーが終了しました。";
-"Glass" = "Glass";
-"Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "オフのときは、アラームが3回鳴って止まります。";
 "%@ remaining" = "残り%@";
 "Notifications off" = "通知オフ";

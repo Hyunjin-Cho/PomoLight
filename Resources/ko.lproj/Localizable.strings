@@ -5,8 +5,6 @@
 "ALARM SOUND" = "알림음";
 "WHEN THE TIMER ENDS" = "타이머가 끝나면";
 "GENERAL" = "일반";
-"Custom color" = "사용자 지정 색상";
-"Soft Chime" = "부드러운 차임";
 "Alarm volume" = "알림음 볼륨";
 "The end is also shown visually, so a muted Mac still alerts you." = "종료는 화면으로도 표시돼서, 음소거 상태에서도 알 수 있어요.";
 "Repeat sound until dismissed" = "끌 때까지 소리 반복";
@@ -36,8 +34,6 @@
 "Preview %@" = "%@ 미리 듣기";
 "%lld minutes" = "%lld분";
 "Time's up — your timer finished." = "시간이 다 됐어요 — 타이머가 끝났습니다.";
-"Glass" = "Glass";
-"Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "끄면 종료 알람이 3번 울리고 멈춰요.";
 "%@ remaining" = "%@ 남음";
 "Notifications off" = "알림 꺼짐";

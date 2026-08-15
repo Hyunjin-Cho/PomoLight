@@ -5,8 +5,6 @@
 "ALARM SOUND" = "Sunet alarmă";
 "WHEN THE TIMER ENDS" = "Când se termină cronometrul";
 "GENERAL" = "General";
-"Custom color" = "Culoare personalizată";
-"Soft Chime" = "Clopoțel blând";
 "Alarm volume" = "Volum alarmă";
 "The end is also shown visually, so a muted Mac still alerts you." = "Finalul este afișat și vizual, așa că un Mac fără sunet te avertizează oricum.";
 "Repeat sound until dismissed" = "Repetă sunetul până la închidere";
@@ -36,8 +34,6 @@
 "Preview %@" = "Ascultă %@";
 "%lld minutes" = "%lld minute";
 "Time's up — your timer finished." = "Timpul a expirat — cronometrul s-a încheiat.";
-"Glass" = "Glass";
-"Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Altfel, alarma sună de 3 ori.";
 "%@ remaining" = "Au mai rămas %@";
 "Notifications off" = "Notificări dezactivate";

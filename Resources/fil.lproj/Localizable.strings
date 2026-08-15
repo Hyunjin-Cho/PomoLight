@@ -5,8 +5,6 @@
 "ALARM SOUND" = "Tunog ng Alarma";
 "WHEN THE TIMER ENDS" = "Kapag Natapos ang Timer";
 "GENERAL" = "Pangkalahatan";
-"Custom color" = "Sariling kulay";
-"Soft Chime" = "Banayad na Tunog";
 "Alarm volume" = "Lakas ng alarma";
 "The end is also shown visually, so a muted Mac still alerts you." = "Makikita rin ang pagtatapos, kaya may abiso pa rin kahit naka-mute ang Mac.";
 "Repeat sound until dismissed" = "Ulitin ang tunog hanggang i-dismiss";
@@ -36,8 +34,6 @@
 "Preview %@" = "I-preview ang %@";
 "%lld minutes" = "%lld minuto";
 "Time's up — your timer finished." = "Tapos na ang oras — natapos na ang iyong timer.";
-"Glass" = "Glass";
-"Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Kung hindi, 3 beses tutunog ang alarma.";
 "%@ remaining" = "Natitirang %@";
 "Notifications off" = "Naka-off ang mga notification";

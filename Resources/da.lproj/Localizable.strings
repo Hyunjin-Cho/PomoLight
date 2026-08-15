@@ -5,8 +5,6 @@
 "ALARM SOUND" = "Alarmlyd";
 "WHEN THE TIMER ENDS" = "Når timeren slutter";
 "GENERAL" = "Generelt";
-"Custom color" = "Brugerdefineret farve";
-"Soft Chime" = "Blød klokke";
 "Alarm volume" = "Alarmlydstyrke";
 "The end is also shown visually, so a muted Mac still alerts you." = "Slutningen vises også visuelt, så din Mac stadig giver besked, selv når lyden er slået fra.";
 "Repeat sound until dismissed" = "Gentag lyd indtil den afvises";
@@ -36,8 +34,6 @@
 "Preview %@" = "Hør %@";
 "%lld minutes" = "%lld minutter";
 "Time's up — your timer finished." = "Tiden er gået – din timer er færdig.";
-"Glass" = "Glass";
-"Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Ellers ringer alarmen 3 gange.";
 "%@ remaining" = "%@ tilbage";
 "Notifications off" = "Notifikationer er slået fra";

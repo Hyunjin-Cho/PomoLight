@@ -5,8 +5,6 @@
 "ALARM SOUND" = "ALARM SESİ";
 "WHEN THE TIMER ENDS" = "ZAMANLAYICI BİTTİĞİNDE";
 "GENERAL" = "GENEL";
-"Custom color" = "Özel renk";
-"Soft Chime" = "Yumuşak Çın";
 "Alarm volume" = "Alarm sesi düzeyi";
 "The end is also shown visually, so a muted Mac still alerts you." = "Bitiş görsel olarak da gösterilir, böylece sesi kapalı bir Mac bile sizi uyarır.";
 "Repeat sound until dismissed" = "Kapatılana kadar sesi tekrarla";
@@ -36,8 +34,6 @@
 "Preview %@" = "%@ önizle";
 "%lld minutes" = "%lld dakika";
 "Time's up — your timer finished." = "Süre doldu — zamanlayıcın bitti.";
-"Glass" = "Glass";
-"Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Aksi halde alarm 3 kez çalar.";
 "%@ remaining" = "%@ kaldı";
 "Notifications off" = "Bildirimler kapalı";

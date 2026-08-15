@@ -5,8 +5,6 @@
 "ALARM SOUND" = "Signalton";
 "WHEN THE TIMER ENDS" = "Wenn der Timer endet";
 "GENERAL" = "Allgemein";
-"Custom color" = "Eigene Farbe";
-"Soft Chime" = "Sanfter Klang";
 "Alarm volume" = "Lautstärke des Signaltons";
 "The end is also shown visually, so a muted Mac still alerts you." = "Das Ende wird auch visuell angezeigt, sodass dich ein stummgeschalteter Mac trotzdem benachrichtigt.";
 "Repeat sound until dismissed" = "Ton wiederholen, bis er beendet wird";
@@ -36,8 +34,6 @@
 "Preview %@" = "%@ vorhören";
 "%lld minutes" = "%lld Minuten";
 "Time's up — your timer finished." = "Die Zeit ist um – dein Timer ist abgelaufen.";
-"Glass" = "Glass";
-"Submarine" = "Submarine";
 "Otherwise the alarm rings 3 times." = "Andernfalls klingelt der Alarm 3-mal.";
 "%@ remaining" = "Noch %@";
 "Notifications off" = "Mitteilungen aus";
