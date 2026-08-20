@@ -20,13 +20,30 @@ struct DonateButton: View {
             }
         } label: {
             Image(systemName: "heart.fill")
-                .font(.system(size: 15))
+                // 16, not the gear's 14: heart.fill inks smaller than gearshape.fill
+                // at equal point size, so matching the numbers leaves the heart
+                // visibly the lighter of the two in the top bar.
+                .font(.system(size: 16))
                 .foregroundStyle(palette.accent.opacity(hovering ? 1.0 : 0.7))
                 .scaleEffect(hovering && !reduceMotion ? 1.08 : 1.0)
                 .frame(width: 32, height: 32)
                 .contentShape(Rectangle())
         }
-        .menuStyle(.borderlessButton)
+        // 🚨 2026-08-20: was .menuStyle(.borderlessButton), which hands the label to
+        // an AppKit pull-down cell that re-renders it as a template image. Two things
+        // followed, both measured against the gear button beside it:
+        //   · colour was the control's own near-black, rgb(34,36,36), not the theme
+        //     accent — .foregroundStyle never reached the drawn glyph;
+        //   · size was pinned to roughly 13 pt whatever .font() asked for. Rendering
+        //     the same label at 15 pt and at 60 pt produced an identical 26x24 px
+        //     heart, so the icon could not be enlarged at all through the label.
+        // Beside a gear drawn at its true size in the theme colour, that reads as a
+        // small dark smudge — the owner saw it as the heart being squeezed. It is not
+        // squeezed: the inked aspect is 1.083 here and 1.083 when drawn correctly.
+        // The .button style leaves the label in SwiftUI's hands, so both colour and
+        // size are honoured; .buttonStyle(.plain) strips the bezel that style brings.
+        .menuStyle(.button)
+        .buttonStyle(.plain)
         .menuIndicator(.hidden)
         .fixedSize()
         .onHover { hovering = $0 }
