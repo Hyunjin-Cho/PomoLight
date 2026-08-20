@@ -21,20 +21,46 @@ final class ChimePlayer {
     // too, so a buffer never mismatches the graph (that mismatch = silent alarm).
     private static let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1)
 
+    /// Whether the render graph has been built. See `prepareGraphIfNeeded`.
+    private var graphReady = false
+
     init() {
-        engine.attach(player)
-        engine.connect(player, to: engine.mainMixerNode, format: ChimePlayer.format)
-        engine.prepare()
-        // AVAudioEngine stops itself on output-route / sample-rate changes
-        // (headphones, dock, device switch). Reconnect so the next alarm restarts.
+        // 🚨 2026-08-20: the graph is NOT built here. It used to be, and that made
+        // launching the app audible: touching `engine.mainMixerNode` is what makes
+        // CoreAudio go and open the default output device, and on the owner's Mac
+        // Studio the speakers answer that with a single "tick". PomoLight therefore
+        // clicked every single launch, whether or not a timer was ever started —
+        // and it then held the device open for the life of the process. The unified
+        // log shows it plainly: AUHAL SelectDevice and a DefaultDeviceAggregate get
+        // built about 150 ms BEFORE applicationDidFinishLaunching, with no matching
+        // start/stop pair anywhere, because nothing was ever played.
+        //
+        // Constructing AVAudioEngine and AVAudioPlayerNode on their own touches no
+        // hardware, so those stay. Only the wiring moves to first use.
         configObserver = NotificationCenter.default.addObserver(
             forName: .AVAudioEngineConfigurationChange, object: engine, queue: .main
         ) { [weak self] _ in
             MainActor.assumeIsolated {
-                guard let self else { return }
+                // Nothing to reconnect if we never connected — and doing it anyway
+                // would re-open the device from a background route change, which is
+                // the very click this deferral exists to avoid.
+                guard let self, self.graphReady else { return }
                 self.engine.connect(self.player, to: self.engine.mainMixerNode, format: ChimePlayer.format)
             }
         }
+    }
+
+    /// Build the render graph, opening the audio device as a side effect. Called at
+    /// the moment a sound is actually about to play, so the device-open click lands
+    /// underneath the chime that follows it instead of arriving out of nowhere. The
+    /// device then stays open for the rest of the session: releasing it between
+    /// alarms would just move the click to every ring instead of removing it.
+    private func prepareGraphIfNeeded() {
+        guard !graphReady else { return }
+        engine.attach(player)
+        engine.connect(player, to: engine.mainMixerNode, format: ChimePlayer.format)
+        engine.prepare()
+        graphReady = true
     }
 
     deinit {
@@ -67,7 +93,7 @@ final class ChimePlayer {
         ringTimer?.invalidate()
         ringTimer = nil
         ringsLeft = 0
-        if player.isPlaying { player.stop() }
+        if graphReady, player.isPlaying { player.stop() }
     }
 
     // MARK: - Private
@@ -90,7 +116,10 @@ final class ChimePlayer {
 
     /// Play one motif of the sound.
     private func play(sound: AlarmSound, volume: Double) {
+        // Resolve the buffer BEFORE the graph: a voice we cannot synthesize must not
+        // be the reason the audio device gets opened.
         guard let buffer = buffer(for: sound) else { return }
+        prepareGraphIfNeeded()
         if !engine.isRunning {
             do { try engine.start() } catch { return }
         }
