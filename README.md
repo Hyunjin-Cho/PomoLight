@@ -61,15 +61,38 @@ These are placeholders the owner needs to fill in (see also "Escalations" below)
 
 ## Verify
 
-- **Contrast audit** (no Xcode needed) — checks every theme × light/dark meets WCAG tiers. Compiles the app's own `ResolvedPalette`/`LegibleFill`, so it can't drift from what ships:
-  ```bash
-  bash Scripts/contrast_audit.sh
-  ```
-- **Unit tests** — timer state machine, dial frame rate, contrast invariants. Host-less, so nothing launches and no chime plays (run `xcodegen generate` first on a fresh checkout):
+Everything below in one command:
+
+```bash
+bash Scripts/verify.sh
+```
+
+It runs the four checks in the order that catches problems soonest:
+
+- **Build the app** — first, and not redundant with the tests. The test bundle is
+  HOST-LESS: it compiles `TimerEngine`, `DialFrameRate`, `Theme` and
+  `Color+Contrast`, and never compiles `AppModel`, `AppDelegate` or a single view.
+  A green suite says nothing about whether the app builds at all.
+- **Unit tests** — timer state machine, dial frame rate, contrast invariants.
+  Nothing launches and no chime plays.
   ```bash
   xcodebuild test -project PomoLight.xcodeproj -scheme PomoLightTests -destination 'platform=macOS'
   ```
-- **UI snapshots** — render the real screens to PNGs offscreen (no Screen Recording permission needed):
+- **Contrast audit** (no Xcode needed) — every theme × light/dark against its WCAG
+  tier. Compiles the app's own `ResolvedPalette`/`LegibleFill`, so it can't drift
+  from what ships:
+  ```bash
+  bash Scripts/contrast_audit.sh
+  ```
+- **Silent launch** — fails if merely STARTING the app opens the audio device,
+  which on some hardware is an audible click on every launch. Runs the real binary
+  in offscreen snapshot mode and reads the unified log:
+  ```bash
+  bash Scripts/silent_launch_check.sh
+  ```
+
+- **UI snapshots** — render the real screens to PNGs offscreen (no Screen Recording
+  permission needed):
   ```bash
   POMO_SNAPSHOT=/tmp/pomo_shots ./build/Build/Products/Debug/PomoLight.app/Contents/MacOS/PomoLight
   ```
