@@ -24,10 +24,20 @@ struct DonateButton: View {
                 // at equal point size, so matching the numbers leaves the heart
                 // visibly the lighter of the two in the top bar.
                 .font(.system(size: 16))
-                .foregroundStyle(palette.accent.opacity(hovering ? 1.0 : 0.7))
-                .scaleEffect(hovering && !reduceMotion ? 1.08 : 1.0)
+                // secondaryText, matching the gear — NOT the accent this asked for
+                // until 2026-08-20. Nobody had ever seen the accent version: the
+                // AppKit cell below overrode it with its own near-black, so the
+                // first build that honoured .foregroundStyle was also the first to
+                // show what it actually looks like — 1.13:1 against the window on
+                // Sky, where 3:1 is the floor for an icon. That is not "understated",
+                // it is invisible, and it is not one bad theme: every accent in this
+                // palette is a pastel picked to sit UNDER dark ink, which is exactly
+                // why the gear beside it uses secondaryText (4.56:1) instead.
+                .foregroundStyle(palette.secondaryText)
                 .frame(width: 32, height: 32)
-                .contentShape(Rectangle())
+                .background(Circle().fill(palette.accentSoft.opacity(hovering ? 0.6 : 0)))
+                .scaleEffect(hovering && !reduceMotion ? 1.06 : 1.0)
+                .contentShape(Circle())
         }
         // 🚨 2026-08-20: was .menuStyle(.borderlessButton), which hands the label to
         // an AppKit pull-down cell that re-renders it as a template image. Two things
@@ -42,6 +52,8 @@ struct DonateButton: View {
         // squeezed: the inked aspect is 1.083 here and 1.083 when drawn correctly.
         // The .button style leaves the label in SwiftUI's hands, so both colour and
         // size are honoured; .buttonStyle(.plain) strips the bezel that style brings.
+        // Hover now matches the gear's too (soft circle + 1.06), so the two controls
+        // in this bar behave as a pair instead of each inventing its own feedback.
         .menuStyle(.button)
         .buttonStyle(.plain)
         .menuIndicator(.hidden)
