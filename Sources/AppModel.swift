@@ -36,7 +36,7 @@ final class AppModel {
             engine.adopt(snapshot: snap)
             // The live app owns the alarm again — drop any backup notification.
             UNUserNotificationCenter.current()
-                .removePendingNotificationRequests(withIdentifiers: ["pl.widget.finish"])
+                .removePendingNotificationRequests(withIdentifiers: [SharedStore.backupAlarmID])
         }
         observeWidgetChanges()
         observeSettingChanges()
@@ -67,7 +67,7 @@ final class AppModel {
                     // The user just opted out — a pending widget/quit backup
                     // notification must not fire with the old preference.
                     UNUserNotificationCenter.current()
-                        .removePendingNotificationRequests(withIdentifiers: ["pl.widget.finish"])
+                        .removePendingNotificationRequests(withIdentifiers: [SharedStore.backupAlarmID])
                 }
                 self.observeSettingChanges()
             }
@@ -107,7 +107,7 @@ final class AppModel {
         if engine.phase == .running {
             // The live app owns the alarm now — drop the widget's backup notification.
             UNUserNotificationCenter.current()
-                .removePendingNotificationRequests(withIdentifiers: ["pl.widget.finish"])
+                .removePendingNotificationRequests(withIdentifiers: [SharedStore.backupAlarmID])
         }
         updatePowerAssertion()
     }

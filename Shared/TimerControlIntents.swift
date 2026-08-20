@@ -9,8 +9,6 @@ import Foundation
 // A running app adopts the change instantly (and owns the gentle chime); if the
 // app is closed, a pre-scheduled local notification covers the alarm instead.
 
-private let widgetFinishNotificationID = "pl.widget.finish"
-
 /// Schedules the backup "Time's up" notification for a widget-driven timer.
 /// Returns whether the user will actually be alerted when the timer ends:
 /// `false` means the alarm CANNOT fire (permission missing or scheduling failed)
@@ -36,7 +34,7 @@ private func scheduleFinishNotification(at deadline: Date, soundFile: String?, e
     let interval = max(1, deadline.timeIntervalSinceNow)
     let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
     do {
-        try await center.add(UNNotificationRequest(identifier: widgetFinishNotificationID,
+        try await center.add(UNNotificationRequest(identifier: SharedStore.backupAlarmID,
                                                    content: content, trigger: trigger))
         return true
     } catch {
@@ -46,7 +44,7 @@ private func scheduleFinishNotification(at deadline: Date, soundFile: String?, e
 
 private func cancelFinishNotification() {
     UNUserNotificationCenter.current()
-        .removePendingNotificationRequests(withIdentifiers: [widgetFinishNotificationID])
+        .removePendingNotificationRequests(withIdentifiers: [SharedStore.backupAlarmID])
 }
 
 private func commit(_ snapshot: TimerSnapshot) {
@@ -117,15 +115,7 @@ struct TimerResetIntent: AppIntent {
     static let description = IntentDescription("Resets the PomoLight timer.")
 
     func perform() async throws -> some IntentResult {
-        var snap = SharedStore.read()
-        let duration = snap.configuredDuration > 0 ? snap.configuredDuration : 30 * 60
-        snap.phase = .idle
-        snap.configuredDuration = duration
-        snap.deadline = nil
-        snap.remaining = duration
-        snap.fractionRemaining = 1
-        snap.backupAlarmScheduled = nil
-        snap.updatedAt = Date()
+        let snap = SharedStore.read().stopped()
         cancelFinishNotification()
         commit(snap)
         return .result()

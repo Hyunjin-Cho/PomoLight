@@ -40,6 +40,28 @@ struct TimerSnapshot: Codable, Equatable {
         accentHex: "#E79A86", updatedAt: Date(timeIntervalSince1970: 0),
         alarmSoundFile: "SoftChime.caf", notificationsEnabled: true)
 
+    /// This snapshot rewound to a stopped, ready-to-start-again countdown.
+    ///
+    /// 2026-08-20: added for the quit path. Quitting the app ends the session, so
+    /// the app has to leave "stopped" behind in the App Group — otherwise nobody
+    /// is alive to write the finish, the snapshot says `running` forever, and the
+    /// next launch adopts a countdown the user ended days ago. The widget's reset
+    /// button means the same thing and shares this, so the two can't drift.
+    ///
+    /// The 30-minute floor is the same fallback the widget intents use for a
+    /// snapshot with no duration in it — never zero, or the dial comes back empty.
+    func stopped(at date: Date = Date()) -> TimerSnapshot {
+        var s = self
+        s.configuredDuration = configuredDuration > 0 ? configuredDuration : 30 * 60
+        s.phase = .idle
+        s.deadline = nil
+        s.remaining = s.configuredDuration
+        s.fractionRemaining = 1
+        s.backupAlarmScheduled = nil
+        s.updatedAt = date
+        return s
+    }
+
     /// "MM:SS" / "H:MM:SS" for the non-running (static) display.
     func formatted(_ t: TimeInterval) -> String {
         let total = max(0, Int(ceil(t)))
@@ -59,6 +81,13 @@ enum SharedStore {
     /// this — that would echo back and loop.)
     static let widgetChangeNote = "com.vismo.pomolight.widgetStateChanged"
 
+    /// Identifier of the end-of-timer notification the WIDGET schedules when it
+    /// starts a countdown with the app closed. It lives here because BOTH sides
+    /// touch it — the widget arms it, the app cancels it on launch, on adopting a
+    /// widget change, when notifications are switched off, and at quit. Every copy
+    /// of this string that drifts is an alarm nobody can turn off, so there is one.
+    static let backupAlarmID = "pl.widget.finish"
+
     static func write(_ snapshot: TimerSnapshot) {
         guard let data = try? JSONEncoder().encode(snapshot) else { return }
         defaults?.set(data, forKey: key)
@@ -70,6 +99,15 @@ enum SharedStore {
             return .placeholder
         }
         return snap
+    }
+
+    /// Force a written snapshot out to the preferences daemon. `set` hands the
+    /// value over asynchronously, which is fine everywhere except the one place it
+    /// isn't: `applicationWillTerminate`, where the process has no runloop left to
+    /// finish the handoff. `synchronize()` is soft-deprecated but still the only
+    /// blocking flush UserDefaults offers. (2026-08-20)
+    static func flush() {
+        defaults?.synchronize()
     }
 
     static func postWidgetChange() {

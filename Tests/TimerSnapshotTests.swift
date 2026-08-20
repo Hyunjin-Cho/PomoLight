@@ -83,6 +83,95 @@ final class TimerSnapshotTests: XCTestCase {
         XCTAssertEqual(snap.formatted(3661), "1:01:01")
     }
 
+    // MARK: - Quitting stops the timer (2026-08-20)
+
+    /// The bug this locks down: on 2026-08-20 a 50-minute timer started at 12:00:19
+    /// was left running when the app was quit at 12:48:16. Nothing rewound the
+    /// shared snapshot, so it still read `running` with a deadline of 12:50:19
+    /// hours later — a countdown with nobody left alive to finish it. Quitting now
+    /// writes `stopped()`, and this is what "stopped" has to mean.
+    func testStoppedRewindsARunningTimerToIdle() {
+        let quitTime = Date(timeIntervalSince1970: 1_800_000_000)
+        let running = TimerSnapshot(phase: .running,
+                                    deadline: quitTime.addingTimeInterval(123),
+                                    remaining: 123,
+                                    configuredDuration: 3_000,
+                                    fractionRemaining: 0.041,
+                                    accentHex: "#F8E882",
+                                    updatedAt: quitTime.addingTimeInterval(-2_877),
+                                    alarmSoundFile: "Bell.caf",
+                                    notificationsEnabled: true,
+                                    backupAlarmScheduled: true)
+
+        let stopped = running.stopped(at: quitTime)
+
+        XCTAssertEqual(stopped.phase, .idle)
+        XCTAssertNil(stopped.deadline, "a lingering deadline is exactly the ghost countdown")
+        XCTAssertEqual(stopped.remaining, 3_000, accuracy: 0.001)
+        XCTAssertEqual(stopped.fractionRemaining, 1, accuracy: 0.001)
+        XCTAssertNil(stopped.backupAlarmScheduled,
+                     "no alarm outlives the session, so the widget must not claim one is armed")
+        XCTAssertEqual(stopped.updatedAt, quitTime)
+    }
+
+    /// A paused timer is just as capable of haunting the next launch as a running
+    /// one — `AppModel.init` adopts both.
+    func testStoppedRewindsAPausedTimerToo() {
+        var paused = TimerSnapshot.placeholder
+        paused.phase = .paused
+        paused.remaining = 42
+        paused.fractionRemaining = 0.023
+
+        let stopped = paused.stopped()
+
+        XCTAssertEqual(stopped.phase, .idle)
+        XCTAssertEqual(stopped.remaining, stopped.configuredDuration, accuracy: 0.001)
+        XCTAssertEqual(stopped.fractionRemaining, 1, accuracy: 0.001)
+    }
+
+    /// Stopping ends the session, not the user's settings: the widget reads its
+    /// tint, chime and notification preference out of this same snapshot.
+    func testStoppedKeepsTheChosenDurationAndPreferences() {
+        var running = TimerSnapshot.placeholder
+        running.phase = .running
+        running.configuredDuration = 3_000
+        running.accentHex = "#F8E882"
+        running.alarmSoundFile = "Bell.caf"
+        running.notificationsEnabled = false
+
+        let stopped = running.stopped()
+
+        XCTAssertEqual(stopped.configuredDuration, 3_000, accuracy: 0.001,
+                       "the next run starts at the duration the user picked")
+        XCTAssertEqual(stopped.accentHex, "#F8E882")
+        XCTAssertEqual(stopped.alarmSoundFile, "Bell.caf")
+        XCTAssertEqual(stopped.notificationsEnabled, false)
+    }
+
+    /// Never zero — a stopped timer with no duration shows an empty dial with
+    /// nothing to press start on.
+    func testStoppedFallsBackToThirtyMinutesWhenTheDurationIsMissing() {
+        var broken = TimerSnapshot.placeholder
+        broken.phase = .running
+        broken.configuredDuration = 0
+
+        let stopped = broken.stopped()
+
+        XCTAssertEqual(stopped.configuredDuration, 30 * 60, accuracy: 0.001)
+        XCTAssertEqual(stopped.remaining, 30 * 60, accuracy: 0.001)
+    }
+
+    /// Quit, relaunch, quit again: the second stop must not shrink anything.
+    func testStoppedIsIdempotent() {
+        var running = TimerSnapshot.placeholder
+        running.phase = .running
+        running.configuredDuration = 1_500
+        let when = Date(timeIntervalSince1970: 1_800_000_000)
+
+        XCTAssertEqual(running.stopped(at: when).stopped(at: when),
+                       running.stopped(at: when))
+    }
+
     /// The widget parses the accent out of the snapshot with its own tiny hex reader
     /// (it can't see the app's `RGB`), so the two must agree — including on junk.
     func testTheWidgetsHexReaderAgreesWithTheApps() {
