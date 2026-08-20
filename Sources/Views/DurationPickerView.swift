@@ -117,7 +117,6 @@ struct DurationPickerView: View {
         showingCustom = false
         engine.setMinutes(Double(m))
         settings.lastDurationMinutes = Double(m)
-        app.publishSnapshot()
     }
 
     private func toggleCustom() {
@@ -141,7 +140,6 @@ struct DurationPickerView: View {
         let total = max(settings.showSeconds ? 1 : 60, m * 60 + s)
         engine.setDuration(seconds: Double(total))
         settings.lastDurationMinutes = Double(total) / 60
-        app.publishSnapshot()
         // Mid-typing the fields may briefly read 0:00 — leave them alone while
         // focused, but snap button-driven changes to the floor immediately.
         if focusedField == nil { snapFieldsToFloor() }

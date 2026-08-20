@@ -1,7 +1,7 @@
 import XCTest
 
 /// The countdown state machine — every transition the dial, the menu bar and the
-/// widget can trigger.
+/// the UI can trigger.
 ///
 /// These are deterministic because `TimerEngine` derives everything from an
 /// absolute deadline and takes the "now" it should measure against
@@ -146,10 +146,21 @@ final class TimerEngineTests: XCTestCase {
         engine.dismiss()
         XCTAssertEqual(engine.phase, .running, "dismiss must not cancel a live timer")
 
-        engine.adopt(snapshot: Self.snapshot(phase: .finished))
-        engine.dismiss()
-        XCTAssertEqual(engine.phase, .idle)
-        XCTAssertEqual(engine.remaining, 60, accuracy: 0.001)
+        // 2026-08-21: this used to reach `.finished` through `adopt(snapshot:)`,
+        // which went with the widget. Let a one-second timer finish for real instead
+        // — slower, but it exercises the only route to `.finished` that still exists.
+        let short = TimerEngine(durationSeconds: 1)
+        short.setDuration(seconds: 60)
+        short.setDuration(seconds: 1)
+        let finished = expectation(description: "onFinish called")
+        short.onFinish = { finished.fulfill() }
+        short.start()
+        wait(for: [finished], timeout: 5)
+        XCTAssertEqual(short.phase, .finished)
+
+        short.dismiss()
+        XCTAssertEqual(short.phase, .idle)
+        XCTAssertEqual(short.remaining, 1, accuracy: 0.001)
     }
 
     // MARK: - Finishing for real (the one test that uses the wall clock)
@@ -177,68 +188,9 @@ final class TimerEngineTests: XCTestCase {
         XCTAssertEqual(fireCount, 1, "the alarm must never double-fire")
     }
 
-    // MARK: - Adopting widget state (the shared-snapshot sync path)
-
-    func testAdoptingARunningSnapshotMirrorsTheWidgetsDeadline() {
-        let engine = TimerEngine(durationSeconds: 60)
-        let deadline = Date().addingTimeInterval(400)
-        engine.adopt(snapshot: Self.snapshot(phase: .running, deadline: deadline, duration: 900))
-
-        XCTAssertEqual(engine.phase, .running)
-        XCTAssertEqual(engine.configuredDuration, 900, accuracy: 0.001)
-        XCTAssertEqual(engine.remaining(at: deadline.addingTimeInterval(-100)), 100, accuracy: 0.001)
-        XCTAssertEqual(engine.runningDeadline, deadline)
-    }
-
-    /// Regression guard for the launch crash: a widget-started timer that expired
-    /// while the app was closed must land on the finished SCREEN without running
-    /// the finish side effects (which touch NSApp during startup).
-    func testAdoptingAnAlreadyExpiredRunningSnapshotFinishesQuietly() {
-        let engine = TimerEngine(durationSeconds: 60)
-        var fired = false
-        engine.onFinish = { fired = true }
-
-        engine.adopt(snapshot: Self.snapshot(phase: .running,
-                                             deadline: Date().addingTimeInterval(-30),
-                                             duration: 600))
-
-        XCTAssertEqual(engine.phase, .finished)
-        XCTAssertEqual(engine.remaining, 0, accuracy: 0.001)
-        XCTAssertFalse(fired, "the moment has passed — no chime, no window raise")
-    }
-
-    func testAdoptingARunningSnapshotWithoutADeadlineIsIgnored() {
-        let engine = TimerEngine(durationSeconds: 60)
-        engine.adopt(snapshot: Self.snapshot(phase: .running, deadline: nil, duration: 600))
-
-        XCTAssertEqual(engine.phase, .idle, "a running snapshot with no deadline is malformed")
-        XCTAssertEqual(engine.configuredDuration, 60, accuracy: 0.001)
-    }
-
-    func testAdoptingPausedIdleAndFinishedSnapshots() {
-        let engine = TimerEngine(durationSeconds: 60)
-
-        engine.adopt(snapshot: Self.snapshot(phase: .paused, remaining: 123, duration: 900))
-        XCTAssertEqual(engine.phase, .paused)
-        XCTAssertEqual(engine.remaining, 123, accuracy: 0.001)
-        XCTAssertEqual(engine.configuredDuration, 900, accuracy: 0.001)
-
-        engine.adopt(snapshot: Self.snapshot(phase: .idle, duration: 300))
-        XCTAssertEqual(engine.phase, .idle)
-        XCTAssertEqual(engine.remaining, 300, accuracy: 0.001)
-
-        engine.adopt(snapshot: Self.snapshot(phase: .finished, duration: 300))
-        XCTAssertEqual(engine.phase, .finished)
-        XCTAssertEqual(engine.remaining, 0, accuracy: 0.001)
-    }
-
-    func testAdoptClampsAGarbageDurationAndNegativeRemainder() {
-        let engine = TimerEngine(durationSeconds: 60)
-
-        engine.adopt(snapshot: Self.snapshot(phase: .paused, remaining: -50, duration: 0))
-        XCTAssertEqual(engine.configuredDuration, 1, accuracy: 0.001)
-        XCTAssertEqual(engine.remaining, 0, accuracy: 0.001)
-    }
+    // 2026-08-21: five tests for `adopt(snapshot:)` lived here. They covered the
+    // widget handing a running countdown to the app — a path that no longer exists,
+    // along with the method itself. Nothing else called it.
 
     // MARK: - Formatting
 
@@ -269,18 +221,4 @@ final class TimerEngineTests: XCTestCase {
 
     // MARK: - Helpers
 
-    private static func snapshot(phase: TimerSnapshot.Phase,
-                                deadline: Date? = nil,
-                                remaining: TimeInterval = 0,
-                                duration: TimeInterval = 600) -> TimerSnapshot {
-        TimerSnapshot(phase: phase,
-                      deadline: deadline,
-                      remaining: remaining,
-                      configuredDuration: duration,
-                      fractionRemaining: 1,
-                      accentHex: "#E79A86",
-                      updatedAt: Date(),
-                      alarmSoundFile: nil,
-                      notificationsEnabled: true)
-    }
 }

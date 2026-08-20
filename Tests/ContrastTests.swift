@@ -36,58 +36,10 @@ final class ContrastTests: XCTestCase {
         }
     }
 
-    /// Regression gate for the 2026-07-10 review finding: the widget's toggle button
-    /// used to draw a hardcoded white icon on the raw pastel accent, which failed
-    /// even 3:1 on 14 of the 15 themes (white on Lime was 1.22:1).
-    ///
-    /// The widget process can't read the app's palette — it rebuilds the pair from
-    /// the single accent hex in the shared snapshot, which `publishSnapshot()` fills
-    /// with the theme's LIGHT accent. This derives it the same way on purpose: if
-    /// either side of that arrangement changes, this test should be the thing that
-    /// notices.
-    func testWidgetToggleButtonIconIsLegibleOnEveryTheme() {
-        for theme in Theme.presets {
-            let fromSnapshot = RGB(hex: theme.light.accent)
-            let legible = LegibleFill(accent: fromSnapshot)
-            assertRatio(legible.label, legible.fill, atLeast: 4.5,
-                        "\(theme.name) widget icon on button fill")
-        }
-    }
+    // 2026-08-21: three widget tests lived here — the toggle button's icon and its
+    // 3:1 control outline, both derived by `WidgetChrome`, which went with the
+    // widget. `LegibleFill` below stays: the app's own filled buttons use it.
 
-    /// The second, independent contrast job on the same button: its icon being
-    /// readable says nothing about whether you can SEE that a control is there. Both
-    /// widget buttons are filled with a shade of the accent the widget container is
-    /// also tinted with, so the outline is what identifies them — WCAG 2.1 SC 1.4.11
-    /// wants 3:1 for that. Without it the toggle measured 1.17:1 on Lime, and the
-    /// reset button (a 16% fill on a 20% tint) was effectively invisible.
-    func testWidgetControlOutlineClears3To1OnEveryThemeAndAppearance() {
-        for theme in Theme.presets {
-            let accent = RGB(hex: theme.light.accent)   // the widget only ever gets this one
-            for dark in [false, true] {
-                assertRatio(WidgetChrome.controlOutline(accent: accent, dark: dark),
-                            WidgetChrome.backdrop(accent: accent, dark: dark),
-                            atLeast: 3.0,
-                            "\(theme.name) widget outline (\(dark ? "dark" : "light"))")
-            }
-        }
-    }
-
-    func testWidgetControlOutlineHoldsForAnyAccent() {
-        for hue in stride(from: 0.0, to: 360.0, by: 5.0) {
-            for lightness in [0.15, 0.35, 0.5, 0.7, 0.74, 0.9] {
-                let accent = RGB(h: hue, s: 0.89, l: lightness)
-                for dark in [false, true] {
-                    assertRatio(WidgetChrome.controlOutline(accent: accent, dark: dark),
-                                WidgetChrome.backdrop(accent: accent, dark: dark),
-                                atLeast: 3.0,
-                                "h\(Int(hue)) l\(lightness) (\(dark ? "dark" : "light"))")
-                }
-            }
-        }
-    }
-
-    /// A custom accent can be any color the user picks, so the derivation itself —
-    /// not just the 15 presets — has to hold.
     func testLegibleFillClearsAAForAnyAccent() {
         for hue in stride(from: 0.0, to: 360.0, by: 5.0) {
             for saturation in [0.0, 0.45, 0.9, 1.0] {

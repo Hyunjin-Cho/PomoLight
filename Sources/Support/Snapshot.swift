@@ -1,7 +1,6 @@
 import SwiftUI
 import AppKit
 import ImageIO
-import WidgetKit
 
 #if DEBUG
 /// Offscreen UI snapshots via `ImageRenderer` (needs no Screen Recording
@@ -46,14 +45,10 @@ enum Snapshot {
         }
         defer { scratchDefaults.removePersistentDomain(forName: suiteName) }
 
-        // Capture before the first AppModel is built. If nothing was stored,
-        // `read()` hands back `.placeholder` and writing that back leaves every
-        // reader seeing exactly what it saw before — so restoring is always safe.
-        let liveSnapshot = SharedStore.read()
-        defer {
-            SharedStore.write(liveSnapshot)
-            WidgetCenter.shared.reloadAllTimelines()   // undo the widget's fake state
-        }
+        // 2026-08-21: this used to snapshot and restore the App Group state around
+        // the render, because building AppModels here published fake timer states to
+        // the widget. Nothing leaves the process any more, so there is nothing to
+        // put back.
 
         for spec in specs {
             let model = AppModel()

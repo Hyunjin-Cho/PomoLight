@@ -19,9 +19,6 @@ struct PomoLightApp: App {
                 .frame(minWidth: 320, idealWidth: 360, maxWidth: 540,
                        minHeight: 430, idealHeight: 480, maxHeight: 720)
                 .background(WindowConfigurator())
-                // The widget body opens "pomolight://open" on tap; there's only one
-                // destination (the main window), so no path/query parsing is needed.
-                .onOpenURL { _ in AppActivation.openMainWindow() }
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)

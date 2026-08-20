@@ -18,7 +18,6 @@ PomoLight is a small desk-clock-like timer: pick any number of minutes, hit Star
 - 🖥️ **Menu-bar countdown** — glanceable MM:SS in the menu bar (toggle off if you want a pure window app), with mini controls.
 - 🪟 **Compact, fixed window** — a timer never needs to grow, so the window is capped at a tidy size (no ballooning / full screen); you can still shrink it.
 - 🌍 **29 languages** — the UI follows the system language: English, Korean, Japanese, Chinese (Simp/Trad), Thai, Vietnamese, Indonesian, Malay, Filipino, German, French, Italian, Spanish, Portuguese (PT/BR), Dutch, Swedish, Norwegian, Danish, Finnish, Polish, Russian, Ukrainian, Czech, Turkish, Greek, Romanian, Hungarian.
-- 🧩 **Widget** — a WidgetKit extension shows a live countdown on the desktop / Notification Center, with two interactive buttons: one that starts/pauses/resumes, and one that resets. Backed by a shared App Group, so it stays in sync with the app in both directions.
 - ♿ **Accessible** — WCAG-checked contrast (timer digits ≥ 7:1 in every theme), VoiceOver labels, Reduce Motion support, keyboard shortcuts.
 - ❤️ **Donation model** — a quiet Donate heart opens a small menu of your donation links (Toss, Buy Me a Coffee).
 
@@ -58,18 +57,15 @@ These are placeholders the owner needs to fill in (see also "Escalations" below)
 - `build_app.sh` archives and exports with your **Developer ID** (`Scripts/ExportOptions.plist`), ready for `Scripts/notarize.sh` — Gatekeeper accepts it once notarized/stapled, no right-click-Open needed.
 - For a **clean public release**, you need an **Apple Developer account ($99/yr)** to Developer-ID-sign + **notarize** (`xcrun notarytool` + `stapler staple`). Then ship the `.dmg` on Gumroad.
 
-### Widget live data (App Groups)
-Release builds already wire App Groups (`group.com.vismo.pomolight`) via `CODE_SIGN_ENTITLEMENTS` on both the **PomoLight** and **PomoLightWidget** targets in `project.yml`. Debug builds stay entitlement-free/ad-hoc on purpose, so local runs never prompt for signing.
-
 ---
 
 ## Verify
 
-- **Contrast audit** (no Xcode needed) — checks every theme × light/dark meets WCAG tiers, plus the widget's toggle button. Compiles the app's own `ResolvedPalette`/`LegibleFill`, so it can't drift from what ships:
+- **Contrast audit** (no Xcode needed) — checks every theme × light/dark meets WCAG tiers. Compiles the app's own `ResolvedPalette`/`LegibleFill`, so it can't drift from what ships:
   ```bash
   bash Scripts/contrast_audit.sh
   ```
-- **Unit tests** — timer state machine, widget-snapshot compatibility, contrast invariants. Host-less, so nothing launches and no real widget state is touched (run `xcodegen generate` first on a fresh checkout):
+- **Unit tests** — timer state machine, dial frame rate, contrast invariants. Host-less, so nothing launches and no chime plays (run `xcodegen generate` first on a fresh checkout):
   ```bash
   xcodebuild test -project PomoLight.xcodeproj -scheme PomoLightTests -destination 'platform=macOS'
   ```

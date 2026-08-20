@@ -119,30 +119,6 @@ extension RGB {
 // the icon inside it is perfectly legible — measured 1.17:1 on Lime, and about
 // 1.0:1 for the reset button, against the 3:1 that WCAG 2.1 SC 1.4.11 asks for on
 // the visual information identifying a control. Hence an outline, derived here so
-// the widget, `Scripts/contrast_audit.sh` and the tests all agree on one number.
-
-enum WidgetChrome {
-    /// The strongest point of the container gradient. The far corner fades to 6%,
-    /// which is an *easier* background than this in both appearances, so deriving
-    /// against 20% covers the whole surface.
-    private static let tint = 0.20
-
-    /// macOS's widget material isn't introspectable, so approximate what ends up
-    /// behind the tint: near-white in light mode, near-black in dark.
-    static func backdrop(accent: RGB, dark: Bool) -> RGB {
-        let base = dark ? RGB(0.12, 0.12, 0.13) : RGB(1, 1, 1)
-        return RGB(accent.r * tint + base.r * (1 - tint),
-                   accent.g * tint + base.g * (1 - tint),
-                   accent.b * tint + base.b * (1 - tint))
-    }
-
-    /// Outline for a control sitting on that backdrop: the accent itself, pushed
-    /// toward ink or white only as far as 3:1 requires — so it still reads as the
-    /// theme's color rather than a generic grey border.
-    static func controlOutline(accent: RGB, dark: Bool) -> RGB {
-        accent.enforcingContrast(against: backdrop(accent: accent, dark: dark), minRatio: 3.0)
-    }
-}
 
 // MARK: - Legible filled-button derivation
 //

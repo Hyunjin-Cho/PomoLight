@@ -13,7 +13,7 @@ OUT=$(mktemp -d)
 trap 'rm -rf "$OUT"' EXIT
 
 swiftc -O -swift-version 5 -o "$OUT/contrast_audit" \
-  Shared/Color+Contrast.swift \
+  Sources/Theme/Color+Contrast.swift \
   Sources/Theme/Theme.swift \
   Scripts/ContrastAudit.swift
 

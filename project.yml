@@ -37,7 +37,6 @@ targets:
     sources:
       - path: Sources
       - path: Resources
-      - path: Shared
     settings:
       base:
         PRODUCT_NAME: PomoLight
@@ -46,11 +45,10 @@ targets:
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         COMBINE_HIDPI_IMAGES: YES
         ENABLE_HARDENED_RUNTIME: YES
-      configs:
-        # App Group (shared widget data) only in distribution builds — Debug stays
-        # ad-hoc/entitlement-free so local test builds never prompt for signing.
-        Release:
-          CODE_SIGN_ENTITLEMENTS: PomoLight.entitlements
+    # 2026-08-21: no CODE_SIGN_ENTITLEMENTS. The only entitlement this app ever
+    # carried was the App Group, and that existed solely to hand the timer to the
+    # widget. With the widget gone the file had nothing left in it, so it is gone
+    # too — a signed build now needs no provisioning beyond the Developer ID.
     info:
       path: Sources/Info.plist
       properties:
@@ -60,19 +58,14 @@ targets:
         LSUIElement: NO
         NSHumanReadableCopyright: "© 2026 PomoLight. Free & donation-supported."
         NSPrincipalClass: NSApplication
-        CFBundleURLTypes:
-          - CFBundleURLName: com.vismo.pomolight
-            CFBundleURLSchemes:
-              - pomolight
-    dependencies:
-      - target: PomoLightWidget
-        embed: true
+        # The pomolight:// scheme is gone with the widget: nothing else ever
+        # opened it (the widget body used it as its tap target).
 
   PomoLightTests:
     # HOST-LESS unit tests: the bundle compiles the units under test directly
     # instead of hosting PomoLight.app. That keeps `xcodebuild test` from
-    # launching the UI, playing the chime, or touching the real App Group state —
-    # and keeps the suite fast enough to run on every change.
+    # launching the UI or playing the chime — and keeps the suite fast enough
+    # to run on every change.
     # Adding a file here is only needed when a test needs a NEW production type.
     type: bundle.unit-test
     platform: macOS
@@ -81,8 +74,7 @@ targets:
       - path: Sources/Engine/TimerEngine.swift
       - path: Sources/Views/DialFrameRate.swift
       - path: Sources/Theme/Theme.swift
-      - path: Shared/Color+Contrast.swift
-      - path: Shared/TimerSnapshot.swift
+      - path: Sources/Theme/Color+Contrast.swift
     settings:
       base:
         PRODUCT_NAME: PomoLightTests
@@ -92,33 +84,6 @@ targets:
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: "-"
         DEVELOPMENT_TEAM: ""
-
-  PomoLightWidget:
-    # ExtensionKit-style widget (Contents/Extensions + EXAppExtensionAttributes):
-    # required for widget-gallery discovery on modern macOS; the legacy
-    # PlugIns/NSExtension form was never picked up by chronod on Tahoe.
-    type: extensionkit-extension
-    platform: macOS
-    sources:
-      - path: Widget
-      - path: Shared
-      - path: Resources
-    settings:
-      base:
-        PRODUCT_NAME: PomoLightWidget
-        PRODUCT_BUNDLE_IDENTIFIER: com.vismo.pomolight.widget
-        ENABLE_HARDENED_RUNTIME: YES
-        SKIP_INSTALL: YES
-        INFOPLIST_KEY_CFBundleDisplayName: PomoLight
-      configs:
-        Release:
-          CODE_SIGN_ENTITLEMENTS: Widget/PomoLightWidget.entitlements
-    info:
-      path: Widget/Info.plist
-      properties:
-        CFBundleDisplayName: PomoLight
-        EXAppExtensionAttributes:
-          EXExtensionPointIdentifier: com.apple.widgetkit-extension
 
 # A shared scheme so `xcodebuild test -scheme PomoLightTests` works from a clean
 # checkout (without relying on Xcode auto-creating schemes).

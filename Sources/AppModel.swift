@@ -1,7 +1,5 @@
 import SwiftUI
 import Observation
-import WidgetKit
-import UserNotifications
 
 /// The top-level object graph. Owns the timer, theme, settings, audio, and
 /// notifications, and wires the "timer finished" behavior together in one place.
@@ -16,6 +14,21 @@ final class AppModel {
     @ObservationIgnored let notifications = NotificationManager()
     @ObservationIgnored private let power = PowerAssertion()
 
+    // 🚨 2026-08-21: the widget is gone, and with it every reason this class had to
+    // talk to anything outside the process. What used to live here:
+    //   · an App Group snapshot published on every state change, so the widget could
+    //     draw the countdown;
+    //   · a Darwin-notification observer, so widget button presses reached a running
+    //     app instantly;
+    //   · adopting that snapshot at launch, so a widget-started timer was not
+    //     clobbered by the app opening later.
+    // The last one is why quitting and relaunching used to resurrect a countdown
+    // instead of showing a fresh screen — the app could not tell "the widget started
+    // this" from "I crashed while running this", because the snapshot said the same
+    // thing either way (issue #32). With no second writer, there is nothing to adopt:
+    // launching always starts fresh, which is what it should have looked like all
+    // along. See also #29 — the widget's own end-of-timer notification is gone too,
+    // so no alarm can outlive the process any more.
     init() {
         let settings = SettingsStore()
         self.settings = settings
@@ -24,112 +37,49 @@ final class AppModel {
 
         engine.onFinish = { [weak self] in self?.handleFinish() }
         notifications.configureDelegate()
-        // Ask for notification permission at launch (not at first timer start):
-        // the widget's backup alarm depends on it, and a widget-first user might
-        // never start a timer from inside the app.
+        // Asked at launch rather than at the first start so the very first finish
+        // can deliver its banner without a permission prompt landing on top of it.
         notifications.requestAuthorizationIfNeeded()
 
-        // If the WIDGET drove the timer while the app was closed (interactive
-        // buttons), pick that state up on launch instead of clobbering it.
-        let snap = SharedStore.read()
-        if snap.phase == .running || snap.phase == .paused {
-            engine.adopt(snapshot: snap)
-            // The live app owns the alarm again — drop any backup notification.
-            UNUserNotificationCenter.current()
-                .removePendingNotificationRequests(withIdentifiers: [SharedStore.backupAlarmID])
-        }
-        observeWidgetChanges()
         observeSettingChanges()
-        // 2026-08-15: sync(), not publishSnapshot() alone. Launch is a state change
-        // like any other — adopting a widget-started countdown above has to arm the
-        // sleep assertion too, or a "keep the Mac awake" user who started from the
-        // widget gets the countdown back but no wake lock.
-        sync()
+        updatePowerAssertion()
     }
 
     /// Settings can change outside any timer action (panel toggles, theme swatch),
-    /// but their side effects — the sleep assertion and the shared snapshot the
-    /// widget/backup notification read — only ran via `sync()`. Watch the relevant
-    /// properties so a mid-session change applies immediately, not on the next
-    /// timer action. (`withObservationTracking` is one-shot, so the handler re-arms.)
+    /// and the sleep assertion has to follow. Watch the relevant properties so a
+    /// mid-session change applies immediately, not on the next timer action.
+    /// (`withObservationTracking` is one-shot, so the handler re-arms.)
     private func observeSettingChanges() {
         withObservationTracking {
             _ = settings.keepAwake
-            _ = settings.alarmSound
-            _ = settings.notificationsEnabled
             _ = theme.current
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 self.updatePowerAssertion()
-                self.publishSnapshot()
-                if !self.settings.notificationsEnabled {
-                    // The user just opted out — a pending widget/quit backup
-                    // notification must not fire with the old preference.
-                    UNUserNotificationCenter.current()
-                        .removePendingNotificationRequests(withIdentifiers: [SharedStore.backupAlarmID])
-                }
                 self.observeSettingChanges()
             }
         }
     }
 
-    /// Live sync: widget intents post a Darwin notification after mutating the
-    /// shared snapshot; adopt it immediately so the open app mirrors the widget.
-    private func observeWidgetChanges() {
-        let center = CFNotificationCenterGetDarwinNotifyCenter()
-        let observer = Unmanaged.passUnretained(self).toOpaque()
-        CFNotificationCenterAddObserver(center, observer, { _, observer, _, _, _ in
-            guard let observer else { return }
-            let model = Unmanaged<AppModel>.fromOpaque(observer).takeUnretainedValue()
-            Task { @MainActor in model.adoptWidgetState() }
-        }, SharedStore.widgetChangeNote as CFString, nil, .deliverImmediately)
-    }
-
-    // 2026-08-15: the Darwin observer is registered with an UNRETAINED pointer to
-    // self, so it has to be torn down here — otherwise the notify center keeps
-    // calling back into freed memory. The live app never hit this (one AppModel
-    // for the whole process life), but the DEBUG snapshot renderer builds several
-    // in a row, and each dead one left a live callback behind.
-    // Touches no isolated state — just the raw pointer — so it is safe in deinit.
-    deinit {
-        CFNotificationCenterRemoveObserver(
-            CFNotificationCenterGetDarwinNotifyCenter(),
-            Unmanaged.passUnretained(self).toOpaque(),
-            CFNotificationName(SharedStore.widgetChangeNote as CFString),
-            nil)
-    }
-
-    private func adoptWidgetState() {
-        let snap = SharedStore.read()
-        engine.adopt(snapshot: snap)
-        if engine.phase != .finished { chime.stop() }   // widget dismissed/reset the alarm
-        if engine.phase == .running {
-            // The live app owns the alarm now — drop the widget's backup notification.
-            UNUserNotificationCenter.current()
-                .removePendingNotificationRequests(withIdentifiers: [SharedStore.backupAlarmID])
-        }
-        updatePowerAssertion()
-    }
-
     // MARK: - Actions used by the views
 
     /// Start the timer. We do NOT persist the duration here — otherwise a session
-    /// extended with "+1 min" would silently become the next launch's default.
-    /// The chosen duration is saved only when the user explicitly picks it
-    /// (preset chip / custom entry). Also requests notification permission in
-    /// context, so the first finish can actually deliver a banner.
+    /// extended mid-run would silently become the next launch's default. The chosen
+    /// duration is saved only when the user explicitly picks it (preset chip /
+    /// custom entry). Also requests notification permission in context, so the first
+    /// finish can actually deliver a banner.
     func startTimer() {
         notifications.requestAuthorizationIfNeeded()
         engine.start()
-        sync()
+        updatePowerAssertion()
     }
 
     func primaryAction() {
         switch engine.phase {
         case .idle:     startTimer()
-        case .running:  engine.pause();  sync()
-        case .paused:   engine.resume(); sync()
+        case .running:  engine.pause();  updatePowerAssertion()
+        case .paused:   engine.resume(); updatePowerAssertion()
         case .finished: dismissFinished()
         }
     }
@@ -138,51 +88,20 @@ final class AppModel {
         chime.stop()
         engine.reset()
         restoreChosenDuration()
-        sync()
+        updatePowerAssertion()
     }
 
     func dismissFinished() {
         chime.stop()
         engine.dismiss()
         restoreChosenDuration()
-        sync()
+        updatePowerAssertion()
     }
 
     /// After a reset/dismiss, return to the user's explicitly-chosen duration so an
-    /// in-session "+1 min" extension doesn't linger into the next run.
+    /// in-session extension doesn't linger into the next run.
     private func restoreChosenDuration() {
         engine.setDuration(seconds: settings.lastDurationMinutes * 60)
-    }
-
-
-    /// Call after any state change: keep the sleep assertion and the widget's
-    /// shared snapshot in step with the engine.
-    private func sync() {
-        updatePowerAssertion()
-        publishSnapshot()
-    }
-
-    /// Publishes the timer state to the App Group and refreshes the widget.
-    func publishSnapshot() {
-        let phase: TimerSnapshot.Phase
-        switch engine.phase {
-        case .idle:     phase = .idle
-        case .running:  phase = .running
-        case .paused:   phase = .paused
-        case .finished: phase = .finished
-        }
-        let snapshot = TimerSnapshot(
-            phase: phase,
-            deadline: engine.runningDeadline,
-            remaining: engine.remaining(),
-            configuredDuration: engine.configuredDuration,
-            fractionRemaining: engine.fractionRemaining(),
-            accentHex: theme.current.light.accent,
-            updatedAt: Date(),
-            alarmSoundFile: settings.alarmSound.notificationSoundFile,
-            notificationsEnabled: settings.notificationsEnabled)
-        SharedStore.write(snapshot)
-        WidgetCenter.shared.reloadAllTimelines()
     }
 
     func previewSound() {
@@ -201,7 +120,7 @@ final class AppModel {
                         repeatUntilDismissed: settings.repeatUntilDismissed)
         notifications.notifyTimerFinished(enabled: settings.notificationsEnabled)
         AppActivation.bringToFront()
-        sync()
+        updatePowerAssertion()
     }
 
     private func updatePowerAssertion() {
