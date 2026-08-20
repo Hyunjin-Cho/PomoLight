@@ -40,6 +40,38 @@ final class ContrastTests: XCTestCase {
     // 3:1 control outline, both derived by `WidgetChrome`, which went with the
     // widget. `LegibleFill` below stays: the app's own filled buttons use it.
 
+    /// Regression gate for the 2026-08-20 donation-heart bug. The heart asked for
+    /// `accent` as its foreground for months; an AppKit control was overriding the
+    /// colour, so nobody saw that the request itself was unusable — drawn correctly
+    /// it measured 1.13:1 against the window, where 3:1 is the floor for an icon.
+    ///
+    /// The top-bar glyphs now name their colour (`controlIcon`) instead of reaching
+    /// for a palette entry directly, so pointing them somewhere illegible means
+    /// breaking this test rather than shipping quietly.
+    func testControlIconClears3To1OnEveryThemeAndAppearance() {
+        for theme in Theme.presets {
+            for (appearance, colors) in [("light", theme.light), ("dark", theme.dark)] {
+                let p = ResolvedPalette(colors)
+                assertRatio(p.controlIcon, p.bg, atLeast: 3.0,
+                            "\(theme.name) \(appearance) control icon vs bg")
+                assertRatio(p.controlIcon, p.surface, atLeast: 3.0,
+                            "\(theme.name) \(appearance) control icon vs surface")
+            }
+        }
+    }
+
+    /// The bug was not one unlucky theme: `accent` is a FILL in this palette, picked
+    /// to sit under dark ink. Pinning that here means the rule is a measured fact,
+    /// not a comment someone can talk themselves out of.
+    func testRawAccentWouldFailAsAForegroundOnEveryTheme() {
+        for theme in Theme.presets {
+            let p = ResolvedPalette(theme.light)
+            XCTAssertLessThan(WCAG.contrast(p.accent, p.bg), 3.0,
+                              "\(theme.name): accent now clears 3:1 on bg — if the palette " +
+                              "really changed, revisit the FILL/FOREGROUND split in Theme.swift")
+        }
+    }
+
     func testLegibleFillClearsAAForAnyAccent() {
         for hue in stride(from: 0.0, to: 360.0, by: 5.0) {
             for saturation in [0.0, 0.45, 0.9, 1.0] {

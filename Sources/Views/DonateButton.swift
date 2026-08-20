@@ -33,7 +33,7 @@ struct DonateButton: View {
                 // it is invisible, and it is not one bad theme: every accent in this
                 // palette is a pastel picked to sit UNDER dark ink, which is exactly
                 // why the gear beside it uses secondaryText (4.56:1) instead.
-                .foregroundStyle(palette.secondaryText)
+                .foregroundStyle(palette.controlIcon)
                 .frame(width: 32, height: 32)
                 .background(Circle().fill(palette.accentSoft.opacity(hovering ? 0.6 : 0)))
                 .scaleEffect(hovering && !reduceMotion ? 1.06 : 1.0)

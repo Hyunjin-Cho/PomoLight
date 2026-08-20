@@ -105,17 +105,33 @@ extension Theme {
 /// numbers. Keeping the math here means those checks run the real derivation
 /// instead of a copy that can silently drift.
 struct ResolvedPalette {
+    // 🚨 2026-08-21 — every role below is labelled FILL or FOREGROUND, and the two
+    // are not interchangeable. FILL colours are the pastels this palette is built
+    // from; they are chosen to sit UNDER dark ink and are far too light to draw ON.
+    // FOREGROUND colours have been pushed until they clear a contrast tier.
+    //
+    // This is written down because the donation heart asked for `accent` as its
+    // foreground from the day it was written and nobody noticed for months — an
+    // AppKit control was overriding the colour, so the request never reached the
+    // screen. The first build that honoured it measured 1.13:1 against the window,
+    // where 3:1 is the floor for an icon. Reach for a FILL as a foreground and you
+    // get something invisible, on every theme, not just an unlucky one.
+
+    // MARK: FILL — safe to draw ON, never safe to draw WITH
     let bg: RGB
     let bgDeep: RGB            // slightly deeper bg for a soft vertical gradient
     let surface: RGB
-    let accent: RGB            // raw accent — used only for non-text accents (glow, idle ring, swatch)
+    let accent: RGB            // raw accent: glow, idle ring, swatch. NEVER a foreground.
     let accentSoft: RGB        // soft fills (chips at rest, halos)
     let ringTrack: RGB
-    let ringFill: RGB          // >= 3:1 vs ringTrack
-    let timerText: RGB         // >= 7:1 vs background (the hero numerals)
-    let primaryText: RGB       // >= 7:1 vs surface/bg
-    let secondaryText: RGB     // >= 4.5:1 vs surface/bg
     let buttonFill: RGB        // accent (or deepened accent) that hosts a legible label
+
+    // MARK: FOREGROUND — each one clears a tier against what it sits on
+    let ringFill: RGB          // >= 3:1 vs ringTrack
+    let timerText: RGB         // >= 7:1 vs bg AND surface (the hero numerals)
+    let primaryText: RGB       // >= 7:1 vs bg AND surface
+    let secondaryText: RGB     // >= 4.5:1 vs bg AND surface
+    let controlIcon: RGB       // >= 3:1 vs bg AND surface — top-bar glyphs (gear, heart)
     let buttonLabel: RGB       // >= 4.5:1 vs buttonFill
     let onAccentSoft: RGB      // legible label on an accentSoft fill
 
@@ -151,6 +167,12 @@ struct ResolvedPalette {
         self.secondaryText = secondary
             .enforcingContrast(against: bg, minRatio: 4.5)
             .enforcingContrast(against: surface, minRatio: 4.5)
+        // The top-bar glyphs share secondaryText rather than deriving their own:
+        // an icon only needs 3:1, so the 4.5:1 ink already clears it with room, and
+        // one colour keeps the gear and the heart reading as a pair. The role has
+        // its own NAME so that pointing these icons somewhere else is a deliberate
+        // edit to a tested contract, not a quiet `.foregroundStyle` swap.
+        self.controlIcon = self.secondaryText
 
         // Ring fill must be distinguishable from its track (UI element, 3:1).
         self.ringFill = ringFill.enforcingContrast(against: ringTrack, minRatio: 3.0)
@@ -172,13 +194,14 @@ struct Palette {
     let bg: Color
     let bgDeep: Color          // slightly deeper bg for a soft vertical gradient
     let surface: Color
-    let accent: Color          // raw accent — used only for non-text accents (glow, idle ring, swatch)
+    let accent: Color          // FILL: glow, idle ring, swatch. NEVER a foreground — see ResolvedPalette.
     let accentSoft: Color      // soft fills (chips at rest, halos)
     let ringTrack: Color
     let ringFill: Color        // >= 3:1 vs ringTrack
     let timerText: Color       // >= 7:1 vs background (the hero numerals)
     let primaryText: Color     // >= 7:1 vs surface/bg
     let secondaryText: Color   // >= 4.5:1 vs surface/bg
+    let controlIcon: Color     // >= 3:1 vs surface/bg — top-bar glyphs (gear, heart)
     let buttonFill: Color      // deepened accent so a white label is legible
     let buttonLabel: Color
     let onAccentSoft: Color    // legible label on an accentSoft fill
@@ -195,6 +218,7 @@ struct Palette {
         self.timerText = r.timerText.color
         self.primaryText = r.primaryText.color
         self.secondaryText = r.secondaryText.color
+        self.controlIcon = r.controlIcon.color
         self.buttonFill = r.buttonFill.color
         self.buttonLabel = r.buttonLabel.color
         self.onAccentSoft = r.onAccentSoft.color

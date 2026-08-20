@@ -52,7 +52,7 @@ struct RootView: View {
     private func topBar(_ palette: Palette) -> some View {
         HStack {
             CircleIconButton(systemName: "gearshape.fill",
-                             tint: palette.secondaryText,
+                             tint: palette.controlIcon,
                              soft: palette.accentSoft, size: 32,
                              font: .system(size: 14)) {
                 showSettings = true
