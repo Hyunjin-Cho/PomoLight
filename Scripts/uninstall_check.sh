@@ -25,11 +25,25 @@ cd "$(dirname "$0")/.."
 APP_SRC="build/Build/Products/Debug/PomoLight.app"
 [ -d "$APP_SRC" ] || { echo "✗ No Debug build at $APP_SRC — run the build stage first."; exit 1; }
 
+LSREG=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
+
 WORK=$(mktemp -d)
 SUITE="pl.uninstallcheck.$$"
 PLIST="$HOME/Library/Preferences/$SUITE.plist"
 APP="$WORK/PomoLight.app"
-cleanup() { rm -rf "$WORK" "$PLIST"; }
+TRASHED="$HOME/.Trash/PomoLight.app"
+
+# 2026-08-21: the first version of this script left its throwaway copies REGISTERED
+# with Launch Services — running it launches an app, and macOS remembers every app
+# it has ever launched, whether or not the files still exist. Six runs later
+# `install_local.sh` failed its own "exactly one PomoLight" check, listing six
+# temp directories and a Trash entry. A check that pollutes what another check
+# measures is worse than no check, so this one takes its registrations back.
+cleanup() {
+  "$LSREG" -u "$TRASHED" >/dev/null 2>&1 || true
+  "$LSREG" -u "$APP" >/dev/null 2>&1 || true
+  rm -rf "$WORK" "$PLIST" "$TRASHED"
+}
 trap cleanup EXIT
 
 # Fingerprint the tester's real install before touching anything. The self-test
@@ -71,12 +85,13 @@ FAILED=0
 if [ -d "$APP" ]; then
   echo "❌ the app is still at $APP"
   FAILED=1
-elif [ ! -d "$HOME/.Trash/PomoLight.app" ]; then
+elif [ ! -d "$TRASHED" ]; then
   echo "❌ the app left $APP but is not in the Trash — it should be recoverable"
   FAILED=1
 else
   echo "  ✅ app moved to the Trash (recoverable, not destroyed)"
-  rm -rf "$HOME/.Trash/PomoLight.app"
+  # Left for `cleanup` to unregister and remove — deleting it here would strand its
+  # Launch Services row with no path left to name it by.
 fi
 
 # 2. The preferences file must be gone AND STAY gone. This is the one that failed
