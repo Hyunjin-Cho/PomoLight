@@ -10,9 +10,16 @@ final class AppModel {
     let theme: ThemeStore
     let engine: TimerEngine
 
-    @ObservationIgnored let chime = ChimePlayer()
-    @ObservationIgnored let notifications = NotificationManager()
-    @ObservationIgnored private let power = PowerAssertion()
+    // 2026-08-21: these were `= ChimePlayer()` etc., built in place. They are now
+    // taken as protocols (see FinishEffects.swift) so the finish wiring can be
+    // tested without opening the audio device or asking the real notification
+    // centre for permission. Nothing outside this class ever touched them, so they
+    // are private now too. The defaults are the real parts — every caller that
+    // wrote `AppModel()` still gets exactly the app it got before.
+    @ObservationIgnored private let chime: AlarmPlaying
+    @ObservationIgnored private let notifications: FinishNotifying
+    @ObservationIgnored private let power: SleepPreventing
+    @ObservationIgnored private let windows: WindowRaising
 
     // 🚨 2026-08-21: the widget is gone, and with it every reason this class had to
     // talk to anything outside the process. What used to live here:
@@ -29,11 +36,27 @@ final class AppModel {
     // launching always starts fresh, which is what it should have looked like all
     // along. See also #29 — the widget's own end-of-timer notification is gone too,
     // so no alarm can outlive the process any more.
-    init() {
-        let settings = SettingsStore()
+    /// `defaults` is injectable for the same reason the collaborators are: a test
+    /// (or a snapshot run) must never read or write the real preferences. See the
+    /// note on `Snapshot.render` — a snapshot pass once left the owner's app stuck
+    /// on the last theme it rendered.
+    init(defaults: UserDefaults = .standard,
+         chime: AlarmPlaying? = nil,
+         notifications: FinishNotifying? = nil,
+         power: SleepPreventing? = nil,
+         windows: WindowRaising? = nil) {
+        let settings = SettingsStore(defaults: defaults)
         self.settings = settings
         self.theme = ThemeStore(settings: settings)
         self.engine = TimerEngine(durationSeconds: settings.lastDurationMinutes * 60)
+        // `?? Real()` rather than a default argument: the real part is then never
+        // even constructed when a substitute was supplied, so a test cannot
+        // accidentally build an AVAudioEngine on its way to not using one.
+        let notifications = notifications ?? NotificationManager()
+        self.chime = chime ?? ChimePlayer()
+        self.notifications = notifications
+        self.power = power ?? PowerAssertion()
+        self.windows = windows ?? SystemWindowRaiser()
 
         engine.onFinish = { [weak self] in self?.handleFinish() }
         notifications.configureDelegate()
@@ -123,7 +146,10 @@ final class AppModel {
                         volume: settings.alarmVolume,
                         repeatUntilDismissed: settings.repeatUntilDismissed)
         notifications.notifyTimerFinished(enabled: settings.notificationsEnabled)
-        AppActivation.bringToFront()
+        windows.bringToFront()
+        // Releasing the assertion is part of finishing, not an afterthought: the
+        // phase is `.finished` by now, so this hands sleep back. Miss it and a Mac
+        // with "keep awake" on never sleeps again until the app is quit.
         updatePowerAssertion()
     }
 

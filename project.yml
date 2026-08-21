@@ -79,6 +79,19 @@ targets:
       # only) and already takes its UserDefaults by injection, so testing it costs
       # nothing here — and it is the class behind both settings accidents so far.
       - path: Sources/Settings/SettingsStore.swift
+      # 2026-08-21: AppModel and everything it owns. The end-of-timer wiring is the
+      # one place a silent failure costs the most, and it was the last untested part
+      # of the app's behaviour. The four collaborators arrive as protocols
+      # (Sources/Support/FinishEffects.swift), so the suite stays host-less and mute
+      # — nothing below is ever constructed by a test.
+      - path: Sources/AppModel.swift
+      - path: Sources/Support/FinishEffects.swift
+      - path: Sources/Support/AppActivation.swift
+      - path: Sources/Support/PowerAssertion.swift
+      - path: Sources/Theme/ThemeStore.swift
+      - path: Sources/Audio/ChimePlayer.swift
+      - path: Sources/Audio/BellSynth.swift
+      - path: Sources/Notifications/NotificationManager.swift
     settings:
       base:
         PRODUCT_NAME: PomoLightTests

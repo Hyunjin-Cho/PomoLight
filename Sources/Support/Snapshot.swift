@@ -6,6 +6,30 @@ import ImageIO
 /// Offscreen UI snapshots via `ImageRenderer` (needs no Screen Recording
 /// permission). Triggered by launching with the env var `POMO_SNAPSHOT=<dir>`;
 /// renders a few real screens to PNGs and quits. Used for build verification.
+/// Stand-ins for the parts a snapshot must not actually perform: no sound, no
+/// permission prompt, no sleep assertion, no window raised at a machine that may
+/// have nobody in front of it. Rendering a picture of the app should have no
+/// effect the app itself would notice.
+@MainActor private final class InertAlarm: AlarmPlaying {
+    func playAlarm(sound: AlarmSound, volume: Double, repeatUntilDismissed: Bool) {}
+    func preview(sound: AlarmSound, volume: Double) {}
+    func stop() {}
+}
+
+@MainActor private final class InertNotifier: FinishNotifying {
+    func configureDelegate() {}
+    func requestAuthorizationIfNeeded() {}
+    func notifyTimerFinished(enabled: Bool) {}
+}
+
+@MainActor private final class InertSleepKeeper: SleepPreventing {
+    func setActive(_ active: Bool) {}
+}
+
+@MainActor private final class InertWindowRaiser: WindowRaising {
+    func bringToFront() {}
+}
+
 @MainActor
 enum Snapshot {
     static func runIfRequested() {
@@ -50,14 +74,22 @@ enum Snapshot {
         // the widget. Nothing leaves the process any more, so there is nothing to
         // put back.
 
+        // 2026-08-21: the model is now built ON the scratch suite, with inert stand-ins
+        // for the parts that reach hardware. Before, `AppModel()` read the owner's real
+        // preferences and each of the six specs constructed a real ChimePlayer and a
+        // real NotificationManager — so a verification run could ask for notification
+        // permission. A tool that checks the app should not be able to change it.
         for spec in specs {
-            let model = AppModel()
-            let settings = SettingsStore(defaults: scratchDefaults)
-            let theme = ThemeStore(settings: settings)
-            theme.selectPreset(id: spec.themeID)       // writes to the scratch suite only
+            let model = AppModel(defaults: scratchDefaults,
+                                 chime: InertAlarm(),
+                                 notifications: InertNotifier(),
+                                 power: InertSleepKeeper(),
+                                 windows: InertWindowRaiser())
+            model.theme.selectPreset(id: spec.themeID)   // writes to the scratch suite only
             configure(model: model, for: spec.phase)
             let path = (dir as NSString).appendingPathComponent("\(spec.name).png")
-            renderView(content(for: spec, model: model, settings: settings, theme: theme), to: path)
+            renderView(content(for: spec, model: model,
+                               settings: model.settings, theme: model.theme), to: path)
         }
         FileHandle.standardError.write("PomoLight snapshots written to \(dir)\n".data(using: .utf8)!)
     }
@@ -92,10 +124,10 @@ enum Snapshot {
                 RootView()
             }
         }
-        // Deliberately NOT `.injectEnvironment(model)`: the theme and settings the
-        // views read have to be the scratch pair above, not the ones `AppModel`
-        // built from the user's real defaults. Everything else matches it.
-        // (2026-08-15)
+        // 2026-08-15 there was a warning here not to hand the views `model`'s own
+        // theme and settings, because those came from the user's real defaults. As
+        // of 2026-08-21 they ARE the scratch pair — the model is built on it — so
+        // the caller passes `model.settings` / `model.theme` and the trap is gone.
         .environment(model)
         .environment(model.engine)
         .environment(theme)
