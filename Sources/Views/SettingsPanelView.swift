@@ -109,8 +109,16 @@ struct SettingsPanelView: View {
                         app.preview(sound)
                     } label: {
                         HStack(spacing: 10) {
+                            // 2026-08-21: the selected dot used to be drawn with
+                            // `palette.accent`, a FILL role. Measured 1.20:1 (Lime) …
+                            // 2.94:1 (Indigo) against the panel's `surface`, where an
+                            // icon needs 3:1 — so the SELECTED row was fainter than
+                            // the three unselected ones and all four read as "off".
+                            // `controlIcon` is the role that clears 3:1 vs bg AND
+                            // surface, and ContrastTests pins that for all 15 themes.
+                            // Selection is still carried by the glyph, not by colour.
                             Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
-                                .foregroundStyle(isSelected ? palette.accent : palette.secondaryText)
+                                .foregroundStyle(palette.controlIcon)
                             Text(verbatim: sound.displayName)   // sound names stay English
                                 .font(.system(size: 14, design: .rounded))
                                 .foregroundStyle(palette.primaryText)
@@ -135,7 +143,10 @@ struct SettingsPanelView: View {
                 Image(systemName: "speaker.fill").foregroundStyle(palette.secondaryText).font(.system(size: 11))
                     .accessibilityHidden(true)
                 Slider(value: Binding(get: { settings.alarmVolume }, set: { settings.alarmVolume = $0 }), in: 0...1)
-                    .tint(palette.accent)
+                    // 2026-08-21: same FILL-as-state-indicator mistake as the radio
+                    // above — the filled part of the track was invisible against
+                    // `surface`, so the volume was unreadable at a glance.
+                    .tint(palette.controlIcon)
                     .accessibilityLabel("Alarm volume")
                 Image(systemName: "speaker.wave.3.fill").foregroundStyle(palette.secondaryText).font(.system(size: 11))
                     .accessibilityHidden(true)
@@ -181,7 +192,9 @@ struct SettingsPanelView: View {
                 .multilineTextAlignment(.leading)
         }
         .toggleStyle(.switch)
-        .tint(palette.accent)
+        // 2026-08-21: an "on" switch filled with the raw accent sat at 1.20–2.94:1
+        // against `surface` — the on/off states were barely distinguishable.
+        .tint(palette.controlIcon)
     }
 
     // MARK: Footer

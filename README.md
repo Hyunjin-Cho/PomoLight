@@ -46,7 +46,7 @@ Then press ⌘R. (To archive for distribution: Product → Archive.)
 
 ## Before you publish — set these
 
-These are placeholders the owner needs to fill in (see also "Escalations" below):
+These are placeholders the owner needs to fill in:
 
 | What | Where | Default |
 |------|-------|---------|
@@ -67,14 +67,14 @@ Everything below in one command:
 bash Scripts/verify.sh
 ```
 
-It runs the four checks in the order that catches problems soonest:
+It runs the checks in the order that catches problems soonest:
 
 - **Build the app** — first, and not redundant with the tests. The test bundle is
-  HOST-LESS: it compiles `TimerEngine`, `DialFrameRate`, `Theme` and
-  `Color+Contrast`, and never compiles `AppModel`, `AppDelegate` or a single view.
-  A green suite says nothing about whether the app builds at all.
-- **Unit tests** — timer state machine, dial frame rate, contrast invariants.
-  Nothing launches and no chime plays.
+  HOST-LESS: it compiles `TimerEngine`, `DialFrameRate`, `Theme`, `Color+Contrast`
+  and `SettingsStore`, and never compiles `AppModel`, `AppDelegate` or a single
+  view. A green suite says nothing about whether the app builds at all.
+- **Unit tests** — timer state machine, dial frame rate, contrast invariants,
+  settings persistence. Nothing launches and no chime plays.
   ```bash
   xcodebuild test -project PomoLight.xcodeproj -scheme PomoLightTests -destination 'platform=macOS'
   ```
@@ -83,6 +83,13 @@ It runs the four checks in the order that catches problems soonest:
   from what ships:
   ```bash
   bash Scripts/contrast_audit.sh
+  ```
+- **Palette roles** — the audit above proves the palette *can* be legible; this
+  proves the app *uses* it that way. It fails the build if any view draws a FILL
+  role (`accent`) with `.foregroundStyle`/`.tint`, which had shipped three separate
+  times — the donation heart, the alarm-sound radio, and the menu-bar button:
+  ```bash
+  bash Scripts/palette_role_check.sh
   ```
 - **Silent launch** — starts the real binary in offscreen snapshot mode and checks
   three things: it exits cleanly, it actually rendered its screens, and it opened

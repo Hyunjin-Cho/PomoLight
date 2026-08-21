@@ -1,4 +1,5 @@
 import AVFoundation
+import os
 
 /// Plays the gentle alarm. Every sound is synthesized in-app (a short motif played
 /// twice); "repeat until dismissed" re-chimes on an interval until Dismiss.
@@ -114,14 +115,28 @@ final class ChimePlayer {
         return made
     }
 
+    // 2026-08-21: both failure paths in `play` used to return in silence. This app
+    // IS an alarm, so "it didn't ring" with no trace anywhere is the one bug report
+    // nobody can act on. `Scripts/silent_launch_check.sh` already reads the unified
+    // log, so a failure recorded here is reachable by the existing verification.
+    private static let log = Logger(subsystem: "com.vismo.pomolight", category: "chime")
+
     /// Play one motif of the sound.
     private func play(sound: AlarmSound, volume: Double) {
         // Resolve the buffer BEFORE the graph: a voice we cannot synthesize must not
         // be the reason the audio device gets opened.
-        guard let buffer = buffer(for: sound) else { return }
+        guard let buffer = buffer(for: sound) else {
+            ChimePlayer.log.error("alarm did not ring: could not synthesize \(sound.rawValue, privacy: .public)")
+            return
+        }
         prepareGraphIfNeeded()
         if !engine.isRunning {
-            do { try engine.start() } catch { return }
+            do {
+                try engine.start()
+            } catch {
+                ChimePlayer.log.error("alarm did not ring: audio engine failed to start — \(error.localizedDescription, privacy: .public)")
+                return
+            }
         }
         engine.mainMixerNode.outputVolume = Float(min(max(volume, 0), 1))
         if player.isPlaying { player.stop() }

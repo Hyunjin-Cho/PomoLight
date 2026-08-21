@@ -23,12 +23,18 @@ by_lang = result["byLang"]
 # Also gone in the same pass: the hardcoded "Glass"/"Submarine" system-sound
 # names, which were never even values of AlarmSound. If sound names are ever
 # localized, take "Soft Chime" back out of this set.
-SKIP_KEYS = {"Custom color", "Soft Chime"}
+#   "Notifications off" (2026-08-21) — the widget's bell-slash badge. The widget
+#                    went in PR #33; grep finds no lookup in Sources/, yet the
+#                    string was still sitting in all 29 .lproj files and in the
+#                    MANUAL table below, ready to be written back on the next
+#                    re-assembly. Removed from the files in the same commit.
+SKIP_KEYS = {"Custom color", "Soft Chime", "Notifications off"}
 
-# Keys added AFTER the original workflow ran, hand-translated (2026-07: VoiceOver
-# remaining-time phrase; widget bell-slash badge). Merged so re-assembling from
-# the old workflow JSON never drops them. A future workflow that includes these
-# keys wins over this table.
+# Keys added AFTER the original workflow ran, hand-translated (2026-07: the
+# VoiceOver remaining-time phrase). Merged so re-assembling from the old workflow
+# JSON never drops them. A future workflow that includes these keys wins over
+# this table. 2026-08-21: the widget's "Notifications off" badge was dropped from
+# here — see SKIP_KEYS above.
 MANUAL = {
     "%@ remaining": {
         "cs": "Zbývá %@", "da": "%@ tilbage", "de": "Noch %@",
@@ -41,21 +47,6 @@ MANUAL = {
         "sv": "%@ kvar", "th": "เหลืออีก %@", "tr": "%@ kaldı",
         "uk": "Залишилося %@", "vi": "Còn lại %@",
         "zh-Hans": "剩余%@", "zh-Hant": "剩餘%@",
-    },
-    "Notifications off": {
-        "cs": "Oznámení vypnuta", "da": "Notifikationer er slået fra",
-        "de": "Mitteilungen aus", "el": "Ειδοποιήσεις ανενεργές",
-        "es": "Notificaciones desactivadas", "fi": "Ilmoitukset pois käytöstä",
-        "fil": "Naka-off ang mga notification", "fr": "Notifications désactivées",
-        "hu": "Értesítések kikapcsolva", "id": "Notifikasi nonaktif",
-        "it": "Notifiche disattivate", "ja": "通知オフ", "ko": "알림 꺼짐",
-        "ms": "Pemberitahuan dimatikan", "nb": "Varsler av", "nl": "Meldingen uit",
-        "pl": "Powiadomienia wyłączone", "pt-BR": "Notificações desativadas",
-        "pt-PT": "Notificações desativadas", "ro": "Notificări dezactivate",
-        "ru": "Уведомления выключены", "sv": "Notiser av",
-        "th": "การแจ้งเตือนปิดอยู่", "tr": "Bildirimler kapalı",
-        "uk": "Сповіщення вимкнено", "vi": "Đã tắt thông báo",
-        "zh-Hans": "通知已关闭", "zh-Hant": "通知已關閉",
     },
 }
 

@@ -5,7 +5,8 @@ import SwiftUI
 struct DurationPickerView: View {
     @Environment(TimerEngine.self) private var engine
     @Environment(SettingsStore.self) private var settings
-    @Environment(AppModel.self) private var app
+    // 2026-08-21: an unused `@Environment(AppModel.self)` was declared here too —
+    // same false requirement as the one removed from RootView.
     let palette: Palette
 
     private enum Field { case minutes, seconds }
@@ -40,8 +41,11 @@ struct DurationPickerView: View {
             }
         }
         .onChange(of: focusedField) { _, focus in
-            // Editing ended — 0:00 in the fields snaps to the engine's floor.
-            if focus == nil { snapFieldsToFloor() }
+            // Editing ended — show what the engine actually took, and persist once.
+            if focus == nil {
+                syncFieldsToEngine()
+                persistChosenDuration()
+            }
         }
     }
 
@@ -139,17 +143,36 @@ struct DurationPickerView: View {
         // "0" in minutes-only mode must not silently mean a 1-second timer.
         let total = max(settings.showSeconds ? 1 : 60, m * 60 + s)
         engine.setDuration(seconds: Double(total))
-        settings.lastDurationMinutes = Double(total) / 60
         // Mid-typing the fields may briefly read 0:00 — leave them alone while
-        // focused, but snap button-driven changes to the floor immediately.
-        if focusedField == nil { snapFieldsToFloor() }
+        // focused. 2026-08-21: persisting moved in here too. It used to run on every
+        // keystroke (`lastDurationMinutes` writes through to UserDefaults on `didSet`),
+        // so typing "120" wrote 1, then 12, then 120. Button-driven changes are
+        // discrete and still persist immediately; typing waits for focus to leave.
+        if focusedField == nil {
+            syncFieldsToEngine()
+            persistChosenDuration()
+        }
     }
 
-    /// The engine never goes below its floor, but the FIELDS could keep showing
-    /// 0:00 after editing — make them show the value the engine actually holds.
-    private func snapFieldsToFloor() {
-        guard showingCustom, minutes == 0, seconds == 0 else { return }
-        if settings.showSeconds { seconds = 1 } else { minutes = 1 }
-        // (the field's onChange re-runs pushToEngine, which is now a no-op)
+    /// Make the fields show the value the engine actually holds.
+    ///
+    /// 2026-08-21: this was `snapFieldsToFloor()` and only handled the bottom end, so
+    /// entering 999:59 left the fields reading 999:59 while the engine held its 999:00
+    /// ceiling — a 59-second lie. Reading back from the engine covers both ends with
+    /// one rule, and there is only one place that decides what the duration is.
+    private func syncFieldsToEngine() {
+        guard showingCustom else { return }
+        let total = Int(engine.configuredDuration.rounded())
+        let m = total / 60
+        let s = settings.showSeconds ? total % 60 : 0
+        if minutes != m { minutes = m }
+        if seconds != s { seconds = s }
+        // (a field's onChange re-runs pushToEngine, which is now a no-op)
+    }
+
+    /// Persist the duration the engine settled on — never the raw field contents, so
+    /// a clamped entry can't be remembered as something the engine would refuse.
+    private func persistChosenDuration() {
+        settings.lastDurationMinutes = engine.configuredDuration / 60
     }
 }

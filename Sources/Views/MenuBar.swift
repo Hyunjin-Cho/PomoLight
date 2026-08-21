@@ -45,9 +45,19 @@ struct MenuBarContent: View {
                     Label(primaryTitle, systemImage: primaryIcon)
                         .frame(maxWidth: .infinity)
                 }
-                .controlSize(.large)
-                .tint(palette.accent)
-                .buttonStyle(.borderedProminent)
+                // 🚨 2026-08-21: this was `.borderedProminent` + `.tint(palette.accent)`,
+                // which handed the ink choice to AppKit. Measured on macOS 26.5.2: the
+                // system does flip the label by tint brightness (yellow/lime/mint/sky/
+                // coral got dark ink and were fine), but on the darker accents it chose
+                // WHITE — Magenta 2.27:1, Violet 2.52:1, Blue 2.54:1, Indigo 3.13:1 —
+                // exactly where `LegibleFill` picks dark ink at 5.22–7.21:1. So the same
+                // "Start" was legible in the main window and washed out in the popover.
+                // Using the app's own pair puts this button back under the 4.5:1 that
+                // `Scripts/contrast_audit.sh` already checks for every theme.
+                .buttonStyle(PomoPrimaryButtonStyle(fill: palette.buttonFill,
+                                                    label: palette.buttonLabel,
+                                                    glow: palette.accent,
+                                                    minWidth: 0, height: 34, fontSize: 14))
 
                 if engine.isActive {
                     Button(action: { app.resetTimer() }) {

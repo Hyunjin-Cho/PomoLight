@@ -105,16 +105,42 @@ final class ContrastTests: XCTestCase {
     /// terminates and hands back the far end of its grid — not an infinite loop, not
     /// the original unreadable color. It stops ~98% of the way to the extreme (the
     /// last 0.02 step), which is visually the extreme.
-    func testEnforcingContrastFallsBackToTheFarEndWhenTheTargetIsImpossible() {
+    ///
+    /// 🚨 2026-08-21: this test used to assert the search ran toward WHITE here, and
+    /// pinned the ~3.98:1 that white can manage against this grey. That was the bug
+    /// written down as the contract. Mid-grey is L 0.214, and black/white tie at
+    /// L ≈ 0.1791 — so black is the better direction and reaches 5.20:1. The old
+    /// `luminance(background) > 0.5` split sent it the losing way for every
+    /// background between 0.1791 and 0.5.
+    func testEnforcingContrastFallsBackToTheBestFarEndWhenTheTargetIsImpossible() {
         let grey = RGB(0.5, 0.5, 0.5)
         let result = RGB(h: 200, s: 0.5, l: 0.5).enforcingContrast(against: grey, minRatio: 21.0)
 
-        // Grey is the lighter side, so the search runs toward white.
-        XCTAssertGreaterThan(min(result.r, result.g, result.b), 0.97,
-                             "expected nearly-white, got \(result)")
-        let best = WCAG.contrast(RGB(1, 1, 1), grey)
+        // This grey is dark enough that darkening wins — the search runs toward black.
+        XCTAssertLessThan(max(result.r, result.g, result.b), 0.03,
+                          "expected nearly-black, got \(result)")
+        let best = max(WCAG.contrast(RGB(0, 0, 0), grey), WCAG.contrast(RGB(1, 1, 1), grey))
         XCTAssertEqual(WCAG.contrast(result, grey), best, accuracy: best * 0.05,
                        "should land within a few percent of the best achievable ratio")
+    }
+
+    /// The direction has to be chosen by which one actually wins, not by a guessed
+    /// midpoint. Every background in 0.1791 < L <= 0.5 is a background the old rule
+    /// pushed the wrong way; on those, a target that black can reach was reported as
+    /// unreachable. Sweep the whole scale and require the achievable ratio.
+    func testEnforcingContrastPicksTheDirectionThatActuallyWins() {
+        for step in 0...50 {
+            let level = Double(step) / 50.0
+            let background = RGB(level, level, level)
+            let best = max(WCAG.contrast(RGB(0, 0, 0), background),
+                           WCAG.contrast(RGB(1, 1, 1), background))
+            // Ask for something the better direction can just about deliver.
+            let target = min(4.5, best * 0.95)
+            let fixed = RGB(h: 200, s: 0.5, l: 0.5).enforcingContrast(against: background,
+                                                                     minRatio: target)
+            assertRatio(fixed, background, atLeast: target,
+                        "grey \(String(format: "%.2f", level)) (luminance \(String(format: "%.4f", WCAG.luminance(background))))")
+        }
     }
 
     // MARK: - Hex round-trip

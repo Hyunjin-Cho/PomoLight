@@ -6,8 +6,12 @@ import SwiftUI
 struct RootView: View {
     @Environment(TimerEngine.self) private var engine
     @Environment(ThemeStore.self) private var theme
-    @Environment(AppModel.self) private var app
+    // 2026-08-21: `@Environment(AppModel.self) private var app` sat here unused. It
+    // is not free — `@Environment` traps when nothing injected it, so an unused one
+    // is a false requirement on every place that assembles this view by hand
+    // (`Snapshot.swift` does).
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var showSettings = false
 
@@ -37,11 +41,23 @@ struct RootView: View {
                         .transition(.opacity)
 
                     SettingsPanelView(palette: palette, isPresented: $showSettings)
-                        .transition(.scale(scale: 0.96).combined(with: .opacity))
+                        // 2026-08-21: the dial, the chips and the hover lifts have
+                        // honoured Reduce Motion since they were written; this screen
+                        // — the settings card zooming in on a spring, the biggest
+                        // movement in the app — did not. A cross-fade is the
+                        // substitution Apple asks for, so the panel still reads as
+                        // arriving without anything travelling.
+                        .transition(reduceMotion ? AnyTransition.opacity
+                                                 : AnyTransition.scale(scale: 0.96).combined(with: .opacity))
                 }
             }
+            // The theme swap stays animated either way: it is a colour cross-fade,
+            // which is what Reduce Motion asks for INSTEAD of movement, not a thing
+            // to switch off.
             .animation(.easeInOut(duration: 0.5), value: theme.current)
-            .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showSettings)
+            .animation(reduceMotion ? .easeInOut(duration: 0.2)
+                                    : .spring(response: 0.35, dampingFraction: 0.85),
+                       value: showSettings)
         }
         .onChange(of: showSettings) { _, open in
             // Make sure the window is key so the panel's controls take the first click.

@@ -92,8 +92,21 @@ extension RGB {
     /// `WCAG.contrast(result, background) >= minRatio`. If already passing, returns self.
     func enforcingContrast(against background: RGB, minRatio: Double) -> RGB {
         if WCAG.contrast(self, background) >= minRatio { return self }
-        // Move away from the background's luminance: dark bg -> lighten, light bg -> darken.
-        let target: RGB = WCAG.luminance(background) > 0.5 ? RGB(0, 0, 0) : RGB(1, 1, 1)
+        // Move to whichever end of the scale this background actually allows more
+        // contrast against — black if darkening wins, white if lightening does.
+        //
+        // 🚨 2026-08-21: this used to split on `luminance(background) > 0.5`, which is
+        // the wrong crossover. Black and white tie where (L+0.05)^2 = 0.0525, i.e. at
+        // L ≈ 0.1791 — so every background between 0.1791 and 0.5 was pushed toward
+        // white when black was the better direction. Measured on a mid-grey (L 0.214)
+        // asking for 4.5:1: the old rule returned 3.84:1 where black reaches 5.28:1.
+        // None of the 15 shipped themes has a backdrop in that band (checked bg,
+        // surface, ringTrack and accentSoft in light and dark), so nothing on screen
+        // changes today — this is the latent half of the bug, fixed before a
+        // mid-luminance theme walks into it.
+        let black = RGB(0, 0, 0), white = RGB(1, 1, 1)
+        let target: RGB = WCAG.contrast(black, background) >= WCAG.contrast(white, background)
+            ? black : white
         var amount = 0.0
         var best = self
         while amount <= 1.0 {
@@ -110,15 +123,10 @@ extension RGB {
     }
 }
 
-// MARK: - Widget control chrome
-//
-// The widget draws its controls on its OWN background: the accent at 20%…6% over
-// whatever material macOS puts behind a widget. Both round buttons are filled with
-// a shade of that same accent (the toggle with the accent itself, the reset with it
-// at 16%), so the *shape* of the control can dissolve into the background even when
-// the icon inside it is perfectly legible — measured 1.17:1 on Lime, and about
-// 1.0:1 for the reset button, against the 3:1 that WCAG 2.1 SC 1.4.11 asks for on
-// the visual information identifying a control. Hence an outline, derived here so
+// 2026-08-21: a "Widget control chrome" block sat here describing `WidgetChrome`,
+// the 3:1 outline the widget's round buttons needed (PR #10). The widget went in
+// PR #33 and took the code with it; only the prose was left, and it broke off
+// mid-sentence. Removed.
 
 // MARK: - Legible filled-button derivation
 //

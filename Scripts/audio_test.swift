@@ -1,7 +1,14 @@
 #!/usr/bin/env swift
-// Offline-renders the bell through the same AVAudioEngine graph the app uses and
-// measures output RMS — proving the format fix makes sound (and that format:nil
-// produced silence). No speakers needed. Run: swift Scripts/audio_test.swift
+// Offline-renders a bell through the same AVAudioEngine graph SHAPE the app uses
+// and measures output RMS — proving the format fix makes sound (and that
+// format:nil produced silence). No speakers needed.
+//
+// 2026-08-21: the header used to say "the same graph the app uses" without that
+// qualifier, which reads as "this checks the app's alarm". It does not — the bell
+// below is a SEPARATE copy of the synthesis (base 528 Hz, 4 partials); the app's
+// voices live in `Sources/Audio/BellSynth.swift` and are not exercised here. This
+// script tests the graph/format wiring only.
+// Run: swift Scripts/audio_test.swift
 import AVFoundation
 
 func makeBell(sampleRate: Double = 44_100) -> AVAudioPCMBuffer? {

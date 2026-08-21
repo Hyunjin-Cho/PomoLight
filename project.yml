@@ -75,6 +75,10 @@ targets:
       - path: Sources/Views/DialFrameRate.swift
       - path: Sources/Theme/Theme.swift
       - path: Sources/Theme/Color+Contrast.swift
+      # 2026-08-21: SettingsStore joined the list. It is self-contained (Foundation
+      # only) and already takes its UserDefaults by injection, so testing it costs
+      # nothing here — and it is the class behind both settings accidents so far.
+      - path: Sources/Settings/SettingsStore.swift
     settings:
       base:
         PRODUCT_NAME: PomoLightTests

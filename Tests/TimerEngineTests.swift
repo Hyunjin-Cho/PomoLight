@@ -21,7 +21,6 @@ final class TimerEngineTests: XCTestCase {
         XCTAssertEqual(engine.remaining, 25 * 60, accuracy: 0.001)
         XCTAssertEqual(engine.fractionRemaining(), 1, accuracy: 0.001)
         XCTAssertFalse(engine.isActive)
-        XCTAssertNil(engine.runningDeadline)
     }
 
     func testDurationIsClampedToOneSecondAndTheCeiling() {
@@ -40,8 +39,34 @@ final class TimerEngineTests: XCTestCase {
         XCTAssertEqual(engine.configuredDuration, 25 * 60, accuracy: 0.001)
     }
 
-    func testInitAlsoClampsAZeroDuration() {
+    /// 2026-08-21: `init` clamped the floor but not the ceiling, so a hand-edited
+    /// `pl.lastDurationMinutes` reached the engine unbounded. Both ends are pinned
+    /// now — the asymmetry is exactly what the old tests failed to notice.
+    func testInitClampsBothEndsJustLikeSetDuration() {
         XCTAssertEqual(TimerEngine(durationSeconds: 0).configuredDuration, 1, accuracy: 0.001)
+        XCTAssertEqual(TimerEngine(durationSeconds: -600).configuredDuration, 1, accuracy: 0.001)
+        XCTAssertEqual(TimerEngine(durationSeconds: 10_000 * 60).configuredDuration, cap, accuracy: 0.001)
+    }
+
+    /// The duration may only change while the timer is not counting. It used to be
+    /// documented and not enforced: `configuredDuration` moved while `deadline`
+    /// stayed put, so the ring described a timer that wasn't running.
+    func testSettingTheDurationMidRunIsRefusedInsteadOfHalfApplied() {
+        let engine = TimerEngine(durationSeconds: 600)
+        engine.start()
+
+        engine.setDuration(seconds: 60)
+        XCTAssertEqual(engine.configuredDuration, 600, accuracy: 0.001)
+        XCTAssertEqual(engine.fractionRemaining(), 1, accuracy: 0.01, "the ring must still describe the live timer")
+
+        engine.pause()
+        engine.setDuration(seconds: 60)
+        XCTAssertEqual(engine.configuredDuration, 600, accuracy: 0.001, "paused counts as active too")
+
+        // Back to idle, the very same call lands.
+        engine.reset()
+        engine.setDuration(seconds: 60)
+        XCTAssertEqual(engine.configuredDuration, 60, accuracy: 0.001)
     }
 
     // MARK: - Running
@@ -53,7 +78,6 @@ final class TimerEngineTests: XCTestCase {
 
         XCTAssertEqual(engine.phase, .running)
         XCTAssertTrue(engine.isActive)
-        XCTAssertNotNil(engine.runningDeadline)
 
         XCTAssertEqual(engine.remaining(at: t0), 600, accuracy: 0.5)
         XCTAssertEqual(engine.remaining(at: t0.addingTimeInterval(60)), 540, accuracy: 0.5)
@@ -82,7 +106,6 @@ final class TimerEngineTests: XCTestCase {
 
         XCTAssertEqual(engine.phase, .paused)
         XCTAssertTrue(engine.isActive)
-        XCTAssertNil(engine.runningDeadline, "a paused timer has no deadline to publish")
 
         let frozen = engine.remaining
         XCTAssertEqual(frozen, 300, accuracy: 0.5)
@@ -100,7 +123,6 @@ final class TimerEngineTests: XCTestCase {
         engine.resume()
         XCTAssertEqual(engine.phase, .running)
         XCTAssertEqual(engine.remaining(at: Date()), frozen, accuracy: 0.5)
-        XCTAssertNotNil(engine.runningDeadline)
     }
 
     func testPauseAndResumeOnlyActFromTheirOwnPhase() {
@@ -137,7 +159,6 @@ final class TimerEngineTests: XCTestCase {
 
         XCTAssertEqual(engine.phase, .idle)
         XCTAssertEqual(engine.remaining, 300, accuracy: 0.001)
-        XCTAssertNil(engine.runningDeadline)
     }
 
     func testDismissOnlyLeavesTheFinishedState() {
@@ -179,7 +200,6 @@ final class TimerEngineTests: XCTestCase {
 
         XCTAssertEqual(engine.phase, .finished)
         XCTAssertEqual(engine.remaining, 0, accuracy: 0.001)
-        XCTAssertNil(engine.runningDeadline)
 
         // The ticker is stopped by the finish itself; give it room to misbehave.
         let settled = expectation(description: "no second fire")

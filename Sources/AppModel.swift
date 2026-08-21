@@ -67,10 +67,14 @@ final class AppModel {
     /// Start the timer. We do NOT persist the duration here — otherwise a session
     /// extended mid-run would silently become the next launch's default. The chosen
     /// duration is saved only when the user explicitly picks it (preset chip /
-    /// custom entry). Also requests notification permission in context, so the first
-    /// finish can actually deliver a banner.
+    /// custom entry).
+    ///
+    /// 2026-08-21: this used to call `requestAuthorizationIfNeeded()` as well. Once
+    /// `AppModel.init` asks at launch the status is never `.notDetermined` again
+    /// (`requestAuthorization` always resolves to granted or denied), so the second
+    /// call could only ever be a no-op — and if it did race the launch request, both
+    /// would see `.notDetermined` at once. One asker, at one moment.
     func startTimer() {
-        notifications.requestAuthorizationIfNeeded()
         engine.start()
         updatePowerAssertion()
     }

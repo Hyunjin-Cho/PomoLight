@@ -177,9 +177,9 @@ struct ResolvedPalette {
         // Ring fill must be distinguishable from its track (UI element, 3:1).
         self.ringFill = ringFill.enforcingContrast(against: ringTrack, minRatio: 3.0)
 
-        // Deepen accent until a label clears AA, for filled buttons/chips.
-        // The widget's toggle button derives its colors the same way (from the
-        // light accent it receives in the shared snapshot).
+        // Deepen accent until a label clears AA, for filled buttons/chips. Every
+        // filled button in the app draws from this pair — the main window's primary
+        // action, the preset chips, and (since 2026-08-21) the menu-bar popover.
         let legible = LegibleFill(accent: accent)
         self.buttonFill = legible.fill
         self.buttonLabel = legible.label

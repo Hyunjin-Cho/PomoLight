@@ -13,8 +13,15 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         center.delegate = self
     }
 
-    /// Ask for permission the first time the user starts a timer (in context, not at
-    /// launch) so the first completion can deliver a banner. No-op if already decided.
+    /// Ask for notification permission. No-op once the user has decided either way.
+    ///
+    /// 🚨 2026-08-21: this doc-comment (and the one on `notifyTimerFinished`) said the
+    /// opposite of what the app does — "the first time the user starts a timer (in
+    /// context, not at launch)" — while `AppModel.init` has called it AT LAUNCH the
+    /// whole time. The code was right and the prose was wrong, which is the dangerous
+    /// way round: the next reader could have deleted the launch call as a "bug" and
+    /// lost the banner on the very first finish. Asking at launch is deliberate — see
+    /// `AppModel.init` for why (the prompt must not land on top of the first alarm).
     func requestAuthorizationIfNeeded() {
         Task {
             guard await center.notificationSettings().authorizationStatus == .notDetermined else { return }
@@ -22,8 +29,9 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
-    /// Fire the finished notification. Requests permission in-context the first
-    /// time (per the UX spec — no upfront prompt at launch).
+    /// Fire the finished notification. Permission is normally already settled by the
+    /// launch-time request; the `.notDetermined` branch below is the safety net for
+    /// the case where a timer finishes before that request has come back.
     func notifyTimerFinished(enabled: Bool) {
         guard enabled else { return }
         Task {

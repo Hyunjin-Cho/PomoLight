@@ -7,14 +7,21 @@ struct PomoPrimaryButtonStyle: ButtonStyle {
     let fill: Color
     let label: Color
     let glow: Color
+    // 2026-08-21: the sizes became parameters so the menu-bar popover can use this
+    // style too. It used to be stuck at the main window's 150x48, which is why the
+    // popover reached for `.borderedProminent` instead — and thereby skipped the
+    // fill/label pair this style exists to enforce.
+    var minWidth: CGFloat = 150
+    var height: CGFloat = 48
+    var fontSize: CGFloat = 16
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 16, weight: .semibold, design: .rounded))
+            .font(.system(size: fontSize, weight: .semibold, design: .rounded))
             .foregroundStyle(label)
-            .frame(minWidth: 150)
-            .frame(height: 48)
+            .frame(minWidth: minWidth)
+            .frame(height: height)
             .background(Capsule().fill(fill))
             .shadow(color: glow.opacity(0.30), radius: 8, y: 2)
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.96 : 1.0)
@@ -23,7 +30,8 @@ struct PomoPrimaryButtonStyle: ButtonStyle {
     }
 }
 
-/// A quiet circular icon button (Reset, +1 min, gear, heart). Lifts gently on hover.
+/// A quiet circular icon button (Reset, gear, heart, the stepper's +/-). Lifts
+/// gently on hover. (The "+1 min" button it also used to serve went in PR #13.)
 struct CircleIconButton: View {
     let systemName: String
     let tint: Color

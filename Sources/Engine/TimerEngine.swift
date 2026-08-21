@@ -31,8 +31,20 @@ final class TimerEngine {
     /// A monotonically-changing value the menu-bar label observes for a ~1 Hz tick.
     private(set) var menuBarTick: Int = 0
 
+    /// The picker's ceiling (999:00) and floor (1 s). Both `init` and `setDuration`
+    /// clamp to these — 2026-08-21: `init` used to apply the floor only, so a value
+    /// edited straight into `~/Library/Preferences` (`pl.lastDurationMinutes` is a
+    /// plain number) reached the engine unbounded, while the same value typed into
+    /// the UI was capped.
+    static let minDuration: TimeInterval = 1
+    static let maxDuration: TimeInterval = 999 * 60
+
+    private static func clamp(_ seconds: TimeInterval) -> TimeInterval {
+        min(max(minDuration, seconds), maxDuration)
+    }
+
     init(durationSeconds: TimeInterval) {
-        self.configuredDuration = max(1, durationSeconds)
+        self.configuredDuration = TimerEngine.clamp(durationSeconds)
         wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
         ) { [weak self] _ in
@@ -78,16 +90,23 @@ final class TimerEngine {
 
     var isActive: Bool { phase == .running || phase == .paused }
 
-    /// The absolute end time while running (nil otherwise) — lets the widget run a
-    /// self-ticking countdown without constant timeline reloads.
-    var runningDeadline: Date? { phase == .running ? deadline : nil }
+    // 2026-08-21: `runningDeadline` lived here so the WIDGET could run a self-ticking
+    // countdown from the absolute end time. The widget went in PR #33; a grep found
+    // zero production callers and six test assertions, i.e. only its own tests kept
+    // it alive. Those assertions were restatements of the `remaining`/`phase` checks
+    // sitting next to them, so they went with it.
 
     // MARK: - Configuration
 
-    /// Set the duration (only meaningful when not actively counting). Resets to idle.
+    /// Set the duration. Only meaningful when not actively counting, and 2026-08-21
+    /// that contract is enforced rather than merely documented: a call while running
+    /// or paused used to move `configuredDuration` while leaving `deadline` alone,
+    /// so `fractionRemaining` (the ring) silently described a timer that wasn't
+    /// running. No UI path reaches it — the picker only shows in idle — but a
+    /// half-applied change is a worse failure than a no-op.
     func setDuration(seconds: TimeInterval) {
-        let clamped = min(max(1, seconds), 999 * 60)
-        configuredDuration = clamped
+        guard !isActive else { return }
+        configuredDuration = TimerEngine.clamp(seconds)
         if phase == .finished { phase = .idle }
         if phase == .idle { frozenRemaining = nil; deadline = nil }
     }
@@ -193,11 +212,6 @@ final class TimerEngine {
         stopTicker()
         onFinish?()
     }
-
-    /// Adopt a state change made by the WIDGET (via the shared snapshot). Mirrors
-    /// the widget's intent into the live engine so both stay in lockstep; if the
-    /// widget-started timer already expired, the normal finish path fires (chime).
-
 
     // 2026-08-21: `adopt(snapshot:)` lived here so the app could pick up a countdown
     // the WIDGET had started while it was closed. The widget is gone, this process is
