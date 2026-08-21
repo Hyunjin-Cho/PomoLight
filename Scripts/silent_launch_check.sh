@@ -32,13 +32,55 @@ fi
 SHOTS="$(mktemp -d)"
 trap 'rm -rf "$SHOTS"' EXIT
 
+# A blank or failed render still writes a PNG, just a tiny one — the real screens
+# are 170-460 KB, a flat colour compresses to a few. 20 KB sits far from both.
+MIN_PNG_BYTES=20480
+
 # The log is queried by PID, so the window must start BEFORE the process does or
 # a fast exit can leave the query looking at the wrong slice of time.
 START="$(date '+%Y-%m-%d %H:%M:%S')"
-POMO_SNAPSHOT="$SHOTS" "$APP" >/dev/null 2>&1 &
+POMO_SNAPSHOT="$SHOTS" "$APP" >/dev/null 2>"$SHOTS/stderr.txt" &
 PID=$!
 echo "▸ Launched PID $PID (offscreen snapshot mode)…"
-wait "$PID" || true
+# 🚨 2026-08-21: this used to be `wait "$PID" || true`, which threw the exit code
+# away. Combined with the CoreAudio count below that made the check unable to
+# fail in the one direction that matters most: an app that CRASHES on launch
+# touches the audio device zero times, so it scored a clean pass. Proven with a
+# stand-in binary that exits immediately — the check said PASS. "Started quietly"
+# and "never started" have to be told apart, so the exit status is kept, and the
+# renders it was supposed to produce are counted below.
+EXIT_CODE=0
+wait "$PID" || EXIT_CODE=$?
+
+if [ "$EXIT_CODE" -ne 0 ]; then
+  echo "❌ FAIL — the app exited $EXIT_CODE instead of rendering and quitting cleanly."
+  echo
+  echo "   It did not get far enough to make a sound, which is why the audio check"
+  echo "   below would have passed. Something is wrong at startup, not with audio."
+  [ -s "$SHOTS/stderr.txt" ] && { echo; sed -n '1,15p' "$SHOTS/stderr.txt"; }
+  exit 1
+fi
+
+# Exit 0 is not proof it drew anything: the renderer writes one PNG per screen and
+# says so on stderr. No files, or suspiciously small ones, means the view tree came
+# up empty — invisible to a process-level check, and exactly the kind of breakage
+# nobody notices until it ships.
+RENDERED=$(find "$SHOTS" -name "*.png" | wc -l | tr -d ' ')
+if [ "$RENDERED" -eq 0 ]; then
+  echo "❌ FAIL — the app exited cleanly but rendered no screens at all."
+  echo "   Expected PNGs in the POMO_SNAPSHOT directory; found none."
+  [ -s "$SHOTS/stderr.txt" ] && { echo; sed -n '1,15p' "$SHOTS/stderr.txt"; }
+  exit 1
+fi
+
+TINY=$(find "$SHOTS" -name "*.png" -size -"${MIN_PNG_BYTES}"c | head -5)
+if [ -n "$TINY" ]; then
+  echo "❌ FAIL — some screens rendered nearly empty (under $((MIN_PNG_BYTES / 1024)) KB):"
+  printf '   · %s\n' $(basename -a $TINY)
+  echo "   A flat, contentless image compresses to almost nothing; the real screens"
+  echo "   are 170-460 KB. The view tree is drawing, but not drawing the app."
+  exit 1
+fi
 
 # The unified log is written asynchronously; give it a moment to settle before
 # concluding "nothing happened", or this passes for the wrong reason.
@@ -52,7 +94,7 @@ FOUND=$(/usr/bin/log show --start "$START" \
 EVENTS=$(printf '%s' "$FOUND" | grep -c "coreaudio" || true)
 
 if [ "$EVENTS" -eq 0 ]; then
-  echo "✅ PASS — starting the app touched the audio device 0 times."
+  echo "✅ PASS — started cleanly, rendered $RENDERED screens, touched the audio device 0 times."
   exit 0
 fi
 

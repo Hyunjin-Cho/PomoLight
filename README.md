@@ -84,9 +84,11 @@ It runs the four checks in the order that catches problems soonest:
   ```bash
   bash Scripts/contrast_audit.sh
   ```
-- **Silent launch** — fails if merely STARTING the app opens the audio device,
-  which on some hardware is an audible click on every launch. Runs the real binary
-  in offscreen snapshot mode and reads the unified log:
+- **Silent launch** — starts the real binary in offscreen snapshot mode and checks
+  three things: it exits cleanly, it actually rendered its screens, and it opened
+  the audio device zero times (which on some hardware is an audible click on every
+  launch). The first two matter because an app that CRASHES on launch also makes no
+  sound — without them a dead app scored a clean pass:
   ```bash
   bash Scripts/silent_launch_check.sh
   ```
