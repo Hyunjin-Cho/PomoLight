@@ -7,6 +7,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         #if DEBUG
         Snapshot.runIfRequested()
+        Uninstaller.runSelfTestIfRequested()
         #endif
         // Become the active app so the window is key and controls respond to the
         // very first click (otherwise the first click only focuses the window).

@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 /// One calm in-window settings panel: theme color, alarm sound, and end-of-timer
 /// behavior. Changes apply live — there is no Save step.
@@ -32,6 +33,7 @@ struct SettingsPanelView: View {
             themeSection
             soundSection
             endSection
+            removeSection
             footer
         }
         .padding(20)
@@ -195,6 +197,73 @@ struct SettingsPanelView: View {
         // 2026-08-21: an "on" switch filled with the raw accent sat at 1.20–2.94:1
         // against `surface` — the on/off states were barely distinguishable.
         .tint(palette.controlIcon)
+    }
+
+    // MARK: Remove (#52)
+
+    /// Deliberately quiet. A destructive control does not need to catch the eye in
+    /// a list of preferences — the confirmation is where the weight belongs, and a
+    /// red row here would pull attention every time someone came to change a theme.
+    private var removeSection: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Divider().opacity(0.3)
+            Button("Remove PomoLight…") { confirmRemoval() }
+                .buttonStyle(.plain)
+                .font(.system(size: 13, design: .rounded))
+                .foregroundStyle(palette.secondaryText)
+                .padding(.top, 4)
+            Text("Moves PomoLight to the Trash and deletes what it saved.")
+                .font(.system(size: 11, design: .rounded))
+                .foregroundStyle(palette.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func confirmRemoval() {
+        let traces = Uninstaller.existingTraces()
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = String(localized: "Remove PomoLight?")
+        // Say what will happen in the concrete, including the part no software can
+        // do for them. A confirmation that only says "are you sure" teaches people
+        // to click through confirmations.
+        var lines = [
+            String(localized: "PomoLight will be moved to the Trash, so you can put it back from there if you change your mind."),
+            String(localized: "Your themes, sounds and durations will be deleted."),
+        ]
+        if traces.count > 1 {
+            lines.append(String(format: String(localized: "%d files it saved will be removed."), traces.count))
+        }
+        lines.append(String(localized: "Its entry in System Settings ▸ Notifications belongs to macOS and stays until macOS drops it."))
+        alert.informativeText = lines.joined(separator: "\n\n")
+
+        alert.addButton(withTitle: String(localized: "Move to Trash"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
+        alert.buttons[0].hasDestructiveAction = true
+        // Cancel takes Return. Uninstalling must not be one stray keypress away.
+        alert.buttons[0].keyEquivalent = ""
+        alert.buttons[1].keyEquivalent = "\r"
+
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+
+        do {
+            try Uninstaller.performUninstall(settings: settings)
+            NSApp.terminate(nil)
+        } catch {
+            let failed = NSAlert()
+            failed.alertStyle = .critical
+            failed.messageText = String(localized: "PomoLight could not be moved to the Trash")
+            // Nothing was deleted — say so, or the next thing they do is go looking
+            // for the settings they think they just lost.
+            failed.informativeText = error.localizedDescription + "\n\n"
+                + String(localized: "Nothing was removed. You can move it yourself:")
+                + "\n" + Bundle.main.bundleURL.path
+            failed.addButton(withTitle: String(localized: "Show in Finder"))
+            failed.addButton(withTitle: String(localized: "OK"))
+            if failed.runModal() == .alertFirstButtonReturn {
+                NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL])
+            }
+        }
     }
 
     // MARK: Footer

@@ -87,6 +87,7 @@ targets:
       - path: Sources/AppModel.swift
       - path: Sources/Support/FinishEffects.swift
       - path: Sources/Support/AppActivation.swift
+      - path: Sources/Support/Uninstaller.swift
       - path: Sources/Support/PowerAssertion.swift
       - path: Sources/Theme/ThemeStore.swift
       - path: Sources/Audio/ChimePlayer.swift

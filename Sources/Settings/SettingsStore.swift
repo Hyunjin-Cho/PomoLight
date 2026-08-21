@@ -56,15 +56,37 @@ final class SettingsStore {
         static let notificationsEnabled = "pl.notificationsEnabled"
     }
 
-    var lastDurationMinutes: Double { didSet { defaults.set(lastDurationMinutes, forKey: Key.lastDurationMinutes) } }
-    var selectedThemeID: String { didSet { defaults.set(selectedThemeID, forKey: Key.selectedThemeID) } }
-    var alarmSound: AlarmSound { didSet { defaults.set(alarmSound.rawValue, forKey: Key.alarmSound) } }
-    var alarmVolume: Double { didSet { defaults.set(alarmVolume, forKey: Key.alarmVolume) } }
-    var repeatUntilDismissed: Bool { didSet { defaults.set(repeatUntilDismissed, forKey: Key.repeatUntilDismissed) } }
-    var showInMenuBar: Bool { didSet { defaults.set(showInMenuBar, forKey: Key.showInMenuBar) } }
-    var keepAwake: Bool { didSet { defaults.set(keepAwake, forKey: Key.keepAwake) } }
-    var showSeconds: Bool { didSet { defaults.set(showSeconds, forKey: Key.showSeconds) } }
-    var notificationsEnabled: Bool { didSet { defaults.set(notificationsEnabled, forKey: Key.notificationsEnabled) } }
+    var lastDurationMinutes: Double { didSet { write(lastDurationMinutes, Key.lastDurationMinutes) } }
+    var selectedThemeID: String { didSet { write(selectedThemeID, Key.selectedThemeID) } }
+    var alarmSound: AlarmSound { didSet { write(alarmSound.rawValue, Key.alarmSound) } }
+    var alarmVolume: Double { didSet { write(alarmVolume, Key.alarmVolume) } }
+    var repeatUntilDismissed: Bool { didSet { write(repeatUntilDismissed, Key.repeatUntilDismissed) } }
+    var showInMenuBar: Bool { didSet { write(showInMenuBar, Key.showInMenuBar) } }
+    var keepAwake: Bool { didSet { write(keepAwake, Key.keepAwake) } }
+    var showSeconds: Bool { didSet { write(showSeconds, Key.showSeconds) } }
+    var notificationsEnabled: Bool { didSet { write(notificationsEnabled, Key.notificationsEnabled) } }
+
+    /// 2026-08-21 (#52): every setter writes through here rather than touching
+    /// `defaults` directly, so persistence has one place to be switched off.
+    /// Uninstalling wants that: it deletes the preferences file, and a write that
+    /// lands afterwards puts it back — which really happened, a file holding a
+    /// single `pl.showInMenuBar` that SwiftUI wrote while tearing the menu-bar
+    /// scene down, half a second after the domain had been removed.
+    ///
+    /// This switch is not what fixed it (that was the order the uninstaller stops
+    /// cfprefsd in — see `Uninstaller`). It is here because a store that keeps
+    /// writing after its file has been deleted is the wrong shape regardless, and
+    /// because it is one line.
+    private var persists = true
+
+    private func write(_ value: Any, _ key: String) {
+        guard persists else { return }
+        defaults.set(value, forKey: key)
+    }
+
+    /// Stop writing. There is no way back on purpose — the only caller is the
+    /// uninstaller, and the process is about to end.
+    func stopPersisting() { persists = false }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults

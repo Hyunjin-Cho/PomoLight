@@ -92,6 +92,50 @@ final class SettingsStoreTests: XCTestCase {
         }
     }
 
+    /// The uninstaller deletes the preferences file, and anything written after
+    /// that recreates it. Measured 2026-08-21: the file came back holding a single
+    /// `pl.showInMenuBar`, written when SwiftUI removed the menu-bar scene during
+    /// termination — half a second after the domain had been removed. So the store
+    /// has an off switch, and this is the test that it is really off.
+    func testStopPersistingKeepsLaterChangesOutOfUserDefaults() {
+        let s = SettingsStore(defaults: defaults)
+        s.selectedThemeID = "violet"
+        XCTAssertEqual(defaults.string(forKey: "pl.selectedThemeID"), "violet")
+
+        s.stopPersisting()
+        s.selectedThemeID = "mint"
+        s.alarmVolume = 0.11
+        s.showInMenuBar = false
+        s.repeatUntilDismissed = true
+
+        XCTAssertEqual(defaults.string(forKey: "pl.selectedThemeID"), "violet",
+                       "a suspended store must not write")
+        XCTAssertEqual(s.selectedThemeID, "mint",
+                       "…but the value in memory still changes, so the UI keeps working")
+    }
+
+    /// The sequence the uninstaller actually performs: stop writing, then wipe the
+    /// domain. Nothing may repopulate it afterwards.
+    func testNothingRepopulatesTheDomainAfterItIsWipedWithPersistenceOff() {
+        let s = SettingsStore(defaults: defaults)
+        s.selectedThemeID = "violet"
+        s.stopPersisting()
+        defaults.removePersistentDomain(forName: suiteName)
+
+        s.showInMenuBar = false          // the write that used to resurrect the file
+        s.lastDurationMinutes = 42
+
+        // Ask what is actually STORED, not what `string(forKey:)` would answer.
+        // `removePersistentDomain` clears the stored values but leaves the ones
+        // `register(defaults:)` supplies, so the ordinary getters keep returning
+        // "coral" and 30 — reading them here would have made this test pass while
+        // proving nothing. The persistent domain is the thing that becomes a file.
+        let stored = defaults.persistentDomain(forName: suiteName) ?? [:]
+        XCTAssertTrue(stored.isEmpty,
+                      "a suspended store wrote \(stored.count) key(s) after the domain was " +
+                      "wiped — on disk that is the preferences file coming back: \(stored)")
+    }
+
     /// Not a check that the accounts are the owner's — that is issue #6 and a human
     /// has to open them. This only pins that whatever ends up in the table is a URL
     /// the app can actually open: `DonateButton` does `URL(string:)` and, on nil,

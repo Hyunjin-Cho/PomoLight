@@ -41,25 +41,39 @@ done
 
 LSREG=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
 
-# Every path is spelled out. No globbing over directories we do not own — the one
-# wildcard is a crash-report filename, which macOS stamps with a UUID.
+# Every path is spelled out. No globbing over directories we do not own — the two
+# wildcards below are filenames macOS stamps with a UUID.
 APP="/Applications/PomoLight.app"
-SETTINGS="$HOME/Library/Preferences/com.vismo.pomolight.plist"
+
+# 🔒 The block between these markers is mirrored by `Uninstaller.tracePaths` in
+# Sources/Support/Uninstaller.swift, and UninstallerTests reads THIS FILE and fails
+# if the two lists differ. Paths are relative to ~/Library and the order matters to
+# the test. Editing one side alone is meant to break the build: a shell script and
+# an app that disagree about what "remove everything" means is precisely the drift
+# that made the old contrast audit lie for weeks.
+# BEGIN library-paths
+LIBRARY_PATHS=(
+  "Preferences/com.vismo.pomolight.plist"
+  "Preferences/group.com.vismo.pomolight.plist"
+  "Containers/com.vismo.pomolight.widget"
+  "Group Containers/group.com.vismo.pomolight"
+  "Application Scripts/com.vismo.pomolight.widget"
+  "Application Scripts/group.com.vismo.pomolight"
+  "Application Scripts/com.vismo.pomolight"
+  "Saved Application State/com.vismo.pomolight.savedState"
+  "Caches/com.vismo.pomolight"
+  "HTTPStorages/com.vismo.pomolight"
+)
+# END library-paths
+
+abs() { printf '%s/Library/%s' "$HOME" "$1"; }
+SETTINGS="$(abs "${LIBRARY_PATHS[0]}")"
 
 CURRENT=("$APP")
-WIDGET_ERA=(
-  "$HOME/Library/Preferences/group.com.vismo.pomolight.plist"
-  "$HOME/Library/Containers/com.vismo.pomolight.widget"
-  "$HOME/Library/Group Containers/group.com.vismo.pomolight"
-  "$HOME/Library/Application Scripts/com.vismo.pomolight"
-  "$HOME/Library/Application Scripts/com.vismo.pomolight.widget"
-  "$HOME/Library/Application Scripts/group.com.vismo.pomolight"
-)
-SYSTEM_WRITTEN=(
-  "$HOME/Library/Saved Application State/com.vismo.pomolight.savedState"
-  "$HOME/Library/Caches/com.vismo.pomolight"
-  "$HOME/Library/HTTPStorages/com.vismo.pomolight"
-)
+WIDGET_ERA=()
+for i in 1 2 3 4 5 6; do WIDGET_ERA+=("$(abs "${LIBRARY_PATHS[$i]}")"); done
+SYSTEM_WRITTEN=()
+for i in 7 8 9; do SYSTEM_WRITTEN+=("$(abs "${LIBRARY_PATHS[$i]}")"); done
 # Crash reports and the widget's daemon transcript sit under paths macOS names, so
 # these two are collected rather than hard-coded.
 while IFS= read -r p; do [ -n "$p" ] && SYSTEM_WRITTEN+=("$p"); done < <(
@@ -131,6 +145,15 @@ if [ "$LEFTOVERS_ONLY" -eq 0 ] && [ -d "$APP" ]; then
   "$LSREG" -u "$APP" >/dev/null 2>&1 || true
 fi
 
+# Same ordering lesson as the in-app uninstall: cfprefsd caches preference domains
+# and flushes them when it exits, so stopping it AFTER deleting a plist writes the
+# plist back. Stop it first, then delete.
+if [ "$KEEP_SETTINGS" -eq 0 ]; then
+  echo "▸ Flushing the preferences cache before deleting…"
+  killall cfprefsd 2>/dev/null || true
+  sleep 1
+fi
+
 echo "▸ Removing…"
 for p in "${FOUND[@]}"; do
   if rm -rf "$p" 2>/dev/null; then
@@ -140,17 +163,20 @@ for p in "${FOUND[@]}"; do
   fi
 done
 
-# Preferences are served from a cache. Without this the plist reappears the moment
-# anything asks for it, which reads as "the uninstall did not work".
+# Once more, now that the files are gone: anything that read a preference during
+# the deletion above would have repopulated the cache.
 echo "▸ Flushing the preferences cache…"
 killall cfprefsd 2>/dev/null || true
 
 echo
-LEFT=$(find "$HOME/Library" /Applications -maxdepth 4 -iname '*pomolight*' 2>/dev/null || true)
-# What we deliberately kept is not "still present" — filter it out before judging.
-[ "$LEFTOVERS_ONLY" -eq 1 ] && LEFT=$(printf '%s\n' "$LEFT" | grep -v "^$APP$" || true)
-[ "$KEEP_SETTINGS" -eq 1 ] && LEFT=$(printf '%s\n' "$LEFT" | grep -v "^$SETTINGS$" || true)
-LEFT=$(printf '%s\n' "$LEFT" | sed '/^$/d')
+# 2026-08-21: this used to be `find … -iname '*pomolight*'`, which reported three
+# things that were not leftovers at all — Xcode's DerivedData, an unrelated tool's
+# cache that merely had the project name in its path, and the executable INSIDE the
+# app we had deliberately kept. A successful run that prints "⚠️ Still present" is
+# a check people learn to ignore, so it now re-reads the very list it just acted on.
+LEFT=""
+for p in "${FOUND[@]}"; do [ -e "$p" ] && LEFT="$LEFT$p"$'\n'; done
+LEFT=$(printf '%s' "$LEFT" | sed '/^$/d')
 if [ -z "$LEFT" ]; then
   echo "✅ Removed. Nothing left but what you asked to keep."
 else

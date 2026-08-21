@@ -39,6 +39,10 @@ stage "Contrast audit (15 themes x light/dark)" bash Scripts/contrast_audit.sh
 # a foreground, each invisible on every theme (2026-08-21).
 stage "Palette roles (no FILL colour drawn as a foreground)" bash Scripts/palette_role_check.sh
 stage "Silent launch (starting the app must not open the audio device)" bash Scripts/silent_launch_check.sh
+# Last, because it needs the Debug build the first stage produced. Uninstalling is
+# the one feature nobody can rehearse by hand — every try costs the tester their
+# own install — so it is checked against a throwaway copy instead (#52).
+stage "Uninstall (removing PomoLight really removes it)" bash Scripts/uninstall_check.sh
 
 printf '\n'
 if [ ${#FAILED[@]} -eq 0 ]; then

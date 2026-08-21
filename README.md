@@ -90,7 +90,11 @@ rm ~/Library/Preferences/com.vismo.pomolight.plist
 killall cfprefsd     # preferences are served from a cache; without this the file comes back
 ```
 
-Or let the script find everything, including leftovers from older builds:
+From inside the app: **Settings ▸ Remove PomoLight…**. It moves PomoLight to the
+Trash — so you can put it back if you change your mind — deletes the file above,
+and clears anything older builds left. Available any time.
+
+Or, with the repository, let the script find everything:
 
 ```bash
 bash Scripts/uninstall.sh                            # lists what is there, deletes nothing
@@ -146,6 +150,14 @@ It runs the checks in the order that catches problems soonest:
   times — the donation heart, the alarm-sound radio, and the menu-bar button:
   ```bash
   bash Scripts/palette_role_check.sh
+  ```
+- **Uninstall** — the in-app "Remove PomoLight…" is the one feature that cannot be
+  tried by hand without cost, so it is driven against a throwaway copy of the app
+  and a throwaway preferences suite. It checks the app reaches the Trash (not
+  oblivion), the settings file goes AND stays gone, and your own install is
+  untouched:
+  ```bash
+  bash Scripts/uninstall_check.sh
   ```
 - **Silent launch** — starts the real binary in offscreen snapshot mode and checks
   three things: it exits cleanly, it actually rendered its screens, and it opened
