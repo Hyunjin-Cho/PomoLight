@@ -42,7 +42,8 @@ struct MenuBarContent: View {
 
             HStack(spacing: 10) {
                 Button(action: { app.primaryAction() }) {
-                    Label(primaryTitle, systemImage: primaryIcon)
+                    Label(engine.phase.primaryActionTitle,
+                          systemImage: engine.phase.primaryActionIcon)
                         .frame(maxWidth: .infinity)
                 }
                 // 🚨 2026-08-21: this was `.borderedProminent` + `.tint(palette.accent)`,
@@ -78,22 +79,5 @@ struct MenuBarContent: View {
         .padding(16)
         .frame(width: 220)
         .background(palette.surface)
-    }
-
-    private var primaryTitle: LocalizedStringKey {
-        switch engine.phase {
-        case .idle:     return "Start"
-        case .running:  return "Pause"
-        case .paused:   return "Resume"
-        case .finished: return "Dismiss"
-        }
-    }
-
-    private var primaryIcon: String {
-        switch engine.phase {
-        case .idle, .paused: return "play.fill"
-        case .running:       return "pause.fill"
-        case .finished:      return "checkmark"
-        }
     }
 }

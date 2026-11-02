@@ -88,8 +88,7 @@ enum Snapshot {
             model.theme.selectPreset(id: spec.themeID)   // writes to the scratch suite only
             configure(model: model, for: spec.phase)
             let path = (dir as NSString).appendingPathComponent("\(spec.name).png")
-            renderView(content(for: spec, model: model,
-                               settings: model.settings, theme: model.theme), to: path)
+            renderView(content(for: spec, model: model), to: path)
         }
         FileHandle.standardError.write("PomoLight snapshots written to \(dir)\n".data(using: .utf8)!)
     }
@@ -110,28 +109,24 @@ enum Snapshot {
     }
 
     @ViewBuilder
-    private static func content(for spec: Spec, model: AppModel,
-                                settings: SettingsStore, theme: ThemeStore) -> some View {
+    private static func content(for spec: Spec, model: AppModel) -> some View {
         Group {
             if spec.phase == .settings {
                 ZStack {
                     RootView()
                     Color.black.opacity(0.28)
-                    SettingsPanelView(palette: theme.palette(for: spec.scheme),
+                    SettingsPanelView(palette: model.theme.palette(for: spec.scheme),
                                       isPresented: .constant(true), scrolls: false)
                 }
             } else {
                 RootView()
             }
         }
-        // 2026-08-15 there was a warning here not to hand the views `model`'s own
-        // theme and settings, because those came from the user's real defaults. As
-        // of 2026-08-21 they ARE the scratch pair — the model is built on it — so
-        // the caller passes `model.settings` / `model.theme` and the trap is gone.
-        .environment(model)
-        .environment(model.engine)
-        .environment(theme)
-        .environment(settings)
+        // 2026-11-02: the app's own `injectEnvironment`, so a snapshot is wired the
+        // same way as a window. Safe since 2026-08-21: the model is built on the
+        // scratch suite, so `model.theme` / `model.settings` are the throwaway pair,
+        // not the owner's real preferences.
+        .injectEnvironment(model)
         .environment(\.colorScheme, spec.scheme)
         .frame(width: spec.phase == .settings ? 380 : 360,
                height: spec.phase == .settings ? 760 : 480)

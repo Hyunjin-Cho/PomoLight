@@ -151,9 +151,7 @@ final class TimerEngine {
 
     /// Back to idle at the last chosen duration.
     func reset() {
-        stopTicker()
-        deadline = nil
-        frozenRemaining = nil
+        clearCountdown()
         phase = .idle
     }
 
@@ -184,6 +182,18 @@ final class TimerEngine {
         ticker = nil
     }
 
+    /// Takes down the countdown's private clockwork — ticker, deadline, frozen
+    /// remainder — and nothing else. 2026-11-02: `reset`, `fireFinish` and
+    /// `debugForceFinish` each carried their own copy of these three lines. None of
+    /// the three is observed, so their order among themselves is free; `phase` is
+    /// left to the caller on purpose, because each caller changes it at a different
+    /// point (`fireFinish` before, `reset` after).
+    private func clearCountdown() {
+        stopTicker()
+        deadline = nil
+        frozenRemaining = nil
+    }
+
     private var lastWholeSecond: Int = -1
     private func tick() {
         // Drive the menu-bar label at ~1 Hz without redrawing it every 0.2 s.
@@ -207,9 +217,7 @@ final class TimerEngine {
     private func fireFinish() {
         guard phase == .running else { return }
         phase = .finished
-        deadline = nil
-        frozenRemaining = nil
-        stopTicker()
+        clearCountdown()
         onFinish?()
     }
 
@@ -221,9 +229,7 @@ final class TimerEngine {
     #if DEBUG
     /// Jump straight to the finished look (for snapshots/tests) without the alarm.
     func debugForceFinish() {
-        stopTicker()
-        deadline = nil
-        frozenRemaining = nil
+        clearCountdown()
         phase = .finished
     }
     #endif

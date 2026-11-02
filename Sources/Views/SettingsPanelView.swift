@@ -153,10 +153,7 @@ struct SettingsPanelView: View {
                 Image(systemName: "speaker.wave.3.fill").foregroundStyle(palette.secondaryText).font(.system(size: 11))
                     .accessibilityHidden(true)
             }
-            Text("The end is also shown visually, so a muted Mac still alerts you.")
-                .font(.system(size: 11, design: .rounded))
-                .foregroundStyle(palette.secondaryText)
-                .fixedSize(horizontal: false, vertical: true)
+            sectionNote("The end is also shown visually, so a muted Mac still alerts you.")
         }
     }
 
@@ -166,10 +163,7 @@ struct SettingsPanelView: View {
         VStack(alignment: .leading, spacing: 8) {
             sectionTitle("WHEN THE TIMER ENDS")
             toggle("Repeat sound until dismissed", \.repeatUntilDismissed)
-            Text("Otherwise the alarm rings 3 times.")
-                .font(.system(size: 11, design: .rounded))
-                .foregroundStyle(palette.secondaryText)
-                .fixedSize(horizontal: false, vertical: true)
+            sectionNote("Otherwise the alarm rings 3 times.")
                 .padding(.top, -4)
             toggle("Show notification", \.notificationsEnabled)
             sectionTitle("GENERAL").padding(.top, 6)
@@ -212,10 +206,7 @@ struct SettingsPanelView: View {
                 .font(.system(size: 13, design: .rounded))
                 .foregroundStyle(palette.secondaryText)
                 .padding(.top, 4)
-            Text("Moves PomoLight to the Trash and deletes what it saved.")
-                .font(.system(size: 11, design: .rounded))
-                .foregroundStyle(palette.secondaryText)
-                .fixedSize(horizontal: false, vertical: true)
+            sectionNote("Moves PomoLight to the Trash and deletes what it saved.")
         }
     }
 
@@ -293,5 +284,13 @@ struct SettingsPanelView: View {
             .font(.system(size: 11, weight: .semibold, design: .rounded))
             .tracking(0.6)
             .foregroundStyle(palette.secondaryText)
+    }
+
+    /// The small explanatory line under a control.
+    private func sectionNote(_ text: LocalizedStringKey) -> some View {
+        Text(text)
+            .font(.system(size: 11, design: .rounded))
+            .foregroundStyle(palette.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }

@@ -29,10 +29,10 @@ struct ControlsView: View {
 
             Button(action: { app.primaryAction() }) {
                 HStack(spacing: 8) {
-                    Image(systemName: primaryIcon)
+                    Image(systemName: engine.phase.primaryActionIcon)
                         .font(.system(size: 14, weight: .bold))
                         .frame(width: 18, height: 18)   // fixed slot — icon swap can't shift the label
-                    Text(primaryTitle)
+                    Text(engine.phase.primaryActionTitle)
                 }
                 .animation(nil, value: engine.phase)    // no morph/jitter on Start↔Pause
             }
@@ -40,8 +40,8 @@ struct ControlsView: View {
                                                 label: palette.buttonLabel,
                                                 glow: palette.accent))
             .keyboardShortcut(.space, modifiers: [])
-            .help(primaryTitle)
-            .accessibilityLabel(primaryTitle)
+            .help(engine.phase.primaryActionTitle)
+            .accessibilityLabel(engine.phase.primaryActionTitle)
 
             if engine.isActive {
                 // Balances the Reset button so the primary action stays centred under
@@ -52,22 +52,5 @@ struct ControlsView: View {
             }
         }
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: engine.isActive)
-    }
-
-    private var primaryTitle: LocalizedStringKey {
-        switch engine.phase {
-        case .idle:     return "Start"
-        case .running:  return "Pause"
-        case .paused:   return "Resume"
-        case .finished: return "Dismiss"
-        }
-    }
-
-    private var primaryIcon: String {
-        switch engine.phase {
-        case .idle, .paused: return "play.fill"
-        case .running:       return "pause.fill"
-        case .finished:      return "checkmark"
-        }
     }
 }
