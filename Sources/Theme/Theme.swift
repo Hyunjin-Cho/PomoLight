@@ -45,25 +45,26 @@ extension Theme {
         let bgYellowDip = (40.0 ..< 95.0).contains(h) ? 0.03 : 0.0
         let cyanBoost = (170.0 ..< 255.0).contains(h) ? 0.06 : 0.0
         func clampS(_ s: Double) -> Double { min(s + cyanBoost, 1.0) }
+        func hex(s: Double, l: Double) -> String { RGB(h: h, s: s, l: l).hexString }
 
         let light = ThemeColors(
-            bg:            RGB(h: h, s: 0.85, l: 0.95 - bgYellowDip).hexString,
-            surface:       RGB(h: h, s: 0.70, l: 0.982).hexString,
-            accent:        RGB(h: h, s: clampS(0.89), l: 0.74).hexString,
-            accentSoft:    RGB(h: h, s: 0.88, l: 0.87).hexString,
-            text:          RGB(h: h, s: 0.45, l: 0.25).hexString,
-            textSecondary: RGB(h: h, s: 0.30, l: 0.47).hexString,
-            ringTrack:     RGB(h: h, s: 0.74, l: 0.89).hexString,
-            ringFill:      RGB(h: h, s: clampS(0.84), l: 0.62).hexString)
+            bg:            hex(s: 0.85, l: 0.95 - bgYellowDip),
+            surface:       hex(s: 0.70, l: 0.982),
+            accent:        hex(s: clampS(0.89), l: 0.74),
+            accentSoft:    hex(s: 0.88, l: 0.87),
+            text:          hex(s: 0.45, l: 0.25),
+            textSecondary: hex(s: 0.30, l: 0.47),
+            ringTrack:     hex(s: 0.74, l: 0.89),
+            ringFill:      hex(s: clampS(0.84), l: 0.62))
         let dark = ThemeColors(
-            bg:            RGB(h: h, s: 0.46, l: 0.12).hexString,
-            surface:       RGB(h: h, s: 0.40, l: 0.17).hexString,
-            accent:        RGB(h: h, s: clampS(0.86), l: 0.70).hexString,
-            accentSoft:    RGB(h: h, s: 0.52, l: 0.30).hexString,
-            text:          RGB(h: h, s: 0.22, l: 0.92).hexString,
-            textSecondary: RGB(h: h, s: 0.17, l: 0.71).hexString,
-            ringTrack:     RGB(h: h, s: 0.43, l: 0.25).hexString,
-            ringFill:      RGB(h: h, s: clampS(0.82), l: 0.67).hexString)
+            bg:            hex(s: 0.46, l: 0.12),
+            surface:       hex(s: 0.40, l: 0.17),
+            accent:        hex(s: clampS(0.86), l: 0.70),
+            accentSoft:    hex(s: 0.52, l: 0.30),
+            text:          hex(s: 0.22, l: 0.92),
+            textSecondary: hex(s: 0.17, l: 0.71),
+            ringTrack:     hex(s: 0.43, l: 0.25),
+            ringFill:      hex(s: clampS(0.82), l: 0.67))
         return Theme(id: id, name: name, mood: "", light: light, dark: dark)
     }
 
@@ -152,10 +153,17 @@ struct ResolvedPalette {
         self.accentSoft = accentSoft
         self.ringTrack = ringTrack
 
-        // The AAA (7:1) ink, corrected against whichever backdrop is harder.
-        let aaaInk = text
-            .enforcingContrast(against: bg, minRatio: 7.0)
-            .enforcingContrast(against: surface, minRatio: 7.0)
+        // 2026-11-03: the bg → surface order is part of the result; reversed, 8 of 30 shipped secondaryTexts change.
+        func clearingBgThenSurface(_ ink: RGB, minRatio: Double) -> RGB {
+            ink.enforcingContrast(against: bg, minRatio: minRatio)
+                .enforcingContrast(against: surface, minRatio: minRatio)
+        }
+
+        // The AAA (7:1) ink, cleared against bg and then surface (the helper above).
+        // 2026-11-03: this used to say "against whichever backdrop is harder" — nothing picks one.
+        // Every shipped theme ends >= 7:1 on both (ContrastTests); a light bg under a dark surface
+        // does not (ResolvedPaletteTests.testMixedBackdropsAreRecordedBitForBit).
+        let aaaInk = clearingBgThenSurface(text, minRatio: 7.0)
         // 2026-08-15: timerText and primaryText were two copies of this exact
         // formula. Deriving both from one value means they can no longer drift
         // apart by accident. The two NAMES stay because they answer different
@@ -164,9 +172,7 @@ struct ResolvedPalette {
         // have somewhere to land. Change one only when that is the intent.
         self.timerText = aaaInk
         self.primaryText = aaaInk
-        self.secondaryText = secondary
-            .enforcingContrast(against: bg, minRatio: 4.5)
-            .enforcingContrast(against: surface, minRatio: 4.5)
+        self.secondaryText = clearingBgThenSurface(secondary, minRatio: 4.5)
         // The top-bar glyphs share secondaryText rather than deriving their own:
         // an icon only needs 3:1, so the 4.5:1 ink already clears it with room, and
         // one colour keeps the gear and the heart reading as a pair. The role has
@@ -198,12 +204,12 @@ struct Palette {
     let accentSoft: Color      // soft fills (chips at rest, halos)
     let ringTrack: Color
     let ringFill: Color        // >= 3:1 vs ringTrack
-    let timerText: Color       // >= 7:1 vs background (the hero numerals)
+    let timerText: Color       // >= 7:1 vs bg AND surface (the hero numerals)
     let primaryText: Color     // >= 7:1 vs surface/bg
     let secondaryText: Color   // >= 4.5:1 vs surface/bg
     let controlIcon: Color     // >= 3:1 vs surface/bg — top-bar glyphs (gear, heart)
-    let buttonFill: Color      // deepened accent so a white label is legible
-    let buttonLabel: Color
+    let buttonFill: Color      // accent (or deepened accent) that hosts a legible label
+    let buttonLabel: Color     // >= 4.5:1 vs buttonFill
     let onAccentSoft: Color    // legible label on an accentSoft fill
 
     init(_ c: ThemeColors) {
