@@ -11,7 +11,7 @@ PomoLight is a small desk-clock-like timer: pick any number of minutes, hit Star
 ## Features
 
 - ⏱️ **Free duration** — quick presets (10 / 15 / 30 / 45 / 60) **or** type any value in Custom (optional seconds).
-- 🔔 **Gentle alarm** — four self-synthesized voices (Soft Chime, Marimba, Bell, Pulse): short motifs of additive sine notes (no audio files, license-clean), clearly an alarm but never harsh. macOS system sounds are deliberately not offered — they read as notification blips. Live Preview + volume in Settings.
+- 🔔 **Gentle alarm** — five self-synthesized voices (Marimba, Kalimba, Handpan, Wood Blocks, Soft Synth): modelled on how the real instruments vibrate, plus one filtered-saw pad, each a short C-major motif levelled to the same loudness (no audio files, license-clean), clearly an alarm but never harsh. macOS system sounds are deliberately not offered — they read as notification blips. Live Preview + volume in Settings.
 - 🎨 **Pastel themes** — 15 candy-pastel hues generated around the color wheel (Pink, Rose, Red, Coral, Orange, Yellow, Lime, Green, Mint, Teal, Sky, Blue, Indigo, Violet, Magenta), default Coral. Switching crossfades live.
 - 🌗 **Light & dark** — every theme is authored for both (no muddy auto-darkened pastels).
 - 📊 **Drift-free timer** — deadline/wall-clock based, so it stays correct across App Nap and system sleep; the alarm fires on wake even if the Mac slept through zero.

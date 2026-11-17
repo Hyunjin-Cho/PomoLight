@@ -225,10 +225,10 @@ final class AppModelFinishTests: XCTestCase {
         defaults.set(0.3, forKey: "pl.alarmVolume")
         let app = makeModel()
 
-        app.preview(.bell)
+        app.preview(.handpan)
 
         XCTAssertEqual(app.settings.alarmVolume, 0.3, accuracy: 0.001)
-        XCTAssertEqual(alarm.previews, [SpyAlarm.Ring(sound: .bell, volume: 0.3, repeats: false)])
+        XCTAssertEqual(alarm.previews, [SpyAlarm.Ring(sound: .handpan, volume: 0.3, repeats: false)])
         XCTAssertTrue(alarm.rings.isEmpty)
         XCTAssertEqual(windows.raiseCount, 0)
     }

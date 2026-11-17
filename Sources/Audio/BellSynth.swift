@@ -1,144 +1,122 @@
 import AVFoundation
 
-/// Pure DSP that renders gentle-but-unmistakable alarm tones into PCM buffers.
-/// macOS system sounds are notification blips (they read as "button" sounds), so
-/// PomoLight synthesizes its own alarms: each is a short motif of sine-partial
-/// notes with a soft attack + exponential decay — pleasant, but clearly "time's up".
+/// Renders the alarm voices into PCM buffers. macOS system sounds are notification
+/// blips (they read as "button" sounds), so PomoLight synthesizes its own alarms.
 ///
-/// 🎵 2026-11-15 (#61) — all four voices were rewritten, on one rule:
-/// **C major, and nothing but C, E and G — in the notes AND in the overtones —
-/// rising, and coming to rest on the tonic.**
+/// 🎧 2026-11-17 (#61) — five new voices, chosen by the owner by ear.
+/// The four before them (Soft Chime, Marimba, Bell, Pulse) were all one engine: a
+/// few sine partials with an exponential decay, and their overtones limited to
+/// octaves. After those were retuned to plain C major (2026-11-15) the owner found
+/// them fine, but still "a conversion of the sound we already had — that feels like
+/// a limit", and asked for sounds made new. So these are built from what the real
+/// instruments do: a struck bar, a plucked tine, a steel shell and a hollow block
+/// are each modelled by how they vibrate (`AlarmDSP.modal`), and the pad is three
+/// detuned saws through a sweeping filter (`AlarmDSP.bloom`). Eleven candidates
+/// were rendered; the owner kept these five.
 ///
-/// The owner's note was that the alarm sounded "a little minor, not quite right
-/// for an ending". Measuring the old voices (FFT of the rendered buffers) showed
-/// where that came from:
-///   · Pulse was a falling C–B–A–G line. Its two loudest pitches were A4 and B4,
-///     and it had no major third at all — it WAS minor-sounding, not just "a bit".
-///   · Bell fell too (E5 → C5).
-///   · Soft Chime and Marimba played major-triad notes, but their overtones sat at
-///     3.01x and 5.4x — ratios that land between the notes of the chord. Rendered,
-///     that put B, D, F and A above a C-major arpeggio (−17 to −32 dB): the wistful
-///     shimmer of a bell, laid over what was meant to be a plain "done".
-/// So every overtone below is an OCTAVE of its note (2x, 4x) and can only ever
-/// add more C, E or G; every motif climbs; and every one ends on C.
-/// `BellSynthTests` pins all three as things you can hear, not as bytes.
+/// The name `BellSynth` is older than the voices — none of them is a bell now.
+///
+/// What every voice keeps, whatever its timbre (pinned in `BellSynthTests`):
+///   · it leaves a C major chord ringing — a note outside it (Kalimba's D) is
+///     struck short so it is gone before the end,
+///   · it is as loud to the ear as every other voice,
+///   · it is over before the next ring, two seconds later.
 enum BellSynth {
-    /// A timbre: sine overtones, each with its own amplitude + decay. Keep the
-    /// ratios to powers of two — see the note above before adding a 3x or a 5x.
-    private struct Partial { let ratio: Double; let amp: Double; let decay: Double }
-    /// A note in the motif: when it starts (seconds), its pitch (Hz), how hard it
-    /// is struck, and how long it rings compared with the voice's usual decay.
-    private struct Note {
-        let start: Double
-        let freq: Double
-        var amp: Double = 1.0
-        var ring: Double = 1.0
-    }
-    private struct Voice {
-        let partials: [Partial]
-        let notes: [Note]
-        let length: Double
-        let attack: Double
-    }
+    private typealias Hit = AlarmDSP.Hit
+    private typealias Mode = AlarmDSP.Mode
+    private typealias Strike = AlarmDSP.Strike
 
-    // The only pitches any voice may use — the C major triad from G4 up to C6.
-    private static let g4 = 392.00, c5 = 523.25, e5 = 659.25, g5 = 783.99, c6 = 1046.50
+    // MIDI note numbers.
+    private static let c4 = 60, g4 = 67, c5 = 72, d5 = 74, e5 = 76, g5 = 79, c6 = 84
+
+    /// How loud every voice is to the ear, on `AlarmDSP.loudness`'s meter (LUFS). It
+    /// is what Soft Chime — the default voice before these — measured, so a volume
+    /// the user already chose still sounds like the volume they chose. All five
+    /// auditioned candidates were levelled to this same number. (On an exact BS.1770
+    /// meter Soft Chime reads −11.89 — see the note on `AlarmDSP.kWeighted`.)
+    static let targetLoudness = -12.085901126425764
+
+    private struct Voice {
+        let length: Double
+        let wet: Double
+        let render: () -> [Double]
+    }
 
     private static func voice(for sound: AlarmSound) -> Voice {
         switch sound {
-        case .synthBell:   // "Soft Chime" — do-mi-sol-do', each a touch brighter, the last left to ring
-            return Voice(
-                partials: [Partial(ratio: 1, amp: 1.0, decay: 0.75), Partial(ratio: 2, amp: 0.30, decay: 0.42),
-                           Partial(ratio: 4, amp: 0.06, decay: 0.18)],
-                notes: [Note(start: 0.00, freq: c5, amp: 0.80), Note(start: 0.15, freq: e5, amp: 0.86),
-                        Note(start: 0.30, freq: g5, amp: 0.92), Note(start: 0.46, freq: c6, amp: 1.0, ring: 1.35)],
-                length: 1.60, attack: 0.006)
+        case .marimba:     // rosewood bars (modes tuned 1:4:10, as real marimba bars are) — rolled up G4 C5 E5 G5 C6
+            return Voice(length: 1.5, wet: 0.06) {
+                let modes = [Mode(ratio: 1, amp: 1, decay: 0.50), Mode(ratio: 4, amp: 0.28, decay: 0.08),
+                             Mode(ratio: 10, amp: 0.08, decay: 0.025)]
+                let mallet = Strike(amp: 0.10, decay: 0.004, top: 2500, bottom: 200)
+                return AlarmDSP.hits(1.5, [Hit(note: g4, t: 0, gain: 0.75), Hit(note: c5, t: 0.065, gain: 0.8),
+                                           Hit(note: e5, t: 0.13, gain: 0.85), Hit(note: g5, t: 0.195, gain: 0.9),
+                                           Hit(note: c6, t: 0.26, gain: 1.0)]) { h, i in
+                    AlarmDSP.modal(h.note, modes, attack: 0.002, length: 1.5, strike: mallet, ring: h.ring,
+                                   seed: UInt64(11 + i))
+                }
+            }
 
-        case .marimba:     // warm wood — sol-do-mi, then up to the tonic. The 4x is the mallet's "tok".
-            return Voice(
-                partials: [Partial(ratio: 1, amp: 1.0, decay: 0.45), Partial(ratio: 2, amp: 0.10, decay: 0.20),
-                           Partial(ratio: 4, amp: 0.28, decay: 0.07)],
-                notes: [Note(start: 0.00, freq: g4, amp: 0.85), Note(start: 0.13, freq: c5, amp: 0.90),
-                        Note(start: 0.26, freq: e5, amp: 0.95), Note(start: 0.42, freq: c6, amp: 1.0, ring: 1.4)],
-                length: 1.40, attack: 0.003)
+        case .kalimba:     // steel tines (a cantilever's 2nd mode, tuned to 6x) — down sol-mi-re-do; the re is struck short
+            return Voice(length: 1.6, wet: 0.10) {
+                let modes = [Mode(ratio: 1, amp: 1, decay: 0.70, beat: 0.6), Mode(ratio: 2, amp: 0.05, decay: 0.2),
+                             Mode(ratio: 6, amp: 0.20, decay: 0.05)]
+                let thumb = Strike(amp: 0.05, decay: 0.006, top: 1500, bottom: 120)
+                return AlarmDSP.hits(1.6, [Hit(note: g5, t: 0, gain: 0.85), Hit(note: e5, t: 0.14, gain: 0.85),
+                                           Hit(note: d5, t: 0.28, gain: 0.9, ring: 0.3),
+                                           Hit(note: c5, t: 0.42, gain: 1.0)]) { h, i in
+                    AlarmDSP.modal(h.note, modes, attack: 0.003, length: 1.6, strike: thumb, ring: h.ring,
+                                   seed: UInt64(41 + i))
+                }
+            }
 
-        case .bell:        // two slow strikes — sol, then do with its major third on top
-            return Voice(
-                partials: [Partial(ratio: 1, amp: 1.0, decay: 1.5), Partial(ratio: 2, amp: 0.32, decay: 0.9),
-                           Partial(ratio: 4, amp: 0.08, decay: 0.4)],
-                notes: [Note(start: 0.00, freq: g4, amp: 0.90),
-                        Note(start: 0.50, freq: c5, amp: 1.0), Note(start: 0.50, freq: e5, amp: 0.55)],
-                length: 1.95, attack: 0.010)
+        case .handpan:     // a steel shell (modes 1:2:3, each a slowly beating pair) — the low "ding" C4, then up G4 C5 E5
+            return Voice(length: 1.9, wet: 0.16) {
+                let modes = [Mode(ratio: 1, amp: 1, decay: 1.0, beat: 0.8), Mode(ratio: 2, amp: 0.5, decay: 0.65, beat: 1.2),
+                             Mode(ratio: 3, amp: 0.2, decay: 0.35, beat: 1.6)]
+                let palm = Strike(amp: 0.10, decay: 0.012, top: 600, bottom: 60)
+                return AlarmDSP.hits(1.9, [Hit(note: c4, t: 0, gain: 0.9), Hit(note: g4, t: 0.16, gain: 0.85),
+                                           Hit(note: c5, t: 0.32, gain: 0.9), Hit(note: e5, t: 0.48, gain: 1.0)]) { h, i in
+                    AlarmDSP.modal(h.note, modes, attack: 0.006, length: 1.9, strike: palm, ring: h.ring,
+                                   seed: UInt64(71 + i))
+                }
+            }
 
-        case .pulse:       // the plain timer — beep, beep, and a longer one a fourth higher
-            return Voice(
-                partials: [Partial(ratio: 1, amp: 1.0, decay: 0.14), Partial(ratio: 2, amp: 0.10, decay: 0.08)],
-                notes: [Note(start: 0.00, freq: g5, amp: 0.90), Note(start: 0.22, freq: g5, amp: 0.90),
-                        Note(start: 0.44, freq: c6, amp: 1.0, ring: 3.5)],
-                length: 1.30, attack: 0.012)
+        case .woodBlocks:  // hollow wood (inharmonic 1 : 2.62 : 4.4, very short) — knock-knock, knock-knock: G5 C6 … G5 C6
+            return Voice(length: 1.0, wet: 0.08) {
+                let modes = [Mode(ratio: 1, amp: 1, decay: 0.06), Mode(ratio: 2.62, amp: 0.3, decay: 0.02),
+                             Mode(ratio: 4.4, amp: 0.12, decay: 0.01)]
+                let stick = Strike(amp: 0.22, decay: 0.0025, top: 4000, bottom: 600)
+                return AlarmDSP.hits(1.0, [Hit(note: g5, t: 0, gain: 0.85), Hit(note: c6, t: 0.12, gain: 1.0),
+                                           Hit(note: g5, t: 0.36, gain: 0.85), Hit(note: c6, t: 0.48, gain: 1.0)]) { h, i in
+                    AlarmDSP.modal(h.note, modes, attack: 0.0008, length: 1.0, strike: stick, ring: h.ring,
+                                   seed: UInt64(91 + i))
+                }
+            }
+
+        case .softSynth:   // filtered saws — a C4·C5·E5·G5 chord that blooms open over 0.12 s
+            return Voice(length: 1.85, wet: 0.20) {
+                AlarmDSP.bloom([(c4, 0.45), (c5, 0.8), (e5, 0.7), (g5, 0.7)], length: 1.85)
+            }
         }
     }
 
-    /// How loud every voice is: the RMS of its first second. One number for all
-    /// four, so the volume slider means the same thing whichever voice is chosen —
-    /// and so it still means what it meant before the rewrite (the old default
-    /// voice measured 0.227 over the same second).
-    private static let loudness = 0.22
-    /// No sample may exceed this, whatever the loudness target asks for.
-    private static let ceiling = 0.9
-
-    /// Renders one motif of the given alarm sound into a mono PCM buffer.
-    static func makeBuffer(for sound: AlarmSound, sampleRate: Double = 44_100) -> AVAudioPCMBuffer? {
+    /// The finished samples of one ring, before they become a buffer.
+    static func samples(for sound: AlarmSound) -> [Double] {
         let v = voice(for: sound)
-        let frameCount = AVAudioFrameCount(v.length * sampleRate)
-        guard let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1),
-              let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount),
+        return AlarmDSP.finish(v.render(), length: v.length, wet: v.wet, target: targetLoudness)
+    }
+
+    /// Renders one ring of the given alarm sound into a mono 44.1 kHz PCM buffer —
+    /// the format `ChimePlayer` connects its player with.
+    static func makeBuffer(for sound: AlarmSound) -> AVAudioPCMBuffer? {
+        let ring = samples(for: sound)
+        guard !ring.isEmpty,
+              let format = AVAudioFormat(standardFormatWithSampleRate: AlarmDSP.sampleRate, channels: 1),
+              let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(ring.count)),
               let channel = buffer.floatChannelData?[0] else { return nil }
-        buffer.frameLength = frameCount
-
-        let count = Int(frameCount)
-        var samples = [Double](repeating: 0, count: count)
-        let fadeStart = v.length - 0.10
-
-        for i in 0..<count {
-            let t = Double(i) / sampleRate
-            var sample = 0.0
-            for note in v.notes where t >= note.start {
-                let nt: Double = t - note.start
-                for p in v.partials {
-                    let env: Double
-                    if nt < v.attack {
-                        env = 0.5 * (1.0 - cos(Double.pi * nt / v.attack))        // soft raised-cosine attack
-                    } else {
-                        env = exp(-(nt - v.attack) / (p.decay * note.ring))       // exponential decay
-                    }
-                    let phase: Double = 2.0 * Double.pi * note.freq * p.ratio * nt
-                    sample += note.amp * p.amp * env * sin(phase)
-                }
-            }
-            if t > fadeStart {
-                sample *= max(0.0, (v.length - t) / 0.10)
-            }
-            samples[i] = sample
-        }
-
-        // Level the voice by what it measures, not by a per-voice fudge factor.
-        // 2026-11-15: this used to be `sample / (ampSum * 1.5)`, hard-clamped to
-        // ±1 and scaled by a hand-picked gain — so overlapping notes could clip,
-        // and the four voices sat at four different loudnesses (0.169–0.245).
-        let window = min(count, Int(sampleRate))
-        var energy = 0.0
-        var peak = 0.0
-        for i in 0..<count {
-            if i < window { energy += samples[i] * samples[i] }
-            peak = max(peak, abs(samples[i]))
-        }
-        let rms = (energy / Double(max(1, window))).squareRoot()
-        guard rms > 0, peak > 0 else { return nil }
-        let scale = min(loudness / rms, ceiling / peak)
-        for i in 0..<count {
-            channel[i] = Float(samples[i] * scale)
-        }
+        buffer.frameLength = AVAudioFrameCount(ring.count)
+        for i in 0..<ring.count { channel[i] = Float(ring[i]) }
         return buffer
     }
 }

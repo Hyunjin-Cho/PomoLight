@@ -92,6 +92,8 @@ targets:
       - path: Sources/Theme/ThemeStore.swift
       - path: Sources/Audio/ChimePlayer.swift
       - path: Sources/Audio/BellSynth.swift
+      # 2026-11-17 (#61): the voices' building blocks moved into their own file.
+      - path: Sources/Audio/AlarmDSP.swift
       - path: Sources/Notifications/NotificationManager.swift
     settings:
       base:

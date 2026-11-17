@@ -38,7 +38,7 @@ final class SettingsStoreTests: XCTestCase {
 
         XCTAssertEqual(s.lastDurationMinutes, 30, accuracy: 0.001)
         XCTAssertEqual(s.selectedThemeID, "coral")
-        XCTAssertEqual(s.alarmSound, .synthBell)
+        XCTAssertEqual(s.alarmSound, .marimba)
         XCTAssertEqual(s.alarmVolume, 0.7, accuracy: 0.001)
         XCTAssertFalse(s.repeatUntilDismissed)
         XCTAssertTrue(s.showInMenuBar, "the menu bar is on out of the box")
@@ -75,14 +75,28 @@ final class SettingsStoreTests: XCTestCase {
 
     /// A stored sound that no longer exists (an old build's rawValue, or a hand-edited
     /// plist) must land on a real voice rather than leaving the alarm unresolvable.
+    ///
+    /// 2026-11-17 (#61): this includes the three voices that were removed —
+    /// `synthBell` (Soft Chime, the old default), `bell` and `pulse`. Anyone who had
+    /// one of them chosen hears the new default instead of nothing.
     func testAnUnknownStoredAlarmSoundFallsBackToTheDefaultVoice() {
-        defaults.set("theremin", forKey: "pl.alarmSound")
-        XCTAssertEqual(SettingsStore(defaults: defaults).alarmSound, .synthBell)
+        for stored in ["theremin", "synthBell", "bell", "pulse"] {
+            defaults.set(stored, forKey: "pl.alarmSound")
+            XCTAssertEqual(SettingsStore(defaults: defaults).alarmSound, .marimba,
+                           "a stored \"\(stored)\" did not land on the default voice")
+        }
     }
 
-    /// Every `AlarmSound` must round-trip through its rawValue — `synthBell` in
-    /// particular keeps a legacy rawValue on purpose, and renaming the case would
-    /// otherwise reset everyone's choice on the next launch without a sound.
+    /// And the one old value that still exists keeps meaning what it meant: Marimba
+    /// was a voice before #61's replacement and is one after it, under the same
+    /// rawValue — so a saved Marimba is not quietly reset.
+    func testAStoredMarimbaFromBeforeTheNewVoicesIsStillMarimba() {
+        defaults.set("marimba", forKey: "pl.alarmSound")
+        XCTAssertEqual(SettingsStore(defaults: defaults).alarmSound, .marimba)
+    }
+
+    /// Every `AlarmSound` must round-trip through its rawValue — renaming a case
+    /// would otherwise reset everyone's choice on the next launch without a sound.
     func testEveryAlarmSoundRoundTripsThroughItsStoredRawValue() {
         for sound in AlarmSound.allCases {
             let writer = SettingsStore(defaults: defaults)

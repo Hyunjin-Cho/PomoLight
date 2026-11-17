@@ -1,27 +1,27 @@
 import XCTest
 import AVFoundation
-import Accelerate
 
-/// The alarm voices, pinned by what they SOUND like — written 2026-11-15 with the
-/// rewrite of `BellSynth` (#61).
+/// The alarm voices, pinned by what they SOUND like — rewritten 2026-11-17 with the
+/// five new voices (#61).
 ///
-/// Nothing here compares bytes. A recorded-buffer test would have passed happily on
-/// the voices this replaced, and those were the problem: the owner heard the alarm
-/// as "a little minor, not right for an ending", and measuring them showed why —
-/// Pulse was a falling C–B–A–G line with A and B as its loudest pitches, Bell fell
-/// too, and the other two carried overtones (3.01x, 5.4x) that put B, D, F and A
-/// over a C-major arpeggio.
+/// The rules before this (2026-11-15) were made for four sine-partial voices:
+/// "nothing but C, E and G anywhere in the spectrum", "every voice climbs", and
+/// "the loudest note at the end is C". The owner then chose five voices by ear that
+/// break all three, and not by accident:
+///   · real instruments carry overtones and strike noise that are not C, E or G —
+///     a handpan's third mode on G4 is a D6, a wood block is inharmonic by nature;
+///   · Kalimba walks DOWN, sol-mi-re-do;
+///   · Handpan ends on its E, and in Kalimba's last half second the C sits 12 dB
+///     under the E and G — its final C swells and fades (a 0.6 Hz beat) and is near
+///     a null by then. Measured on the very samples the owner listened to.
+/// What the five still share is pinned here, as things you can hear:
+///   · what is left ringing is the C major chord — a note outside it is gone by then;
+///   · they are equally loud to the ear;
+///   · each is over before the next ring, and none of them clips or clicks.
 ///
-/// So the tests ask the questions a listener would: is it C major and only C major,
-/// does it climb, does it come to rest on the tonic, is it as loud as its
-/// neighbours, and is it over before the next ring starts. Each one is answered by
-/// measuring the rendered samples (a spectrum for "what is in it", a Goertzel
-/// filter per semitone for "which note is loudest right now"), so a new voice has
-/// to pass them by sounding right, not by matching a table.
-///
-/// Checked the other way round on 2026-11-15: with the previous `BellSynth.swift`
-/// put back, four of these six tests fail — everything except "does not clip" and
-/// "is over before the next ring", which the old voices also satisfied.
+/// That the app plays exactly what was auditioned was checked once, outside this
+/// suite (every sample equal); this suite does not compare bytes, so a deliberate
+/// change to a voice is free to pass it — by still sounding right.
 ///
 /// Rendering is pure arithmetic into a buffer — no audio device is opened.
 final class BellSynthTests: XCTestCase {
@@ -32,91 +32,73 @@ final class BellSynthTests: XCTestCase {
     /// which is private; if that changes, change this with it.
     private let ringInterval = 2.0
 
+    /// Every voice ends in a 120 ms fade (`AlarmDSP.finish`).
+    private let fadeOut = 0.12
+
     private static let pitchNames = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
-    /// C, E and G — the only pitch classes a voice may contain.
+    /// C, E and G.
     private static let cMajorTriad: Set<Int> = [0, 4, 7]
     /// C4 … C7: where the notes and their audible overtones live.
     private static let semitones = 60...96
 
-    // MARK: - What it is made of
+    // MARK: - Where it ends
 
-    /// The whole point of the rewrite. Every pitch a voice puts out — the notes AND
-    /// the overtones — within 30 dB of its loudest must be a C, an E or a G, and
-    /// must be IN TUNE (within 20 cents).
+    /// Whatever is still sounding in the last half second before the fade is the
+    /// C major chord: every semitone within 20 dB of the loudest one is a C, an E or
+    /// a G. A note outside the chord may pass through — Kalimba's D does — but it
+    /// has to be gone by then.
     ///
-    /// This looks at the real spectrum (an FFT with a peak search), not at a grid of
-    /// semitones, and that is deliberate: 2026-11-15, the first version of this test
-    /// listened only at exact semitone frequencies, and the old voices' overtones
-    /// (3.01x, 5.4x) slipped through it — they sat 8 and 20 cents AWAY from any
-    /// semitone, which is exactly what made them sound off. Run against the old
-    /// voices this now reports all of it: A4 and B4 at 0 dB in Pulse, D7/B6 at
-    /// −17/−20 dB in Soft Chime, D6 in Marimba, B6 in Bell.
-    func testEveryVoiceIsMadeOfCEAndGOnly() throws {
-        for sound in AlarmSound.allCases {
-            let found = spectralPeaks(in: try render(sound), within: 30)
-            XCTAssertFalse(found.isEmpty, "\(sound.rawValue): no pitch found at all")
-            for peak in found {
-                let midi = 69 + 12 * log2(peak.hertz / 440)
-                let nearest = Int(midi.rounded())
-                let cents = (midi - Double(nearest)) * 100
-                let described = "\(name(nearest)) \(cents >= 0 ? "+" : "")\(String(format: "%.0f", cents))¢ " +
-                                "(\(String(format: "%.1f", peak.hertz)) Hz, \(String(format: "%.0f", peak.dB)) dB)"
-                XCTAssertTrue(Self.cMajorTriad.contains(nearest % 12),
-                              "\(sound.rawValue) contains \(described) — a voice may only contain C, E and G")
-                XCTAssertLessThanOrEqual(abs(cents), 20,
-                                         "\(sound.rawValue) contains \(described) — out of tune with the chord")
-            }
-        }
-    }
-
-    // MARK: - Where it goes
-
-    /// An ending should arrive. Whatever is still ringing at the end of the motif,
-    /// the loudest of it must be C — the tonic — not a note left hanging.
-    func testEveryVoiceComesToRestOnTheTonic() throws {
+    /// Measured 2026-11-17 (nearest note outside the chord, below the loudest):
+    /// Wood Blocks 29 dB, Soft Synth 30, Handpan 39, Kalimba 41, Marimba 73.
+    /// Checked the other way round the same day: with Kalimba's D left to ring as
+    /// long as its other notes (`ring: 1`), this test fails on that D.
+    func testWhatIsLeftRingingIsTheCMajorChord() throws {
         for sound in AlarmSound.allCases {
             let samples = try render(sound)
-            // The last half second before the closing 0.1 s fade.
-            let end = samples.count - Int(0.1 * sampleRate)
+            let end = samples.count - Int(fadeOut * sampleRate)
             let start = end - Int(0.5 * sampleRate)
-            let loudest = try XCTUnwrap(levels(in: samples[start..<end]).max { $0.dB < $1.dB })
-            XCTAssertEqual(loudest.midi % 12, 0,
-                           "\(sound.rawValue) is left ringing on \(name(loudest.midi)), not on C")
-        }
-    }
-
-    /// And it should arrive from below: the pitch it ends on is higher than the
-    /// pitch it starts on. (The old Bell and Pulse both went down.)
-    func testEveryVoiceClimbs() throws {
-        for sound in AlarmSound.allCases {
-            let samples = try render(sound)
-            let opening = samples[0..<Int(0.12 * sampleRate)]
-            let end = samples.count - Int(0.1 * sampleRate)
-            let closing = samples[(end - Int(0.5 * sampleRate))..<end]
-            let first = try XCTUnwrap(levels(in: opening).max { $0.dB < $1.dB })
-            let last = try XCTUnwrap(levels(in: closing).max { $0.dB < $1.dB })
-            XCTAssertGreaterThan(last.midi, first.midi,
-                                 "\(sound.rawValue) starts on \(name(first.midi)) and ends on \(name(last.midi)) — it should rise")
+            let heard = levels(in: samples[start..<end]).filter { $0.dB > -20 }
+            XCTAssertFalse(heard.isEmpty, "\(sound.rawValue): nothing is ringing at the end")
+            for pitch in heard where !Self.cMajorTriad.contains(pitch.midi % 12) {
+                XCTFail("\(sound.rawValue) is still ringing \(name(pitch.midi)) at " +
+                        "\(String(format: "%.1f", pitch.dB)) dB at the end — outside the C major chord")
+            }
         }
     }
 
     // MARK: - How loud, how long
 
-    /// The volume slider must mean the same thing for every voice. The old four
-    /// measured 0.169–0.245 over their first second; these are levelled to one value.
+    /// The volume slider must mean the same thing for every voice, so every voice
+    /// is levelled to one loudness — the one the old default, Soft Chime, measured.
+    ///
+    /// Wood Blocks is the one exception, and a known one: it is four dry knocks,
+    /// and the limiter that holds its peaks under 0.9 may take only 3 dB off them
+    /// (more flattens the attack). It ends about 1.4 dB short on the 400 ms meter —
+    /// within 1 dB on a 100 ms one, which suits a knock better. It was auditioned
+    /// like that.
     func testAllVoicesAreEquallyLoud() throws {
-        var measured: [(AlarmSound, Double)] = []
+        let target = BellSynth.targetLoudness
         for sound in AlarmSound.allCases {
-            let samples = try render(sound)
-            let window = samples.prefix(Int(sampleRate))
-            let rms = (window.reduce(0.0) { $0 + Double($1) * Double($1) } / Double(window.count)).squareRoot()
-            measured.append((sound, rms))
+            let measured = AlarmDSP.loudness(try render(sound).map(Double.init))
+            if sound == .woodBlocks {
+                XCTAssertLessThanOrEqual(measured, target + 0.1, "\(sound.rawValue) is at \(measured) LUFS")
+                XCTAssertGreaterThanOrEqual(measured, target - 1.5, "\(sound.rawValue) is at \(measured) LUFS")
+            } else {
+                XCTAssertEqual(measured, target, accuracy: 0.1,
+                               "\(sound.rawValue) is at \(measured) LUFS, the others at \(target)")
+            }
         }
-        for (sound, rms) in measured {
-            // 0.22 is where the previous default voice sat (0.227), so a volume the
-            // user already chose still sounds like the volume they chose.
-            XCTAssertEqual(rms, 0.22, accuracy: 0.011, "\(sound.rawValue) is at \(rms) over its first second")
-        }
+    }
+
+    /// The meter above is the one the voices were chosen with — and it is only an
+    /// approximation of BS.1770: a full-scale 997 Hz sine, which the standard reads
+    /// as −3.01 LUFS, reads −3.27 on it (measured 2026-11-17; why is on
+    /// `AlarmDSP.kWeighted`). Pinned so that "fixing" it is a decision: the
+    /// difference between the voices barely moves (0.11 dB at most, measured), but
+    /// every voice's samples do, and they are no longer the ones that were heard.
+    func testTheLoudnessMeterIsTheOneTheVoicesWereLevelledWith() {
+        let sine = (0..<Int(sampleRate)).map { sin(2 * Double.pi * 997 * Double($0) / sampleRate) }
+        XCTAssertEqual(AlarmDSP.loudness(sine), -3.267, accuracy: 0.01)
     }
 
     /// Never clipped, and no click at either end: the first sample starts from
@@ -138,15 +120,19 @@ final class BellSynthTests: XCTestCase {
         for sound in AlarmSound.allCases {
             let seconds = Double(try render(sound).count) / sampleRate
             XCTAssertLessThan(seconds, ringInterval, "\(sound.rawValue) lasts \(seconds) s")
-            XCTAssertGreaterThan(seconds, 1.0, "\(sound.rawValue) is over in \(seconds) s — too short to register as an alarm")
+            XCTAssertGreaterThanOrEqual(seconds, 1.0,
+                                        "\(sound.rawValue) is over in \(seconds) s — too short to register as an alarm")
         }
     }
 
     // MARK: - Helpers
 
+    /// The buffer the app would play.
     private func render(_ sound: AlarmSound, file: StaticString = #filePath, line: UInt = #line) throws -> [Float] {
         let buffer = try XCTUnwrap(BellSynth.makeBuffer(for: sound),
                                    "\(sound.rawValue) did not render", file: file, line: line)
+        XCTAssertEqual(buffer.format.sampleRate, sampleRate, file: file, line: line)
+        XCTAssertEqual(buffer.format.channelCount, 1, file: file, line: line)
         let channel = try XCTUnwrap(buffer.floatChannelData?[0], file: file, line: line)
         return Array(UnsafeBufferPointer(start: channel, count: Int(buffer.frameLength)))
     }
@@ -174,57 +160,6 @@ final class BellSynthTests: XCTestCase {
         let strongest = powers.map(\.1).max() ?? 0
         guard strongest > 0 else { return [] }
         return powers.map { (midi: $0.0, dB: 10 * log10(max($0.1, 1e-30) / strongest)) }
-    }
-
-    /// Every distinct pitch in the signal that is within `range` dB of the loudest
-    /// one, wherever it falls — on a semitone or between two. A Hann-windowed FFT
-    /// (0.34 Hz per bin) and a search for local maxima between 100 Hz and 9 kHz.
-    private func spectralPeaks(in samples: [Float], within range: Double) -> [(hertz: Double, dB: Double)] {
-        let log2n = vDSP_Length(17)
-        let n = 1 << 17
-        let count = min(samples.count, n)
-        var window = [Float](repeating: 0, count: count)
-        vDSP_hann_window(&window, vDSP_Length(count), Int32(vDSP_HANN_NORM))
-        var padded = [Float](repeating: 0, count: n)
-        vDSP_vmul(samples, 1, window, 1, &padded, 1, vDSP_Length(count))
-
-        guard let setup = vDSP_create_fftsetup(log2n, FFTRadix(kFFTRadix2)) else { return [] }
-        defer { vDSP_destroy_fftsetup(setup) }
-        var real = [Float](repeating: 0, count: n / 2)
-        var imaginary = [Float](repeating: 0, count: n / 2)
-        var power = [Float](repeating: 0, count: n / 2)
-        real.withUnsafeMutableBufferPointer { realPointer in
-            imaginary.withUnsafeMutableBufferPointer { imaginaryPointer in
-                var split = DSPSplitComplex(realp: realPointer.baseAddress!, imagp: imaginaryPointer.baseAddress!)
-                padded.withUnsafeBufferPointer { paddedPointer in
-                    paddedPointer.baseAddress!.withMemoryRebound(to: DSPComplex.self, capacity: n / 2) {
-                        vDSP_ctoz($0, 2, &split, 1, vDSP_Length(n / 2))
-                    }
-                }
-                vDSP_fft_zrip(setup, &split, 1, log2n, FFTDirection(FFT_FORWARD))
-                vDSP_zvmags(&split, 1, &power, 1, vDSP_Length(n / 2))
-            }
-        }
-
-        let binWidth = sampleRate / Double(n)
-        let low = Int(100 / binWidth), high = Int(9_000 / binWidth)
-        let reach = 40    // ±13 Hz: closer than any two pitches a voice could sensibly use
-        var peaks: [(bin: Int, power: Float)] = []
-        for bin in low..<high {
-            let here = power[bin]
-            var isPeak = here > 0
-            if isPeak {
-                for other in max(low, bin - reach)...min(high, bin + reach) where power[other] > here {
-                    isPeak = false
-                    break
-                }
-            }
-            if isPeak { peaks.append((bin, here)) }
-        }
-        guard let strongest = peaks.map(\.power).max(), strongest > 0 else { return [] }
-        return peaks
-            .map { (hertz: Double($0.bin) * binWidth, dB: 10 * log10(Double($0.power / strongest))) }
-            .filter { $0.dB > -range }
     }
 
     /// The power of a single frequency in a signal (the Goertzel recurrence).

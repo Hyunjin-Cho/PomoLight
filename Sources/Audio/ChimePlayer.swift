@@ -15,7 +15,7 @@ final class ChimePlayer {
     private static let ringInterval: TimeInterval = 2.0
     private static let ringsWhenNotRepeating = 3
     private var ringsLeft = 0
-    private var alarmSound: AlarmSound = .synthBell
+    private var alarmSound: AlarmSound = .marimba
     private var alarmVolume: Double = 0.7
 
     // All voices render at this fixed mono format; the player connection uses it

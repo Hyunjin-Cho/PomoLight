@@ -5,20 +5,30 @@ import SwiftUI
 /// The gentle alarm sounds the user can choose from. All are synthesized in-app
 /// (license-clean, fully tunable) — macOS system sounds are notification blips that
 /// read as "button" sounds, so they're not used. Names stay English.
+///
+/// 2026-11-17 (#61): the owner listened to eleven new voices and kept five; these
+/// replaced all four before them (Soft Chime, Marimba, Bell, Pulse — every one built
+/// from the same few sine partials). The order here is the order in Settings, and
+/// Marimba is the default (the owner's pick).
+/// Stored choices: `marimba` kept its rawValue, so a saved Marimba stays Marimba.
+/// The other three old values — `synthBell`, `bell`, `pulse` — are no longer cases,
+/// so `SettingsStore` reads them as unknown and lands on the default.
 enum AlarmSound: String, CaseIterable, Identifiable {
-    case synthBell      // rawValue kept for back-compat with stored prefs
     case marimba
-    case bell
-    case pulse
+    case kalimba
+    case handpan
+    case woodBlocks
+    case softSynth
 
     var id: String { rawValue }
 
     var displayName: String {
         switch self {
-        case .synthBell: return "Soft Chime"
-        case .marimba:   return "Marimba"
-        case .bell:      return "Bell"
-        case .pulse:     return "Pulse"
+        case .marimba:    return "Marimba"
+        case .kalimba:    return "Kalimba"
+        case .handpan:    return "Handpan"
+        case .woodBlocks: return "Wood Blocks"
+        case .softSynth:  return "Soft Synth"
         }
     }
 }
@@ -93,7 +103,7 @@ final class SettingsStore {
         defaults.register(defaults: [
             Key.lastDurationMinutes: 30.0,
             Key.selectedThemeID: "coral",
-            Key.alarmSound: AlarmSound.synthBell.rawValue,
+            Key.alarmSound: AlarmSound.marimba.rawValue,
             Key.alarmVolume: 0.7,
             Key.repeatUntilDismissed: false,
             Key.showInMenuBar: true,
@@ -103,7 +113,7 @@ final class SettingsStore {
         ])
         self.lastDurationMinutes = defaults.double(forKey: Key.lastDurationMinutes)
         self.selectedThemeID = defaults.string(forKey: Key.selectedThemeID) ?? "coral"
-        self.alarmSound = AlarmSound(rawValue: defaults.string(forKey: Key.alarmSound) ?? "") ?? .synthBell
+        self.alarmSound = AlarmSound(rawValue: defaults.string(forKey: Key.alarmSound) ?? "") ?? .marimba
         self.alarmVolume = defaults.double(forKey: Key.alarmVolume)
         self.repeatUntilDismissed = defaults.bool(forKey: Key.repeatUntilDismissed)
         self.showInMenuBar = defaults.bool(forKey: Key.showInMenuBar)
