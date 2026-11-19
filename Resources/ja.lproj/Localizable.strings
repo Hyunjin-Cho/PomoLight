@@ -12,7 +12,6 @@
 "Show seconds in custom entry" = "カスタム入力で秒を表示";
 "Show timer in menu bar" = "メニューバーにタイマーを表示";
 "Keep Mac awake while running" = "実行中はMacをスリープさせない";
-"Support PomoLight" = "PomoLightを応援";
 "Start" = "開始";
 "Pause" = "一時停止";
 "Resume" = "再開";
@@ -24,8 +23,6 @@
 "paused" = "停止中";
 "done" = "完了";
 "Time's up" = "時間です";
-"Donate" = "寄付";
-"Support PomoLight with a donation" = "寄付でPomoLightを応援する";
 "Set any duration" = "好きな時間を設定";
 "Open PomoLight" = "PomoLightを開く";
 "About PomoLight" = "PomoLightについて";

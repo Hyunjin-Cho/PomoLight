@@ -12,7 +12,6 @@
 "Show seconds in custom entry" = "แสดงวินาทีในการตั้งเวลาเอง";
 "Show timer in menu bar" = "แสดงตัวจับเวลาในแถบเมนู";
 "Keep Mac awake while running" = "ไม่ให้ Mac เข้าสู่โหมดสลีปขณะทำงาน";
-"Support PomoLight" = "สนับสนุน PomoLight";
 "Start" = "เริ่ม";
 "Pause" = "หยุดชั่วคราว";
 "Resume" = "ทำต่อ";
@@ -24,8 +23,6 @@
 "paused" = "พัก";
 "done" = "เสร็จ";
 "Time's up" = "หมดเวลา";
-"Donate" = "บริจาค";
-"Support PomoLight with a donation" = "สนับสนุน PomoLight ด้วยการบริจาค";
 "Set any duration" = "ตั้งระยะเวลาได้ตามใจ";
 "Open PomoLight" = "เปิด PomoLight";
 "About PomoLight" = "เกี่ยวกับ PomoLight";

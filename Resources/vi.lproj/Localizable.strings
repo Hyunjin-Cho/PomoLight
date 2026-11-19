@@ -12,7 +12,6 @@
 "Show seconds in custom entry" = "Hiện giây khi nhập tùy chỉnh";
 "Show timer in menu bar" = "Hiện bộ đếm trên thanh menu";
 "Keep Mac awake while running" = "Giữ Mac không ngủ khi đang chạy";
-"Support PomoLight" = "Ủng hộ PomoLight";
 "Start" = "Bắt đầu";
 "Pause" = "Tạm dừng";
 "Resume" = "Tiếp tục";
@@ -24,8 +23,6 @@
 "paused" = "đã dừng";
 "done" = "xong";
 "Time's up" = "Hết giờ";
-"Donate" = "Quyên góp";
-"Support PomoLight with a donation" = "Ủng hộ PomoLight bằng một khoản quyên góp";
 "Set any duration" = "Đặt thời lượng tùy ý";
 "Open PomoLight" = "Mở PomoLight";
 "About PomoLight" = "Giới thiệu PomoLight";

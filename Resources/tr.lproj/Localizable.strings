@@ -12,7 +12,6 @@
 "Show seconds in custom entry" = "Özel girişte saniyeleri göster";
 "Show timer in menu bar" = "Zamanlayıcıyı menü çubuğunda göster";
 "Keep Mac awake while running" = "Çalışırken Mac'i uyanık tut";
-"Support PomoLight" = "PomoLight'a destek ol";
 "Start" = "Başlat";
 "Pause" = "Duraklat";
 "Resume" = "Devam et";
@@ -24,8 +23,6 @@
 "paused" = "duraklatıldı";
 "done" = "bitti";
 "Time's up" = "Süre doldu";
-"Donate" = "Bağış yap";
-"Support PomoLight with a donation" = "Bağış yaparak PomoLight'a destek ol";
 "Set any duration" = "İstediğin süreyi ayarla";
 "Open PomoLight" = "PomoLight'ı aç";
 "About PomoLight" = "PomoLight Hakkında";

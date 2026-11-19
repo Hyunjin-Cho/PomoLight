@@ -12,7 +12,6 @@
 "Show seconds in custom entry" = "Másodpercek megjelenítése egyéni megadásnál";
 "Show timer in menu bar" = "Időzítő megjelenítése a menüsoron";
 "Keep Mac awake while running" = "Mac ébren tartása futás közben";
-"Support PomoLight" = "A PomoLight támogatása";
 "Start" = "Indítás";
 "Pause" = "Szünet";
 "Resume" = "Folytatás";
@@ -24,8 +23,6 @@
 "paused" = "szünetel";
 "done" = "lejárt";
 "Time's up" = "Lejárt az idő";
-"Donate" = "Adományozás";
-"Support PomoLight with a donation" = "Támogasd a PomoLightot adománnyal";
 "Set any duration" = "Tetszőleges időtartam beállítása";
 "Open PomoLight" = "PomoLight megnyitása";
 "About PomoLight" = "A PomoLight névjegye";

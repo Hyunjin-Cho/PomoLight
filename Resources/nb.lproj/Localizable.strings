@@ -12,7 +12,6 @@
 "Show seconds in custom entry" = "Vis sekunder ved egendefinert tid";
 "Show timer in menu bar" = "Vis timer i menylinjen";
 "Keep Mac awake while running" = "Hold Macen våken mens timeren går";
-"Support PomoLight" = "Støtt PomoLight";
 "Start" = "Start";
 "Pause" = "Pause";
 "Resume" = "Fortsett";
@@ -24,8 +23,6 @@
 "paused" = "pauset";
 "done" = "ferdig";
 "Time's up" = "Tiden er ute";
-"Donate" = "Gi en gave";
-"Support PomoLight with a donation" = "Støtt PomoLight med en gave";
 "Set any duration" = "Velg fri varighet";
 "Open PomoLight" = "Åpne PomoLight";
 "About PomoLight" = "Om PomoLight";

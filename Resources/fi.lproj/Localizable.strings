@@ -12,7 +12,6 @@
 "Show seconds in custom entry" = "Näytä sekunnit mukautetussa syötössä";
 "Show timer in menu bar" = "Näytä ajastin valikkorivillä";
 "Keep Mac awake while running" = "Pidä Mac hereillä ajastimen aikana";
-"Support PomoLight" = "Tue PomoLightia";
 "Start" = "Käynnistä";
 "Pause" = "Keskeytä";
 "Resume" = "Jatka";
@@ -24,8 +23,6 @@
 "paused" = "tauolla";
 "done" = "valmis";
 "Time's up" = "Aika loppui";
-"Donate" = "Lahjoita";
-"Support PomoLight with a donation" = "Tue PomoLightia lahjoituksella";
 "Set any duration" = "Aseta mikä tahansa kesto";
 "Open PomoLight" = "Avaa PomoLight";
 "About PomoLight" = "Tietoja: PomoLight";

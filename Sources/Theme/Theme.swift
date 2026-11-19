@@ -132,7 +132,7 @@ struct ResolvedPalette {
     let timerText: RGB         // >= 7:1 vs bg AND surface (the hero numerals)
     let primaryText: RGB       // >= 7:1 vs bg AND surface
     let secondaryText: RGB     // >= 4.5:1 vs bg AND surface
-    let controlIcon: RGB       // >= 3:1 vs bg AND surface — top-bar glyphs (gear, heart)
+    let controlIcon: RGB       // >= 3:1 vs bg AND surface — top-bar glyph (the gear)
     let buttonLabel: RGB       // >= 4.5:1 vs buttonFill
     let onAccentSoft: RGB      // legible label on an accentSoft fill
 
@@ -175,7 +175,8 @@ struct ResolvedPalette {
         self.secondaryText = clearingBgThenSurface(secondary, minRatio: 4.5)
         // The top-bar glyphs share secondaryText rather than deriving their own:
         // an icon only needs 3:1, so the 4.5:1 ink already clears it with room, and
-        // one colour keeps the gear and the heart reading as a pair. The role has
+        // one colour kept the gear and the donation heart reading as a pair (the heart
+        // went 2026-11-19, #6). The role has
         // its own NAME so that pointing these icons somewhere else is a deliberate
         // edit to a tested contract, not a quiet `.foregroundStyle` swap.
         self.controlIcon = self.secondaryText
@@ -207,7 +208,7 @@ struct Palette {
     let timerText: Color       // >= 7:1 vs bg AND surface (the hero numerals)
     let primaryText: Color     // >= 7:1 vs surface/bg
     let secondaryText: Color   // >= 4.5:1 vs surface/bg
-    let controlIcon: Color     // >= 3:1 vs surface/bg — top-bar glyphs (gear, heart)
+    let controlIcon: Color     // >= 3:1 vs surface/bg — top-bar glyph (the gear)
     let buttonFill: Color      // accent (or deepened accent) that hosts a legible label
     let buttonLabel: Color     // >= 4.5:1 vs buttonFill
     let onAccentSoft: Color    // legible label on an accentSoft fill

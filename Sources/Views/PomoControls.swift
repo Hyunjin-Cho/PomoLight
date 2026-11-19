@@ -30,7 +30,7 @@ struct PomoPrimaryButtonStyle: ButtonStyle {
     }
 }
 
-/// A quiet circular icon button (Reset, gear, heart, the stepper's +/-). Lifts
+/// A quiet circular icon button (Reset, gear, the stepper's +/-). Lifts
 /// gently on hover. (The "+1 min" button it also used to serve went in PR #13.)
 struct CircleIconButton: View {
     let systemName: String

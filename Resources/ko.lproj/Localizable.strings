@@ -12,7 +12,6 @@
 "Show seconds in custom entry" = "사용자 지정 입력에 초 표시";
 "Show timer in menu bar" = "메뉴 막대에 타이머 표시";
 "Keep Mac awake while running" = "실행 중 Mac 켜진 상태 유지";
-"Support PomoLight" = "PomoLight 후원하기";
 "Start" = "시작";
 "Pause" = "일시정지";
 "Resume" = "다시 시작";
@@ -24,8 +23,6 @@
 "paused" = "일시정지됨";
 "done" = "완료됨";
 "Time's up" = "시간 종료";
-"Donate" = "후원하기";
-"Support PomoLight with a donation" = "후원으로 PomoLight를 응원해 주세요";
 "Set any duration" = "원하는 시간 설정";
 "Open PomoLight" = "PomoLight 열기";
 "About PomoLight" = "PomoLight 정보";

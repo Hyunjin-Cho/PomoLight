@@ -12,7 +12,6 @@
 "Show seconds in custom entry" = "Mostrar segundos na entrada personalizada";
 "Show timer in menu bar" = "Mostrar timer na barra de menus";
 "Keep Mac awake while running" = "Manter o Mac ativo enquanto rodar";
-"Support PomoLight" = "Apoiar o PomoLight";
 "Start" = "Iniciar";
 "Pause" = "Pausar";
 "Resume" = "Retomar";
@@ -24,8 +23,6 @@
 "paused" = "pausado";
 "done" = "concluído";
 "Time's up" = "Tempo esgotado";
-"Donate" = "Doar";
-"Support PomoLight with a donation" = "Apoie o PomoLight com uma doação";
 "Set any duration" = "Definir qualquer duração";
 "Open PomoLight" = "Abrir o PomoLight";
 "About PomoLight" = "Sobre o PomoLight";

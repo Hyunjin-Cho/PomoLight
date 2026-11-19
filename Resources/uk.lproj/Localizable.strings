@@ -12,7 +12,6 @@
 "Show seconds in custom entry" = "Показувати секунди у власному введенні";
 "Show timer in menu bar" = "Показувати таймер у рядку меню";
 "Keep Mac awake while running" = "Не давати Mac засинати під час роботи";
-"Support PomoLight" = "Підтримати PomoLight";
 "Start" = "Старт";
 "Pause" = "Пауза";
 "Resume" = "Продовжити";
@@ -24,8 +23,6 @@
 "paused" = "на паузі";
 "done" = "завершено";
 "Time's up" = "Час вийшов";
-"Donate" = "Підтримати";
-"Support PomoLight with a donation" = "Підтримати PomoLight пожертвою";
 "Set any duration" = "Задати будь-яку тривалість";
 "Open PomoLight" = "Відкрити PomoLight";
 "About PomoLight" = "Про PomoLight";

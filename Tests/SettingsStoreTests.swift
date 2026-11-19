@@ -150,19 +150,17 @@ final class SettingsStoreTests: XCTestCase {
                       "wiped — on disk that is the preferences file coming back: \(stored)")
     }
 
-    /// Not a check that the accounts are the owner's — that is issue #6 and a human
-    /// has to open them. This only pins that whatever ends up in the table is a URL
-    /// the app can actually open: `DonateButton` does `URL(string:)` and, on nil,
-    /// does nothing at all, so a typo would make the heart button dead in silence.
-    func testEveryDonationLinkIsAnOpenableHTTPSURL() {
-        XCTAssertFalse(SettingsStore.donationLinks.isEmpty)
-        for link in SettingsStore.donationLinks {
-            let url = URL(string: link.urlString)
-            XCTAssertNotNil(url, "\(link.id): \(link.urlString) is not a URL")
-            XCTAssertEqual(url?.scheme, "https", "\(link.id) must not be plain http")
-            XCTAssertFalse(link.title.isEmpty)
-        }
-        XCTAssertEqual(Set(SettingsStore.donationLinks.map(\.id)).count,
-                       SettingsStore.donationLinks.count, "ids must be unique — they are ForEach's identity")
+    /// 2026-11-19 (#6): replaced the donation-link test when donations were dropped.
+    /// Pins the one link Settings still shows to the owner's public profile over
+    /// https. The footer draws `host + path` as its label, so a change here changes
+    /// what people read as well as where the click goes — both are worth a red test.
+    /// The repository itself is private, which is why this must stay a PROFILE path
+    /// (one component) and not grow a `/PomoLight` on the end.
+    func testTheDeveloperLinkIsTheOwnersPublicGitHubProfile() {
+        let url = SettingsStore.developerPage
+        XCTAssertEqual(url.scheme, "https")
+        XCTAssertEqual(url.host(), "github.com")
+        XCTAssertEqual(url.path(), "/Hyunjin-Cho",
+                       "a profile, not a repository — the PomoLight repository is private")
     }
 }

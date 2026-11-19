@@ -12,7 +12,6 @@
 "Show seconds in custom entry" = "Zobrazit sekundy ve vlastním zadání";
 "Show timer in menu bar" = "Zobrazit časovač v řádku nabídek";
 "Keep Mac awake while running" = "Nenechat Mac usnout během běhu";
-"Support PomoLight" = "Podpořit PomoLight";
 "Start" = "Spustit";
 "Pause" = "Pozastavit";
 "Resume" = "Pokračovat";
@@ -24,8 +23,6 @@
 "paused" = "pozastaveno";
 "done" = "hotovo";
 "Time's up" = "Čas vypršel";
-"Donate" = "Přispět";
-"Support PomoLight with a donation" = "Podpořte PomoLight příspěvkem";
 "Set any duration" = "Nastavte libovolnou dobu";
 "Open PomoLight" = "Otevřít PomoLight";
 "About PomoLight" = "O aplikaci PomoLight";

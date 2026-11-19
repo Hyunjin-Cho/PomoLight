@@ -28,7 +28,13 @@ by_lang = result["byLang"]
 #                    string was still sitting in all 29 .lproj files and in the
 #                    MANUAL table below, ready to be written back on the next
 #                    re-assembly. Removed from the files in the same commit.
-SKIP_KEYS = {"Custom color", "Soft Chime", "Notifications off"}
+#   "Donate", "Support PomoLight with a donation", "Support PomoLight"
+#                    (2026-11-19, #6) — the owner dropped donations; the heart and
+#                    the Settings footer line went, replaced by the developer's
+#                    GitHub address, which is drawn verbatim and needs no table.
+#                    Removed from all 29 .lproj files in the same commit.
+SKIP_KEYS = {"Custom color", "Soft Chime", "Notifications off",
+             "Donate", "Support PomoLight with a donation", "Support PomoLight"}
 
 # Keys added AFTER the original workflow ran, hand-translated (2026-07: the
 # VoiceOver remaining-time phrase). Merged so re-assembling from the old workflow

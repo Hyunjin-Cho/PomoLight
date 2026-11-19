@@ -12,7 +12,6 @@
 "Show seconds in custom entry" = "Seconden tonen bij aangepaste invoer";
 "Show timer in menu bar" = "Timer in menubalk tonen";
 "Keep Mac awake while running" = "Mac wakker houden tijdens timer";
-"Support PomoLight" = "Steun PomoLight";
 "Start" = "Start";
 "Pause" = "Pauzeer";
 "Resume" = "Hervat";
@@ -24,8 +23,6 @@
 "paused" = "gepauzeerd";
 "done" = "voltooid";
 "Time's up" = "Tijd is om";
-"Donate" = "Doneer";
-"Support PomoLight with a donation" = "Steun PomoLight met een donatie";
 "Set any duration" = "Stel een willekeurige duur in";
 "Open PomoLight" = "Open PomoLight";
 "About PomoLight" = "Over PomoLight";

@@ -12,7 +12,6 @@
 "Show seconds in custom entry" = "Afișează secundele la introducerea personalizată";
 "Show timer in menu bar" = "Afișează cronometrul în bara de meniu";
 "Keep Mac awake while running" = "Menține Mac-ul activ în timpul rulării";
-"Support PomoLight" = "Susține PomoLight";
 "Start" = "Pornește";
 "Pause" = "Pauză";
 "Resume" = "Reia";
@@ -24,8 +23,6 @@
 "paused" = "în pauză";
 "done" = "terminat";
 "Time's up" = "Timpul a expirat";
-"Donate" = "Donează";
-"Support PomoLight with a donation" = "Susține PomoLight cu o donație";
 "Set any duration" = "Setează orice durată";
 "Open PomoLight" = "Deschide PomoLight";
 "About PomoLight" = "Despre PomoLight";

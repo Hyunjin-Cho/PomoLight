@@ -12,7 +12,6 @@
 "Show seconds in custom entry" = "在自定义输入中显示秒";
 "Show timer in menu bar" = "在菜单栏显示计时";
 "Keep Mac awake while running" = "运行时保持 Mac 唤醒";
-"Support PomoLight" = "支持 PomoLight";
 "Start" = "开始";
 "Pause" = "暂停";
 "Resume" = "继续";
@@ -24,8 +23,6 @@
 "paused" = "已暂停";
 "done" = "已完成";
 "Time's up" = "时间到";
-"Donate" = "捐赠";
-"Support PomoLight with a donation" = "捐赠以支持 PomoLight";
 "Set any duration" = "设置任意时长";
 "Open PomoLight" = "打开 PomoLight";
 "About PomoLight" = "关于 PomoLight";

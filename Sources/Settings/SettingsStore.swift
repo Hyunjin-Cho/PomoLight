@@ -35,22 +35,16 @@ enum AlarmSound: String, CaseIterable, Identifiable {
 
 /// Centralized, typed access to all persisted preferences. `@Observable` so views
 /// update live; each setter writes through to UserDefaults immediately.
-/// One way to support PomoLight. The heart button shows these as a small menu
-/// (Stats-style) so Korean and international users each get a convenient option.
-struct DonationLink: Identifiable {
-    let id: String
-    let title: String      // proper noun — shown as-is, not localized
-    let urlString: String
-}
-
 @MainActor
 @Observable
 final class SettingsStore {
-    /// Replace the URLs with the real accounts before release.
-    static let donationLinks: [DonationLink] = [
-        DonationLink(id: "toss", title: "Toss", urlString: "https://toss.me/pomolight"),
-        DonationLink(id: "bmc", title: "Buy Me a Coffee", urlString: "https://www.buymeacoffee.com/pomolight"),
-    ]
+    /// The developer's public GitHub profile, shown at the foot of the Settings panel.
+    ///
+    /// 2026-11-19 (#6): the owner dropped donations — the heart and its Toss / Buy Me a
+    /// Coffee menu were never connected to real accounts — and asked for this address
+    /// instead. It is the PROFILE, not the PomoLight repository: the repository is
+    /// private, so a link to it would open a 404 for everyone but the owner.
+    static let developerPage = URL(string: "https://github.com/Hyunjin-Cho")!
 
     private let defaults: UserDefaults
 

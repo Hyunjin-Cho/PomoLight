@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// The main window: a calm pastel card with the timer dial at its heart, the
-/// duration controls below, and a quiet gear/heart top bar. The settings panel
+/// duration controls below, and a quiet gear in the top bar. The settings panel
 /// slides over this same window — you never leave the timer.
 struct RootView: View {
     @Environment(TimerEngine.self) private var engine
@@ -77,9 +77,9 @@ struct RootView: View {
             .help("Settings")
             .accessibilityLabel("Settings")
 
+            // 2026-11-19 (#6): the donation heart sat on the right until donations
+            // were dropped; the Spacer keeps the gear where it was.
             Spacer()
-
-            DonateButton(palette: palette)
         }
     }
 

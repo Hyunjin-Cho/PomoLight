@@ -12,7 +12,6 @@
 "Show seconds in custom entry" = "Ipakita ang segundo sa custom na entry";
 "Show timer in menu bar" = "Ipakita ang timer sa menu bar";
 "Keep Mac awake while running" = "Panatilihing gising ang Mac habang tumatakbo";
-"Support PomoLight" = "Suportahan ang PomoLight";
 "Start" = "Simulan";
 "Pause" = "I-pause";
 "Resume" = "Ituloy";
@@ -24,8 +23,6 @@
 "paused" = "naka-pause";
 "done" = "tapos";
 "Time's up" = "Tapos na ang oras";
-"Donate" = "Mag-donate";
-"Support PomoLight with a donation" = "Suportahan ang PomoLight sa pamamagitan ng donasyon";
 "Set any duration" = "Magtakda ng kahit anong tagal";
 "Open PomoLight" = "Buksan ang PomoLight";
 "About PomoLight" = "Tungkol sa PomoLight";

@@ -12,7 +12,6 @@
 "Show seconds in custom entry" = "Εμφάνιση δευτερολέπτων στη χειροκίνητη καταχώριση";
 "Show timer in menu bar" = "Εμφάνιση χρονομετρητή στη γραμμή μενού";
 "Keep Mac awake while running" = "Αποτροπή αδράνειας του Mac κατά τη λειτουργία";
-"Support PomoLight" = "Υποστηρίξτε το PomoLight";
 "Start" = "Έναρξη";
 "Pause" = "Παύση";
 "Resume" = "Συνέχεια";
@@ -24,8 +23,6 @@
 "paused" = "παύση";
 "done" = "τέλος";
 "Time's up" = "Ο χρόνος έληξε";
-"Donate" = "Δωρεά";
-"Support PomoLight with a donation" = "Υποστηρίξτε το PomoLight με μια δωρεά";
 "Set any duration" = "Ορίστε οποιαδήποτε διάρκεια";
 "Open PomoLight" = "Άνοιγμα PomoLight";
 "About PomoLight" = "Σχετικά με το PomoLight";

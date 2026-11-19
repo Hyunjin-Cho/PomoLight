@@ -1,8 +1,8 @@
 # PomoLight 🍅✨
 
-A calm, pastel **focus timer** for macOS. Free and donation-supported.
+A calm, pastel **focus timer** for macOS. Free.
 
-PomoLight is a small desk-clock-like timer: pick any number of minutes, hit Start, and a **gentle synthesized bell** chimes when time's up. The whole UI is soft pastel, and you can switch the accent color live (15 built-in rainbow pastel themes). Light & dark mode, a live menu-bar countdown, and a Donate heart.
+PomoLight is a small desk-clock-like timer: pick any number of minutes, hit Start, and a **gentle synthesized bell** chimes when time's up. The whole UI is soft pastel, and you can switch the accent color live (15 built-in rainbow pastel themes). Light & dark mode and a live menu-bar countdown.
 
 > Native SwiftUI · macOS 14+ (built on macOS 26 / Xcode 26) · Apple Silicon · zero third-party dependencies.
 
@@ -19,7 +19,7 @@ PomoLight is a small desk-clock-like timer: pick any number of minutes, hit Star
 - 🪟 **Compact, fixed window** — a timer never needs to grow, so the window is capped at a tidy size (no ballooning / full screen); you can still shrink it.
 - 🌍 **29 languages** — the UI follows the system language: English, Korean, Japanese, Chinese (Simp/Trad), Thai, Vietnamese, Indonesian, Malay, Filipino, German, French, Italian, Spanish, Portuguese (PT/BR), Dutch, Swedish, Norwegian, Danish, Finnish, Polish, Russian, Ukrainian, Czech, Turkish, Greek, Romanian, Hungarian.
 - ♿ **Accessible** — WCAG-checked contrast (timer digits ≥ 7:1 in every theme), VoiceOver labels, Reduce Motion support, keyboard shortcuts.
-- ❤️ **Donation model** — a quiet Donate heart opens a small menu of your donation links (Toss, Buy Me a Coffee).
+- 🔗 **Developer link** — the foot of Settings shows the developer's GitHub address (`github.com/Hyunjin-Cho`). No donations: dropped 2026-11-19 (#6).
 
 Keyboard: **Space** = Start/Pause/Resume · **R** = Reset · **1–5** = presets · **⌘,** = Settings.
 
@@ -60,7 +60,6 @@ These are placeholders the owner needs to fill in:
 
 | What | Where | Default |
 |------|-------|---------|
-| **Donate links** | `Sources/Settings/SettingsStore.swift` → `donationLinks` | Toss `toss.me/pomolight`, BMC `buymeacoffee.com/pomolight` |
 | **Bundle ID** | `project.yml` → `PRODUCT_BUNDLE_IDENTIFIER` | `com.vismo.pomolight` |
 
 ### Distribution (Gumroad)
@@ -185,6 +184,6 @@ It runs the checks in the order that catches problems soonest:
 
 ---
 
-## License & donations
+## License
 
-PomoLight is free. If it helps your focus, a small donation via the ❤️ in the app keeps it going. Thank you. 🍵
+PomoLight is free.

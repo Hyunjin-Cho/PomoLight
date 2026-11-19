@@ -263,16 +263,39 @@ struct SettingsPanelView: View {
         VStack(alignment: .leading, spacing: 10) {
             Divider().opacity(0.3)
             HStack {
-                DonateButton(palette: palette)
-                Text("Support PomoLight")
+                // 2026-11-19 (#6): was the donation heart + "Support PomoLight". The
+                // address itself is the label — it says where the click goes and needs no
+                // translation. Measured with the AX API: an AXLink whose description is
+                // the address and whose AXURL is the profile, with no extra label needed.
+                // (System Events' `description` shows only "링크" here — it cannot see
+                // SwiftUI's labels on macOS 27, even the gear's; don't trust it for this.)
+                Link(destination: SettingsStore.developerPage) {
+                    HStack(spacing: 3) {
+                        Text(verbatim: developerPageLabel)
+                        Image(systemName: "arrow.up.right")
+                            .font(.system(size: 9, weight: .semibold))
+                            .accessibilityHidden(true)
+                    }
                     .font(.system(size: 13, design: .rounded))
+                    // secondaryText, like the version beside it — NOT the link blue or
+                    // the accent: accent is a FILL and vanishes as ink (Theme.swift).
                     .foregroundStyle(palette.secondaryText)
+                }
+                .buttonStyle(.plain)
+                .help(Text(verbatim: SettingsStore.developerPage.absoluteString))
                 Spacer()
                 Text(verbatim: "v\(appVersion)")
                     .font(.system(size: 11, design: .rounded))
                     .foregroundStyle(palette.secondaryText)
             }
         }
+    }
+
+    /// "github.com/Hyunjin-Cho" — the address without its scheme, built from the one
+    /// URL so the label and the link cannot drift apart.
+    private var developerPageLabel: String {
+        let url = SettingsStore.developerPage
+        return (url.host() ?? "") + url.path()
     }
 
     private var appVersion: String {
