@@ -2,7 +2,7 @@
 
 A calm, pastel **focus timer** for macOS. Free.
 
-PomoLight is a small desk-clock-like timer: pick any number of minutes, hit Start, and a **gentle synthesized bell** chimes when time's up. The whole UI is soft pastel, and you can switch the accent color live (15 built-in rainbow pastel themes). Light & dark mode and a live menu-bar countdown.
+PomoLight is a small desk-clock-like timer: pick any number of minutes, hit Start, and a **gentle synthesized bell** chimes when time's up. The whole UI is soft pastel, and you can switch the accent color live (8 built-in soft pastel themes). Light & dark mode and a live menu-bar countdown.
 
 > Native SwiftUI · macOS 14+ (built on macOS 26 / Xcode 26) · Apple Silicon · zero third-party dependencies.
 
@@ -12,7 +12,7 @@ PomoLight is a small desk-clock-like timer: pick any number of minutes, hit Star
 
 - ⏱️ **Free duration** — quick presets (10 / 15 / 30 / 45 / 60) **or** type any value in Custom (optional seconds).
 - 🔔 **Gentle alarm** — five self-synthesized voices (Marimba, Kalimba, Handpan, Wood Blocks, Soft Synth): modelled on how the real instruments vibrate, plus one filtered-saw pad, each a short C-major motif levelled to the same loudness (no audio files, license-clean), clearly an alarm but never harsh. macOS system sounds are deliberately not offered — they read as notification blips. Live Preview + volume in Settings.
-- 🎨 **Pastel themes** — 15 candy-pastel hues generated around the color wheel (Pink, Rose, Red, Coral, Orange, Yellow, Lime, Green, Mint, Teal, Sky, Blue, Indigo, Violet, Magenta), default Coral. Switching crossfades live.
+- 🎨 **Pastel themes** — 8 soft pastels spaced around the color wheel (Pink, Coral, Yellow, Green, Mint, Sky, Blue, Violet), default Coral. Each role is one fixed OKLCH lightness and chroma, so every hue reads equally soft; the ring's inner disc is part of the contrast contract too. Switching crossfades live. (Until 2026-11-19 there were 15 brighter "candy" pastels — #66.)
 - 🌗 **Light & dark** — every theme is authored for both (no muddy auto-darkened pastels).
 - 📊 **Drift-free timer** — deadline/wall-clock based, so it stays correct across App Nap and system sleep; the alarm fires on wake even if the Mac slept through zero.
 - 🖥️ **Menu-bar countdown** — glanceable MM:SS in the menu bar (toggle off if you want a pure window app), with mini controls.

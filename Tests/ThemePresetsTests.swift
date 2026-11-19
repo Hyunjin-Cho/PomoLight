@@ -1,17 +1,22 @@
 import XCTest
 import SwiftUI
 
-/// A record of what the 15 shipped themes ARE — written 2026-11-03, before
+/// A record of what the shipped themes ARE — written 2026-11-03, before
 /// `Sources/Theme/Theme.swift` was refactored (#58).
+///
+/// 2026-11-19 (#66): re-recorded for the eight OKLCH pastels that replaced the 15
+/// candy themes. The literals below were printed by the #66 code, and that code's
+/// output was first checked byte for byte (128 of 128 hex strings) against the
+/// candidate renderer the owner chose the themes from.
 ///
 /// `ContrastTests` judges the palette; this file does not. It pins the output of
 /// the private `Theme.pastel(_:_:hue:)` recipe glyph for glyph — the order, every
-/// id, name, mood and custom flag, and all 240 hex strings (15 themes x light/dark
-/// x 8 tokens) — so a rewrite of the recipe cannot move a single colour unnoticed.
-/// `pastel` is private, so these 15 calls are the whole of its input.
+/// id, name, mood and custom flag, and every hex string (themes x light/dark x 8
+/// tokens) — so a rewrite of the recipe cannot move a single colour unnoticed.
+/// `pastel` is private, so the calls in `Theme.presets` are the whole of its input.
 ///
-/// Every expected value was produced by the code at dcd706d and is written out as
-/// a literal. Nothing here re-derives a colour: a copy of the recipe would move
+/// Every expected value was produced by the code (dcd706d, then #66 — above) and is
+/// written out as a literal. Nothing here re-derives a colour: a copy of the recipe would move
 /// together with the recipe and prove nothing.
 ///
 /// The ids matter outside this file. `SettingsStore` keeps the chosen one under
@@ -20,7 +25,7 @@ import SwiftUI
 /// the default theme.
 final class ThemePresetsTests: XCTestCase {
 
-    /// One shipped theme as recorded at dcd706d. `light` and `dark` follow `tokens`.
+    /// One shipped theme as recorded. `light` and `dark` follow `tokens`.
     private struct Recorded {
         let id: String
         let name: String
@@ -44,78 +49,68 @@ final class ThemePresetsTests: XCTestCase {
 
     private static let recorded: [Recorded] = [
         Recorded("pink", "Pink",
-                 light: ["#FDE7F1", "#FEF7FA", "#F882B5", "#FBC1DA", "#5C233C", "#9C5473", "#F8CEE0", "#EF4D93"],
-                 dark:  ["#2D111D", "#3D1A29", "#F471AA", "#742547", "#EFE6EA", "#C2A8B3", "#5B243C", "#F066A2"]),
-        Recorded("rose", "Rose",
-                 light: ["#FDE7EB", "#FEF7F8", "#F88295", "#FBC1CA", "#5C232D", "#9C5460", "#F8CED5", "#EF4D68"],
-                 dark:  ["#2D1115", "#3D1A20", "#F47187", "#742532", "#EFE6E8", "#C2A8AD", "#5B242D", "#F0667D"]),
-        Recorded("red", "Red",
-                 light: ["#FDEAE7", "#FEF8F7", "#F89182", "#FBC8C1", "#5C2B23", "#9C5D54", "#F8D4CE", "#EF624D"],
-                 dark:  ["#2D1411", "#3D1F1A", "#F48271", "#742F25", "#EFE7E6", "#C2ACA8", "#5B2C24", "#F07866"]),
+                 light: ["#FFEFF3", "#FFFAFC", "#FFBBCF", "#FFDBE5", "#462932", "#775A62", "#FFD9E3", "#BD5B7D"],
+                 dark:  ["#201418", "#2C1E22", "#F5ACC2", "#4F343C", "#F3E8EB", "#BCADB0", "#402D32", "#EFA6BB"]),
         Recorded("coral", "Coral",
-                 light: ["#FDEFE7", "#FEFAF7", "#F8AD82", "#FBD6C1", "#5C3823", "#9C6E54", "#F8DDCE", "#EF884D"],
-                 dark:  ["#2D1B11", "#3D271A", "#F4A171", "#744225", "#EFE9E6", "#C2B2A8", "#5B3824", "#F09866"]),
-        Recorded("orange", "Orange",
-                 light: ["#FDF4E7", "#FEFBF7", "#F8C982", "#FBE4C1", "#5C4523", "#9C7F54", "#F8E7CE", "#EFAE4D"],
-                 dark:  ["#2D2111", "#3D2F1A", "#F4C071", "#745425", "#EFEBE6", "#C2B8A8", "#5B4524", "#F0B966"]),
+                 light: ["#FFF0EA", "#FFFBF9", "#FFC0A8", "#FFDED2", "#462B20", "#785C51", "#FFDCCF", "#BF623D"],
+                 dark:  ["#201511", "#2C1F1B", "#F7B196", "#4F362C", "#F3E9E5", "#BCAEA8", "#402E27", "#F0AB90"]),
         Recorded("yellow", "Yellow",
-                 light: ["#FCF7D9", "#FEFDF7", "#F8E882", "#FBF3C1", "#5C5523", "#9C9254", "#F8F2CE", "#EFDA4D"],
-                 dark:  ["#2D2911", "#3D381A", "#F4E371", "#746A25", "#EFEEE6", "#C2BEA8", "#5B5424", "#F0DD66"]),
-        Recorded("lime", "Lime",
-                 light: ["#EEFCD9", "#FBFEF7", "#C9F882", "#E4FBC1", "#455C23", "#7F9C54", "#E7F8CE", "#AEEF4D"],
-                 dark:  ["#212D11", "#2F3D1A", "#C0F471", "#547425", "#EBEFE6", "#B8C2A8", "#455B24", "#B9F066"]),
+                 light: ["#F8F4E3", "#FDFCF6", "#FAE8A2", "#FAF0CB", "#3A3316", "#6A6349", "#EEE5C3", "#977E00"],
+                 dark:  ["#1B180E", "#262317", "#EDDB96", "#443D24", "#EDEBE2", "#B4B1A5", "#383321", "#E7D48F"]),
         Recorded("green", "Green",
-                 light: ["#E7FDEA", "#F7FEF8", "#82F891", "#C1FBC8", "#235C2B", "#549C5D", "#CEF8D4", "#4DEF62"],
-                 dark:  ["#112D14", "#1A3D1F", "#71F482", "#25742F", "#E6EFE7", "#A8C2AC", "#245B2C", "#66F078"]),
+                 light: ["#ECF7E9", "#F9FDF8", "#B4E0A6", "#D7EFCF", "#273822", "#586953", "#D6ECCF", "#579241"],
+                 dark:  ["#141B12", "#1E251B", "#A8D299", "#33422E", "#E7EDE5", "#ACB4A9", "#2B3728", "#A1CC93"]),
         Recorded("mint", "Mint",
-                 light: ["#E7FDF5", "#F7FEFB", "#82F8CC", "#C1FBE6", "#235C47", "#549C81", "#CEF8E8", "#4DEFB4"],
-                 dark:  ["#112D22", "#1A3D30", "#71F4C4", "#257457", "#E6EFEC", "#A8C2B8", "#245B47", "#66F0BD"]),
-        Recorded("teal", "Teal",
-                 light: ["#E7FCFD", "#F7FDFE", "#7EF7FC", "#C1F9FB", "#235B5C", "#54999C", "#CEF6F8", "#47EFF5"],
-                 dark:  ["#112C2D", "#1A3C3D", "#6CF4F9", "#257274", "#E6EFEF", "#A8C1C2", "#24595B", "#61F0F5"]),
+                 light: ["#E6F9F2", "#F7FEFB", "#91E5CA", "#C6F2E2", "#173A30", "#4C6B61", "#C7EFE1", "#009678"],
+                 dark:  ["#0F1B17", "#182622", "#84D7BD", "#26443B", "#E4EEEA", "#A6B5B0", "#233831", "#7ED1B7"]),
         Recorded("sky", "Sky",
-                 light: ["#E7F5FD", "#F7FBFE", "#7ECDFC", "#C1E6FB", "#23475C", "#54819C", "#CEE8F8", "#47B5F5"],
-                 dark:  ["#11222D", "#1A303D", "#6CC5F9", "#255774", "#E6ECEF", "#A8B8C2", "#24475B", "#61BFF5"]),
+                 light: ["#E7F6FF", "#F8FDFF", "#98DBFF", "#CAECFF", "#183746", "#4C6876", "#C8EBFE", "#008CBC"],
+                 dark:  ["#0F1A20", "#18252C", "#86CFF5", "#27414F", "#E4EDF2", "#A6B3BB", "#233640", "#80C8EE"]),
         Recorded("blue", "Blue",
-                 light: ["#E7EDFD", "#F7F9FE", "#7E9FFC", "#C1D0FB", "#23325C", "#54679C", "#CED9F8", "#4775F5"],
-                 dark:  ["#11182D", "#1A233D", "#6C92F9", "#253A74", "#E6E9EF", "#A8AFC2", "#24335B", "#6188F5"]),
-        Recorded("indigo", "Indigo",
-                 light: ["#ECE7FD", "#F8F7FE", "#977EFC", "#CCC1FB", "#2F235C", "#62549C", "#D6CEF8", "#6A47F5"],
-                 dark:  ["#16112D", "#211A3D", "#886CF9", "#352574", "#E8E6EF", "#AEA8C2", "#2F245B", "#7E61F5"]),
+                 light: ["#EFF3FF", "#FBFCFF", "#C1CFFF", "#DEE5FF", "#2B314A", "#5B627B", "#DBE4FF", "#6679CD"],
+                 dark:  ["#151822", "#1F222E", "#AFC1FF", "#363C52", "#E8EBF3", "#ADB1BD", "#2D3242", "#A9BBF8"]),
         Recorded("violet", "Violet",
-                 light: ["#F7E7FD", "#FCF7FE", "#D482F8", "#EAC1FB", "#4B235C", "#86549C", "#EBCEF8", "#BF4DEF"],
-                 dark:  ["#24112D", "#321A3D", "#CD71F4", "#5C2574", "#ECE6EF", "#BAA8C2", "#4B245B", "#C666F0"]),
-        Recorded("magenta", "Magenta",
-                 light: ["#FDE7F9", "#FEF7FC", "#F882E0", "#FBC1EF", "#5C2351", "#9C548D", "#F8CEEF", "#EF4DCF"],
-                 dark:  ["#2D1127", "#3D1A36", "#F471DA", "#742564", "#EFE6ED", "#C2A8BD", "#5B2450", "#F066D4"]),
+                 light: ["#F7F0FF", "#FDFBFF", "#DFC3FF", "#EEDFFF", "#382D45", "#695E76", "#ECDDFD", "#946ABD"],
+                 dark:  ["#1B1620", "#25202B", "#D2B5F3", "#42384E", "#EDE9F2", "#B4AEBA", "#372F3F", "#CCAFEC"]),
     ]
 
     /// The picker dot (`Theme.swatch`) as SwiftUI resolves it: the bit patterns of
     /// the resolved Float red, green, blue and opacity.
     private static let swatches: [String: [UInt32]] = [
-        "pink":    [0x3F78F8F9, 0x3F028283, 0x3F35B5B6, 0x3F800000],
-        "rose":    [0x3F78F8F9, 0x3F028283, 0x3F159596, 0x3F800000],
-        "red":     [0x3F78F8F9, 0x3F119192, 0x3F028283, 0x3F800000],
-        "coral":   [0x3F78F8F9, 0x3F2DADAE, 0x3F028283, 0x3F800000],
-        "orange":  [0x3F78F8F9, 0x3F49C9CA, 0x3F028283, 0x3F800000],
-        "yellow":  [0x3F78F8F9, 0x3F68E8E9, 0x3F028283, 0x3F800000],
-        "lime":    [0x3F49C9CA, 0x3F78F8F9, 0x3F028283, 0x3F800000],
-        "green":   [0x3F028283, 0x3F78F8F9, 0x3F119192, 0x3F800000],
-        "mint":    [0x3F028283, 0x3F78F8F9, 0x3F4CCCCD, 0x3F800000],
-        "teal":    [0x3EFCFCFE, 0x3F77F7F9, 0x3F7CFCFD, 0x3F800000],
-        "sky":     [0x3EFCFCFE, 0x3F4DCDCE, 0x3F7CFCFD, 0x3F800000],
-        "blue":    [0x3EFCFCFE, 0x3F1F9FA1, 0x3F7CFCFD, 0x3F800000],
-        "indigo":  [0x3F179798, 0x3EFCFCFE, 0x3F7CFCFD, 0x3F800000],
-        "violet":  [0x3F54D4D5, 0x3F028283, 0x3F78F8F9, 0x3F800000],
-        "magenta": [0x3F78F8F9, 0x3F028283, 0x3F60E0E1, 0x3F800000],
+        "pink":   [0x3F800000, 0x3F3BBBBD, 0x3F4FCFD0, 0x3F800000],
+        "coral":  [0x3F800000, 0x3F40C0C1, 0x3F28A8A9, 0x3F800000],
+        "yellow": [0x3F7AFAFB, 0x3F68E8E9, 0x3F22A2A3, 0x3F800000],
+        "green":  [0x3F34B4B5, 0x3F60E0E1, 0x3F26A6A7, 0x3F800000],
+        "mint":   [0x3F119192, 0x3F65E5E6, 0x3F4ACACB, 0x3F800000],
+        "sky":    [0x3F189899, 0x3F5BDBDC, 0x3F800000, 0x3F800000],
+        "blue":   [0x3F41C1C2, 0x3F4FCFD0, 0x3F800000, 0x3F800000],
+        "violet": [0x3F5FDFE0, 0x3F43C3C4, 0x3F800000, 0x3F800000],
     ]
 
     // MARK: - The list itself
 
-    func testThereAreExactlyFifteenPresetsInThisOrder() {
+    func testThereAreExactlyEightPresetsInThisOrder() {
         XCTAssertEqual(Theme.presets.map(\.id),
-                       ["pink", "rose", "red", "coral", "orange", "yellow", "lime", "green",
-                        "mint", "teal", "sky", "blue", "indigo", "violet", "magenta"])
+                       ["pink", "coral", "yellow", "green", "mint", "sky", "blue", "violet"])
+    }
+
+    /// 2026-11-19 (#66): seven themes went. Anyone who had picked one still has its
+    /// id under `pl.selectedThemeID`; `ThemeStore` has to land them on the default
+    /// theme. The eight that stayed kept their ids, so those choices survive as-is.
+    @MainActor
+    func testAStoredIdOfARemovedThemeFallsBackToTheDefault() {
+        let suite = "pl.tests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        for gone in ["rose", "red", "orange", "lime", "teal", "indigo", "magenta"] {
+            XCTAssertNil(Theme.preset(id: gone), "\(gone) is still a preset")
+            defaults.set(gone, forKey: "pl.selectedThemeID")
+            XCTAssertEqual(ThemeStore.resolve(settings: SettingsStore(defaults: defaults)).id, "coral", gone)
+        }
+        for kept in Theme.presets.map(\.id) {
+            defaults.set(kept, forKey: "pl.selectedThemeID")
+            XCTAssertEqual(ThemeStore.resolve(settings: SettingsStore(defaults: defaults)).id, kept)
+        }
     }
 
     /// 2026-11-03: `mood` is "" and `isCustom` is false on every shipped theme —

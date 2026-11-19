@@ -27,8 +27,9 @@ struct RGB: Equatable, Hashable {
         )
     }
 
-    /// HSL → RGB. `h` in degrees 0...360, `s`/`l` in 0...1. Used to generate the
-    /// rainbow pastel theme palette from evenly-spaced hues.
+    /// HSL → RGB. `h` in degrees 0...360, `s`/`l` in 0...1. Generated the theme
+    /// palette until 2026-11-19 (#66, now OKLCH below); the contrast tests still use
+    /// it to sweep hues.
     init(h: Double, s: Double, l: Double) {
         if s == 0 { self.init(l, l, l); return }
         let hh = (h.truncatingRemainder(dividingBy: 360) + 360).truncatingRemainder(dividingBy: 360) / 360
@@ -44,6 +45,45 @@ struct RGB: Equatable, Hashable {
             return p
         }
         self.init(hue2rgb(hh + 1.0 / 3), hue2rgb(hh), hue2rgb(hh - 1.0 / 3))
+    }
+
+    /// OKLCH → sRGB (Björn Ottosson's OKLab, 2020). `L` 0...1 perceived lightness,
+    /// `C` chroma (0 = grey; the pastels here stay under ~0.13), `h` hue in degrees.
+    ///
+    /// 2026-11-19 (#66): the theme recipe moved here from HSL. In HSL the same
+    /// "lightness" is a pale lemon for yellow and a deep slate for blue, so the old
+    /// recipe needed hand nudges per hue (`bgYellowDip`, `cyanBoost`). OKLCH spaces
+    /// lightness and chroma the way eyes do, so one L/C per role reads evenly across
+    /// the wheel. A colour sRGB cannot show keeps its L and hue and loses chroma
+    /// (bisection) — the hue never shifts, which plain channel clipping would do.
+    ///
+    /// Written to match `~/Documents/Code-Reviews/20261119/pomolight/theme-candidates/
+    /// candidates.swift` operation for operation: the owner chose the themes from
+    /// that renderer's pictures, so this must produce the same bytes.
+    init(oklchL L: Double, c C: Double, h hDeg: Double) {
+        func convert(_ c: Double) -> (Double, Double, Double) {
+            let h = hDeg * .pi / 180
+            let a = c * cos(h), b = c * sin(h)
+            let l_ = L + 0.3963377774 * a + 0.2158037573 * b
+            let m_ = L - 0.1055613458 * a - 0.0638541728 * b
+            let s_ = L - 0.0894841775 * a - 1.2914855480 * b
+            let l = l_ * l_ * l_, m = m_ * m_ * m_, s = s_ * s_ * s_
+            let r =  4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s
+            let g = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s
+            let bb = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s
+            func enc(_ x: Double) -> Double { x <= 0.0031308 ? 12.92 * x : 1.055 * pow(x, 1 / 2.4) - 0.055 }
+            return (enc(r), enc(g), enc(bb))
+        }
+        func inGamut(_ t: (Double, Double, Double)) -> Bool {
+            [t.0, t.1, t.2].allSatisfy { $0 >= -1e-6 && $0 <= 1 + 1e-6 }
+        }
+        var t = convert(C)
+        if !inGamut(t) {
+            var lo = 0.0, hi = C
+            for _ in 0..<30 { let mid = (lo + hi) / 2; if inGamut(convert(mid)) { lo = mid } else { hi = mid } }
+            t = convert(lo)
+        }
+        self.init(min(max(t.0, 0), 1), min(max(t.1, 0), 1), min(max(t.2, 0), 1))
     }
 
     var color: Color { Color(.sRGB, red: r, green: g, blue: b, opacity: 1) }

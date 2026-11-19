@@ -60,7 +60,8 @@ struct SettingsPanelView: View {
     private var themeSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             sectionTitle("THEME COLOR")
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 5),
+            // 2026-11-19 (#66): 4 across — eight themes make two full rows (was 5 x 3 for 15).
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4),
                       spacing: 12) {
                 ForEach(theme.presets) { preset in
                     swatch(color: preset.swatch,
@@ -117,7 +118,7 @@ struct SettingsPanelView: View {
                             // icon needs 3:1 — so the SELECTED row was fainter than
                             // the three unselected ones and all four read as "off".
                             // `controlIcon` is the role that clears 3:1 vs bg AND
-                            // surface, and ContrastTests pins that for all 15 themes.
+                            // surface, and ContrastTests pins that for every theme.
                             // Selection is still carried by the glyph, not by colour.
                             Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
                                 .foregroundStyle(palette.controlIcon)

@@ -30,62 +30,58 @@ struct Theme: Identifiable, Hashable {
     var swatch: Color { RGB(hex: light.accent).color }
 }
 
-// MARK: - Built-in pastel presets — a 15-swatch rainbow
+// MARK: - Built-in pastel presets — eight soft pastels
 
 extension Theme {
-    /// Generates a cozy pastel palette (light + dark) from a single hue. The Palette
-    /// layer enforces WCAG contrast on top, so legibility is guaranteed for any hue.
-    // Recipe tuned by the color team (Fable 5 + GPT-5.5): bright "candy pastels"
-    // — high saturation kept soft by high lightness — plus a clearly-tinted
-    // background. text/textSecondary/ringFill are WCAG-auto-corrected in Palette.
+    /// Generates a soft pastel palette (light + dark) from a single OKLCH hue. The
+    /// Palette layer enforces WCAG contrast on top, so legibility is guaranteed for
+    /// any hue. text/textSecondary/ringFill are WCAG-auto-corrected in Palette.
+    ///
+    /// 2026-11-19 (#66): the owner asked for fewer, more pastel colours. This replaced
+    /// the 2026-07 "candy pastel" recipe (HSL, accent saturation 0.89 at lightness
+    /// 0.74, hand nudges for yellow and cyan). The owner picked recipe "A soft" from
+    /// three rendered candidates (`~/Documents/Code-Reviews/20261119/pomolight/
+    /// theme-candidates/`): every role is one fixed OKLCH lightness and chroma, only
+    /// the hue moves. The expressions below are that renderer's, kept in the same
+    /// order so the bytes match what the owner saw — reorder them and colours move.
     private static func pastel(_ id: String, _ name: String, hue h: Double) -> Theme {
-        // Yellows are intrinsically light → darken only the BACKGROUND a touch so its
-        // tint stays visible (NOT the accent/ring — that would make yellow olive).
-        // Cyans/blues read flatter → nudge their saturation up.
-        let bgYellowDip = (40.0 ..< 95.0).contains(h) ? 0.03 : 0.0
-        let cyanBoost = (170.0 ..< 255.0).contains(h) ? 0.06 : 0.0
-        func clampS(_ s: Double) -> Double { min(s + cyanBoost, 1.0) }
-        func hex(s: Double, l: Double) -> String { RGB(h: h, s: s, l: l).hexString }
+        func hx(_ L: Double, _ C: Double) -> String { RGB(oklchL: L, c: C, h: h).hexString }
+        // Yellow is a naturally light hue: at the shared lightness it came out
+        // mustard/khaki (#E3D18C). Lifting only that band gives butter (#FAE8A2).
+        let yellowLift = (80.0 ..< 115.0).contains(h) ? 0.07 : 0.0
+        let c = 0.090                      // accent chroma
+        let aL = 0.86 + yellowLift         // accent lightness
 
         let light = ThemeColors(
-            bg:            hex(s: 0.85, l: 0.95 - bgYellowDip),
-            surface:       hex(s: 0.70, l: 0.982),
-            accent:        hex(s: clampS(0.89), l: 0.74),
-            accentSoft:    hex(s: 0.88, l: 0.87),
-            text:          hex(s: 0.45, l: 0.25),
-            textSecondary: hex(s: 0.30, l: 0.47),
-            ringTrack:     hex(s: 0.74, l: 0.89),
-            ringFill:      hex(s: clampS(0.84), l: 0.62))
+            bg: hx(0.965, 0.022), surface: hx(0.99, 0.008),
+            accent: hx(aL, c), accentSoft: hx(0.925 + yellowLift * 0.4, c * 0.55),
+            text: hx(0.32, 0.045), textSecondary: hx(0.50, 0.04),
+            // The fill has to clear 3:1 against the track, and the Palette layer gets
+            // there by mixing toward black — which greyed a pale fill to mud in the
+            // first candidates. Starting at that lightness (L 0.60) with the chroma
+            // already in keeps the ring coloured.
+            ringTrack: hx(0.92, c * 0.5), ringFill: hx(0.60, min(c * 1.5, 0.13)))
         let dark = ThemeColors(
-            bg:            hex(s: 0.46, l: 0.12),
-            surface:       hex(s: 0.40, l: 0.17),
-            accent:        hex(s: clampS(0.86), l: 0.70),
-            accentSoft:    hex(s: 0.52, l: 0.30),
-            text:          hex(s: 0.22, l: 0.92),
-            textSecondary: hex(s: 0.17, l: 0.71),
-            ringTrack:     hex(s: 0.43, l: 0.25),
-            ringFill:      hex(s: clampS(0.82), l: 0.67))
+            bg: hx(0.21, 0.02), surface: hx(0.255, 0.022),
+            accent: hx(aL - 0.04, c), accentSoft: hx(0.36, min(c * 0.5, 0.04)),
+            text: hx(0.94, 0.012), textSecondary: hx(0.76, 0.018),
+            ringTrack: hx(0.32, 0.03), ringFill: hx(aL - 0.06, c))
         return Theme(id: id, name: name, mood: "", light: light, dark: dark)
     }
 
-    /// 15 pastels in a rainbow sweep — pink → red → orange → yellow → green →
-    /// blue → indigo → violet → magenta (빨주노초파남보 + pinks). No greys.
+    /// Eight pastels spaced around the wheel (OKLCH hue degrees). The ids are the
+    /// old ones whose colour family they continue, so a stored choice among these
+    /// eight survives; the seven that went (rose, red, orange, lime, teal, indigo,
+    /// magenta) fall back to the default through `ThemeStore.resolve`.
     static let presets: [Theme] = [
-        pastel("pink",    "Pink",    hue: 334),
-        pastel("rose",    "Rose",    hue: 350),
-        pastel("red",     "Red",     hue: 8),
-        pastel("coral",   "Coral",   hue: 22),
-        pastel("orange",  "Orange",  hue: 36),
-        pastel("yellow",  "Yellow",  hue: 52),
-        pastel("lime",    "Lime",    hue: 84),
-        pastel("green",   "Green",   hue: 128),
-        pastel("mint",    "Mint",    hue: 158),
-        pastel("teal",    "Teal",    hue: 182),
-        pastel("sky",     "Sky",     hue: 202),
-        pastel("blue",    "Blue",    hue: 224),
-        pastel("indigo",  "Indigo",  hue: 252),
-        pastel("violet",  "Violet",  hue: 282),
-        pastel("magenta", "Magenta", hue: 312),
+        pastel("pink",   "Pink",   hue: 0),     // baby pink
+        pastel("coral",  "Coral",  hue: 42),    // peach
+        pastel("yellow", "Yellow", hue: 95),    // butter
+        pastel("green",  "Green",  hue: 138),   // pistachio
+        pastel("mint",   "Mint",   hue: 172),
+        pastel("sky",    "Sky",    hue: 232),
+        pastel("blue",   "Blue",   hue: 272),   // periwinkle
+        pastel("violet", "Violet", hue: 306),   // lavender
     ]
 
     static var `default`: Theme { preset(id: "coral") ?? presets[0] }
@@ -194,6 +190,29 @@ struct ResolvedPalette {
         // Legible label on the pale accentSoft fill.
         self.onAccentSoft = text
             .enforcingContrast(against: accentSoft, minRatio: 4.5)
+    }
+}
+
+/// The soft disc inside the timer ring (`RingView`): `accentSoft` at these opacities
+/// over the window's bg → bgDeep gradient. The numerals (`timerText`) and the status
+/// line (`secondaryText`) are drawn ON it, so that blend — not bg — is what they
+/// have to read against.
+///
+/// 2026-11-19 (#66, review F-4 of 2026-11-15): the contract only ever checked bg and
+/// surface, and the old candy themes gave the status line 3.99–4.48:1 on this disc
+/// while passing 4.5:1 on bg. The opacities live here so `RingView` and
+/// `ContrastTests` read the same two numbers.
+enum DialHalo {
+    static let opacity = 0.30
+    static let dimmedOpacity = 0.18          // idle / paused
+
+    /// The disc as it lands on `backdrop` (straight alpha blend, sRGB values).
+    static func blend(_ palette: ResolvedPalette, over backdrop: RGB, dimmed: Bool) -> RGB {
+        let a = dimmed ? dimmedOpacity : opacity
+        let s = palette.accentSoft
+        return RGB(s.r * a + backdrop.r * (1 - a),
+                   s.g * a + backdrop.g * (1 - a),
+                   s.b * a + backdrop.b * (1 - a))
     }
 }
 

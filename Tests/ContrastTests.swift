@@ -36,6 +36,27 @@ final class ContrastTests: XCTestCase {
         }
     }
 
+    /// 2026-11-19 (#66, review F-4 of 2026-11-15): the numerals and the status line
+    /// are drawn on the ring's inner disc, not on bg — so check them where they sit:
+    /// the disc (`DialHalo`) blended over both ends of the window gradient, lit and
+    /// dimmed. The candy themes before #66 measured 3.99:1 (status, Pink) and 6.67:1
+    /// (numerals, Lime) there while passing every check above.
+    func testDialTextClearsItsTierOnTheRingsInnerDisc() {
+        for theme in Theme.presets {
+            for (appearance, colors) in [("light", theme.light), ("dark", theme.dark)] {
+                let p = ResolvedPalette(colors)
+                for (backdropName, backdrop) in [("bg", p.bg), ("bgDeep", p.bgDeep)] {
+                    for dimmed in [false, true] {
+                        let disc = DialHalo.blend(p, over: backdrop, dimmed: dimmed)
+                        let where_ = "\(theme.name) \(appearance) disc over \(backdropName)" + (dimmed ? " (dimmed)" : "")
+                        assertRatio(p.timerText, disc, atLeast: 7.0, "\(where_) timer")
+                        assertRatio(p.secondaryText, disc, atLeast: 4.5, "\(where_) status")
+                    }
+                }
+            }
+        }
+    }
+
     // 2026-08-21: three widget tests lived here — the toggle button's icon and its
     // 3:1 control outline, both derived by `WidgetChrome`, which went with the
     // widget. `LegibleFill` below stays: the app's own filled buttons use it.
@@ -145,14 +166,14 @@ final class ContrastTests: XCTestCase {
 
     // MARK: - Hex round-trip
     //
-    // Themes are generated in HSL, stored as hex, then parsed back for the contrast
-    // math — so every shipped color is 8-bit quantized. (An audit that skipped this
-    // round-trip is exactly why the old standalone script's numbers drifted from
-    // the app's real ones.)
+    // Themes are generated in OKLCH (HSL until 2026-11-19, #66), stored as hex, then
+    // parsed back for the contrast math — so every shipped color is 8-bit quantized.
+    // (An audit that skipped this round-trip is exactly why the old standalone
+    // script's numbers drifted from the app's real ones.)
 
     func testHexRoundTripStaysWithin8BitPrecision() {
         for hue in stride(from: 0.0, to: 360.0, by: 5.0) {
-            let generated = RGB(h: hue, s: 0.89, l: 0.74)
+            let generated = RGB(oklchL: 0.86, c: 0.090, h: hue)   // the shipped accent L/C
             let stored = RGB(hex: generated.hexString)
             XCTAssertEqual(stored.r, generated.r, accuracy: 1.0 / 255)
             XCTAssertEqual(stored.g, generated.g, accuracy: 1.0 / 255)

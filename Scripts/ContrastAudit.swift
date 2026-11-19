@@ -1,4 +1,4 @@
-// Contrast audit for the 15-hue pastel palette.
+// Contrast audit for the pastel theme palette (eight OKLCH pastels since 2026-11-19, #66).
 //
 // Unlike the old version of this audit, nothing here re-implements the palette:
 // it compiles against the app's own `Theme`/`ResolvedPalette`/`LegibleFill`, so a

@@ -11,9 +11,10 @@ struct RingView: View {
 
     var body: some View {
         ZStack {
-            // Soft halo seats the ring on the surface.
+            // Soft halo seats the ring on the surface. The numerals and status line
+            // sit on it, so its opacities are part of the contrast contract (DialHalo).
             Circle()
-                .fill(palette.accentSoft.opacity(dimmed ? 0.18 : 0.30))
+                .fill(palette.accentSoft.opacity(dimmed ? DialHalo.dimmedOpacity : DialHalo.opacity))
                 .padding(lineWidth / 2)
 
             // Empty groove.

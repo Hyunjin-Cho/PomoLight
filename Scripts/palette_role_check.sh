@@ -3,7 +3,7 @@
 #
 # 2026-08-21. `ResolvedPalette` splits its roles into FILL ("safe to draw ON, never
 # safe to draw WITH") and FOREGROUND ("pushed until it clears a tier"), and
-# ContrastTests already proves the split holds for all 15 themes — including the
+# ContrastTests already proves the split holds for every theme — including the
 # negative half, that raw `accent` CANNOT clear 3:1 anywhere. What no check covered
 # was whether the app obeys it. It kept not obeying it:
 #
@@ -52,8 +52,9 @@ if [ -n "$HITS" ]; then
   echo
   echo "$HITS" | sed 's/^/   /'
   echo
-  echo '   `accent` is a FILL. It measures 1.20:1 (Lime) … 3.13:1 (Indigo) against'
-  echo "   the surfaces it would sit on, where an icon needs 3:1 and text 4.5:1."
+  # 2026-11-19 (#66): re-measured for the eight pastels (was 1.20:1 Lime … 3.13:1 Indigo).
+  echo '   `accent` is a FILL. On the light surface it measures 1.19:1 (Yellow) … 1.53:1'
+  echo "   (Pink), where an icon needs 3:1 and text 4.5:1."
   echo "   Reach for a FOREGROUND role instead — controlIcon (>= 3:1 vs bg AND"
   echo "   surface), secondaryText (4.5:1), primaryText (7:1) — or, for a filled"
   echo "   control, the buttonFill/buttonLabel pair. See ResolvedPalette."

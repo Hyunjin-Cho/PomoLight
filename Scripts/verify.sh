@@ -33,7 +33,7 @@ xcodegen generate >/dev/null 2>&1 || true
 
 stage "Build the app (the half the tests never compile)" quiet_build PomoLight
 stage "Unit tests" bash -c 'xcodebuild test -project PomoLight.xcodeproj -scheme PomoLightTests -destination "platform=macOS" -derivedDataPath build 2>&1 | grep -E "Executed .* tests|error:" | tail -2; [ "${PIPESTATUS[0]}" -eq 0 ]'
-stage "Contrast audit (15 themes x light/dark)" bash Scripts/contrast_audit.sh
+stage "Contrast audit (every theme x light/dark)" bash Scripts/contrast_audit.sh
 # The audit proves the palette CAN be legible; this proves the app actually uses it
 # that way. Three separate controls had already been shipped drawing a FILL role as
 # a foreground, each invisible on every theme (2026-08-21).
