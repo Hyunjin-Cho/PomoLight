@@ -23,8 +23,10 @@ settings:
     Debug:
       CODE_SIGN_IDENTITY: "-"
       DEVELOPMENT_TEAM: ""
-    # Distribution: AUTOMATIC signing with the team — Xcode manages the App Group
+    # Distribution: AUTOMATIC signing with the team — Xcode manages the
     # provisioning; the developer-id export re-signs with Developer ID Application.
+    # 2026-11-20 (#70 F-7): 여기엔 "App Group provisioning" 이라고 적혀 있었다. App Group 은
+    # 위젯과 함께 2026-08-21 에 없어졌다(아래 CODE_SIGN_ENTITLEMENTS 주석).
     Release:
       CODE_SIGN_STYLE: Automatic
       CODE_SIGN_IDENTITY: "Apple Development"

@@ -67,6 +67,10 @@ struct MenuBarContent: View {
                         Image(systemName: "arrow.counterclockwise")
                     }
                     .controlSize(.large)
+                    // 2026-11-20 (#70 F-8): 아이콘뿐이라 코드에 이름이 없었다. 본창의 같은 버튼
+                    // (ControlsView)과 같은 "Reset" 을 쓴다 — 29개 언어 번역이 이미 있다.
+                    .help("Reset")
+                    .accessibilityLabel("Reset")
                 }
             }
 

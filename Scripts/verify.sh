@@ -4,12 +4,16 @@
 #   bash Scripts/verify.sh
 #
 # The order matters: each stage is cheap enough to be worth running before the
-# next one, and the first two exist because of a specific trap. `xcodebuild test`
-# uses a HOST-LESS bundle that compiles only TimerEngine, DialFrameRate, Theme,
-# Color+Contrast and SettingsStore — it never compiles AppModel, AppDelegate or a
-# single view. A green suite therefore says nothing about whether the app builds at
-# all, and two separate agents were caught by that on 2026-08-15. So the build runs
-# first, and its job is to compile the code the tests cannot see.
+# next one, and the build comes before the tests because of a specific trap.
+# `xcodebuild test` uses a HOST-LESS bundle that compiles only the files listed
+# under `PomoLightTests` in project.yml — the timer engine, the palette, settings,
+# and AppModel with the collaborators it reaches through protocols. It never
+# compiles AppDelegate, the app's entry point or the views (DialFrameRate aside).
+# A green suite therefore says nothing about whether the app builds at all, and two
+# separate agents were caught by that on 2026-08-15. So the build runs first, and
+# its job is to compile the code the tests cannot see.
+# 2026-11-20 (#70 F-7): 예전 문장은 "AppModel 도 컴파일하지 않는다" 였다. 2026-08-21 에
+# AppModel 이 테스트 대상에 들어간 뒤로 틀린 말이었다. 목록은 project.yml 이 단일 진실이다.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 

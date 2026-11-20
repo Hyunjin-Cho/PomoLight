@@ -71,14 +71,17 @@ final class AppModel {
         updatePowerAssertion()
     }
 
-    /// Settings can change outside any timer action (panel toggles, theme swatch),
+    /// Settings can change outside any timer action (the panel's keep-awake toggle),
     /// and the sleep assertion has to follow. Watch the relevant properties so a
     /// mid-session change applies immediately, not on the next timer action.
     /// (`withObservationTracking` is one-shot, so the handler re-arms.)
+    ///
+    /// 2026-11-20 (#70 F-11): 여기서 `theme.current` 도 지켜봤었다. 하지만 이 함수가 하는 일은
+    /// `updatePowerAssertion()` 하나이고, 그건 `keepAwake` 와 타이머 단계만 본다 — 테마를 바꿀
+    /// 때마다 쓸데없이 다시 계산하고 다시 걸기만 했다. 테마 변화는 뷰가 직접 따라간다.
     private func observeSettingChanges() {
         withObservationTracking {
             _ = settings.keepAwake
-            _ = theme.current
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self else { return }

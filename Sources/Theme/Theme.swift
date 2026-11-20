@@ -1,8 +1,10 @@
 import SwiftUI
 
 /// The eight raw color tokens for one appearance (light or dark) of a theme.
-/// Stored as hex strings so a theme is trivially Codable and editable.
-struct ThemeColors: Codable, Hashable {
+/// Stored as hex strings so a theme is easy to read and to pin in a test.
+// 2026-11-20 (#70 F-11): `Codable` 을 뺐다. 테마를 인코딩·디코딩하는 곳이 저장소 어디에도
+// 없었다(`grep -rnE "Codable|JSONEncoder|PropertyListEncoder|…" Sources Tests Scripts` → 이 줄뿐).
+struct ThemeColors: Hashable {
     var bg: String
     var surface: String
     var accent: String
@@ -14,13 +16,13 @@ struct ThemeColors: Codable, Hashable {
 }
 
 /// A named pastel theme with fully authored light AND dark color sets.
+// 2026-11-20 (#70 F-11): `mood`(늘 "")와 `isCustom`(늘 false)을 뺐다. 값을 넣는 곳도 읽는
+// 곳도 `ThemePresetsTests` 의 "비어 있음" 확인 말고는 없었다. 사용자 테마가 생기면 그때 다시.
 struct Theme: Identifiable, Hashable {
     let id: String
     let name: String
-    let mood: String
     let light: ThemeColors
     let dark: ThemeColors
-    var isCustom: Bool = false
 
     func colors(for scheme: ColorScheme) -> ThemeColors {
         scheme == .dark ? dark : light
@@ -41,9 +43,12 @@ extension Theme {
     /// the 2026-07 "candy pastel" recipe (HSL, accent saturation 0.89 at lightness
     /// 0.74, hand nudges for yellow and cyan). The owner picked recipe "A soft" from
     /// three rendered candidates (`~/Documents/Code-Reviews/20261119/pomolight/
-    /// theme-candidates/`): every role is one fixed OKLCH lightness and chroma, only
-    /// the hue moves. The expressions below are that renderer's, kept in the same
+    /// theme-candidates/`): one fixed lightness and one requested chroma per role;
+    /// hues the sRGB gamut can't hold at that lightness come out less saturated
+    /// (`RGB(oklchL:c:h:)` pulls the chroma in). The expressions below are that renderer's, kept in the same
     /// order so the bytes match what the owner saw — reorder them and colours move.
+    /// (2026-11-20, #70 F-16: this used to say "only the hue moves". Measured: the
+    /// accent's requested 0.090 lands at 0.069–0.087 on pink, coral, sky, blue and violet.)
     private static func pastel(_ id: String, _ name: String, hue h: Double) -> Theme {
         func hx(_ L: Double, _ C: Double) -> String { RGB(oklchL: L, c: C, h: h).hexString }
         // Yellow is a naturally light hue: at the shared lightness it came out
@@ -66,7 +71,7 @@ extension Theme {
             accent: hx(aL - 0.04, c), accentSoft: hx(0.36, min(c * 0.5, 0.04)),
             text: hx(0.94, 0.012), textSecondary: hx(0.76, 0.018),
             ringTrack: hx(0.32, 0.03), ringFill: hx(aL - 0.06, c))
-        return Theme(id: id, name: name, mood: "", light: light, dark: dark)
+        return Theme(id: id, name: name, light: light, dark: dark)
     }
 
     /// Eight pastels spaced around the wheel (OKLCH hue degrees). The ids are the

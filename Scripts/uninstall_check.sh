@@ -30,8 +30,20 @@ LSREG=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchService
 WORK=$(mktemp -d)
 SUITE="pl.uninstallcheck.$$"
 PLIST="$HOME/Library/Preferences/$SUITE.plist"
-APP="$WORK/PomoLight.app"
-TRASHED="$HOME/.Trash/PomoLight.app"
+# 2026-11-20 (#70 F-6): 사본 이름이 그냥 `PomoLight.app` 이었고, 정리 단계는
+# `~/.Trash/PomoLight.app` 을 무조건 지웠다. 그런데 휴지통에 이미 같은 이름이 있으면 macOS 는
+# 새로 들어온 것에 다른 이름("PomoLight 2.app" 류)을 붙인다 — 그러면 이 검사는 사람이 원래
+# 버려 둔 진짜 앱을 영구 삭제하고, 자기 사본은 휴지통에 남긴 채 "휴지통에 없다" 로 떨어졌다.
+# 이제 사본 이름을 이 회차만의 것으로 만들고, 그 이름이 휴지통에 이미 있으면 시작하지 않는다.
+# (번들 이름은 바뀌어도 실행 파일·번들 ID 는 그대로라 제거 코드가 하는 일은 같다.)
+APP_NAME="PomoLight-uninstallcheck-$$.app"
+APP="$WORK/$APP_NAME"
+TRASHED="$HOME/.Trash/$APP_NAME"
+if [ -e "$TRASHED" ]; then
+  echo "✗ $TRASHED already exists — refusing to run, so nothing of yours is overwritten or deleted."
+  rm -rf "$WORK"
+  exit 1
+fi
 
 # 2026-08-21: the first version of this script left its throwaway copies REGISTERED
 # with Launch Services — running it launches an app, and macOS remembers every app

@@ -11,8 +11,9 @@ import SwiftUI
 ///
 /// `ContrastTests` judges the palette; this file does not. It pins the output of
 /// the private `Theme.pastel(_:_:hue:)` recipe glyph for glyph — the order, every
-/// id, name, mood and custom flag, and every hex string (themes x light/dark x 8
-/// tokens) — so a rewrite of the recipe cannot move a single colour unnoticed.
+/// id and name, and every hex string (themes x light/dark x 8 tokens) — so a
+/// rewrite of the recipe cannot move a single colour unnoticed.
+/// (2026-11-20, #70 F-11: `mood` and `isCustom` left `Theme`, and their checks with them.)
 /// `pastel` is private, so the calls in `Theme.presets` are the whole of its input.
 ///
 /// Every expected value was produced by the code (dcd706d, then #66 — above) and is
@@ -113,15 +114,13 @@ final class ThemePresetsTests: XCTestCase {
         }
     }
 
-    /// 2026-11-03: `mood` is "" and `isCustom` is false on every shipped theme —
-    /// nothing in the app sets either. Recorded as found.
-    func testNamesMoodsAndCustomFlagsAreRecorded() {
+    // 2026-11-20 (#70 F-11): 이 시험은 `mood` 가 "" 이고 `isCustom` 이 false 인 것도 확인했다
+    // (2026-11-03 "있는 그대로 기록"). 두 필드가 쓰이지 않아 `Theme` 에서 빠지면서 그 두 줄도 뺐다.
+    func testNamesAreRecorded() {
         XCTAssertEqual(Theme.presets.count, Self.recorded.count)
         for (theme, want) in zip(Theme.presets, Self.recorded) {
             XCTAssertEqual(theme.id, want.id)
             XCTAssertEqual(theme.name, want.name, "\(want.id) name")
-            XCTAssertEqual(theme.mood, "", "\(want.id) mood")
-            XCTAssertFalse(theme.isCustom, "\(want.id) isCustom")
         }
     }
 

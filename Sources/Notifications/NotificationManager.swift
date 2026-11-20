@@ -48,12 +48,22 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
+    /// 2026-11-20 (#70 F-9): 예전엔 알림마다 `UUID().uuidString` 을 새로 붙이고 지우지 않아서,
+    /// 타이머를 끝낼 때마다 "Time's up" 이 알림 센터에 한 장씩 쌓였다(열 번 쓰면 열 장). 지난
+    /// 회차의 "끝났다" 는 다음 회차가 끝나면 쓸모가 없으니, 이름을 하나로 고정해 늘 한 장만 남긴다.
+    static let finishedIdentifier = "com.vismo.pomolight.timerFinished"
+
     private func post() {
         let content = UNMutableNotificationContent()
         content.title = "PomoLight"
         content.body = String(localized: "Time's up — your timer finished.")
         content.sound = nil   // we play our own gentle chime; avoid a double sound
-        let request = UNNotificationRequest(identifier: UUID().uuidString,
+        // 같은 이름으로 다시 올리면 대기 중인 것은 바뀌지만, 이미 전달된 것까지 치워지는지는
+        // 문서에 없다 — 그래서 먼저 그 이름의 것만 지우고 올린다. `removeAllDelivered…` 로
+        // 예전 판이 UUID 로 쌓아 둔 것까지 치울 수도 있었지만, 그러면 이름이 없는 남의 알림
+        // (같은 번들 ID 의 다른 사본이 올린 것 포함)까지 지운다 — 고른 것만 지운다.
+        center.removeDeliveredNotifications(withIdentifiers: [Self.finishedIdentifier])
+        let request = UNNotificationRequest(identifier: Self.finishedIdentifier,
                                             content: content, trigger: nil)
         center.add(request)
     }

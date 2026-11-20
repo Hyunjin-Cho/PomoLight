@@ -12,7 +12,7 @@ PomoLight is a small desk-clock-like timer: pick any number of minutes, hit Star
 
 - ⏱️ **Free duration** — quick presets (10 / 15 / 30 / 45 / 60) **or** type any value in Custom (optional seconds).
 - 🔔 **Gentle alarm** — five self-synthesized voices (Marimba, Kalimba, Handpan, Wood Blocks, Soft Synth): modelled on how the real instruments vibrate, plus one filtered-saw pad, each a short C-major motif levelled to the same loudness (no audio files, license-clean), clearly an alarm but never harsh. macOS system sounds are deliberately not offered — they read as notification blips. Live Preview + volume in Settings.
-- 🎨 **Pastel themes** — 8 soft pastels spaced around the color wheel (Pink, Coral, Yellow, Green, Mint, Sky, Blue, Violet), default Coral. Each role is one fixed OKLCH lightness and chroma, so every hue reads equally soft; the ring's inner disc is part of the contrast contract too. Switching crossfades live. (Until 2026-11-19 there were 15 brighter "candy" pastels — #66.)
+- 🎨 **Pastel themes** — 8 soft pastels spaced around the color wheel (Pink, Coral, Yellow, Green, Mint, Sky, Blue, Violet), default Coral. Each role has one fixed OKLCH lightness and one requested chroma (hues sRGB can't hold at that lightness come out a little less saturated — corrected 2026-11-20, #70), so every hue reads about equally soft; the ring's inner disc is part of the contrast contract too. Switching crossfades live. (Until 2026-11-19 there were 15 brighter "candy" pastels — #66.)
 - 🌗 **Light & dark** — every theme is authored for both (no muddy auto-darkened pastels).
 - 📊 **Drift-free timer** — deadline/wall-clock based, so it stays correct across App Nap and system sleep; the alarm fires on wake even if the Mac slept through zero.
 - 🖥️ **Menu-bar countdown** — glanceable MM:SS in the menu bar (toggle off if you want a pure window app), with mini controls.
@@ -133,9 +133,12 @@ bash Scripts/verify.sh
 It runs the checks in the order that catches problems soonest:
 
 - **Build the app** — first, and not redundant with the tests. The test bundle is
-  HOST-LESS: it compiles `TimerEngine`, `DialFrameRate`, `Theme`, `Color+Contrast`
-  and `SettingsStore`, and never compiles `AppModel`, `AppDelegate` or a single
-  view. A green suite says nothing about whether the app builds at all.
+  HOST-LESS: it compiles only the files listed under `PomoLightTests` in
+  `project.yml` — the timer engine, the palette, settings, and `AppModel` with the
+  collaborators it reaches through protocols — and never compiles `AppDelegate`,
+  the app's entry point or the views (`DialFrameRate` aside). A green suite says
+  nothing about whether the app builds at all. *(Corrected 2026-11-20, #70: this
+  used to say `AppModel` is never compiled; it has been under test since 2026-08-21.)*
 - **Unit tests** — timer state machine, dial frame rate, contrast invariants,
   settings persistence. Nothing launches and no chime plays.
   ```bash
