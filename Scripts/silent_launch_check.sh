@@ -86,15 +86,52 @@ fi
 # concluding "nothing happened", or this passes for the wrong reason.
 /bin/sleep 2
 
+# 2026-11-20 (#69 F-14): 예전엔 아래 조회가 `2>/dev/null || true` 였다. 그러면 로그를
+# 아예 못 읽은 경우(권한·잘못된 조건식·`log` 실패)도 "CoreAudio 0건" 이 되어 ✅ 였다 —
+# "조용히 떴다" 와 "못 봤다" 가 같은 결과였다. 이제 두 가지를 따로 확인한다.
+#   1) `log show` 가 실패하면(종료 상태 ≠ 0) 그 자체로 ❌.
+#   2) 대조군: 같은 PID·같은 시간대의 로그가 한 줄이라도 보여야 한다. 앱은 뜨기만 해도
+#      시스템 프레임워크가 몇 줄씩 남기므로, 0줄이면 "소리가 없었다" 가 아니라 "로그를 못
+#      봤다" 다. 로그는 비동기로 쓰이니 조금 기다리며 몇 번 다시 본다.
+LOG_ERR="$SHOTS/log_show_stderr.txt"
+read_log() {
+  # $1 = predicate. Prints the compact log; returns log show's own exit status.
+  /usr/bin/log show --start "$START" --predicate "$1" --style compact 2>"$LOG_ERR"
+}
+log_unreadable() {
+  echo "❌ FAIL — could not read the unified log (log show exited $1)."
+  echo "   This is not a pass: with no log there is no way to tell a silent launch"
+  echo "   from one that opened the audio device."
+  [ -s "$LOG_ERR" ] && { echo; sed -n '1,5p' "$LOG_ERR"; }
+  exit 1
+}
+
+SEEN=0
+for _ in 1 2 3; do
+  LOG_STATUS=0
+  ALL=$(read_log "processIdentifier == $PID") || LOG_STATUS=$?
+  [ "$LOG_STATUS" -eq 0 ] || log_unreadable "$LOG_STATUS"
+  SEEN=$(printf '%s\n' "$ALL" | grep -c "\[$PID:" || true)
+  [ "$SEEN" -gt 0 ] && break
+  /bin/sleep 2
+done
+if [ "$SEEN" -eq 0 ]; then
+  echo "❌ FAIL — the unified log shows nothing at all for PID $PID since $START."
+  echo "   Every launch leaves some lines there, so this means the log could not be"
+  echo "   seen, not that the app was quiet. The CoreAudio count would be meaningless."
+  exit 1
+fi
+
 # Captured once, not queried twice: `log show | head` under `pipefail` exits 141
 # on SIGPIPE, which would report a broken pipe as the script's own failure.
-FOUND=$(/usr/bin/log show --start "$START" \
-  --predicate "processIdentifier == $PID AND subsystem == \"com.apple.coreaudio\"" \
-  --style compact 2>/dev/null || true)
+LOG_STATUS=0
+FOUND=$(read_log "processIdentifier == $PID AND subsystem == \"com.apple.coreaudio\"") || LOG_STATUS=$?
+[ "$LOG_STATUS" -eq 0 ] || log_unreadable "$LOG_STATUS"
 EVENTS=$(printf '%s' "$FOUND" | grep -c "coreaudio" || true)
 
 if [ "$EVENTS" -eq 0 ]; then
-  echo "✅ PASS — started cleanly, rendered $RENDERED screens, touched the audio device 0 times."
+  echo "✅ PASS — started cleanly, rendered $RENDERED screens, touched the audio device 0 times"
+  echo "   (the log was readable: $SEEN line(s) from this PID, none from CoreAudio)."
   exit 0
 fi
 
