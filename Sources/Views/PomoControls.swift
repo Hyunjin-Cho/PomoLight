@@ -38,6 +38,9 @@ struct CircleIconButton: View {
     var soft: Color = .clear
     var size: CGFloat = 40
     var font: Font = .system(size: 16, weight: .medium)
+    /// How much of the `soft` circle shows when the pointer is elsewhere. 0 = only on hover (the top bar's
+    /// quiet buttons). 2026-11-20 (#72): the settings ▶ uses 1 — a bare glyph did not read as a button.
+    var restingOpacity: Double = 0
     let action: () -> Void
 
     @State private var hovering = false
@@ -49,7 +52,7 @@ struct CircleIconButton: View {
                 .font(font)
                 .foregroundStyle(tint)
                 .frame(width: size, height: size)
-                .background(Circle().fill(soft.opacity(hovering ? 0.6 : 0)))
+                .background(Circle().fill(soft.opacity(hovering ? max(0.6, restingOpacity) : restingOpacity)))
                 .scaleEffect(hovering && !reduceMotion ? 1.06 : 1.0)
                 .contentShape(Circle())
         }

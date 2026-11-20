@@ -112,12 +112,8 @@ enum Snapshot {
     private static func content(for spec: Spec, model: AppModel) -> some View {
         Group {
             if spec.phase == .settings {
-                ZStack {
-                    RootView()
-                    Color.black.opacity(0.28)
-                    SettingsPanelView(palette: model.theme.palette(for: spec.scheme),
-                                      isPresented: .constant(true), scrolls: false)
-                }
+                // 2026-11-20 (#72): settings are a sheet now — render the sheet alone, as it looks on screen.
+                SettingsPanelView(palette: model.theme.palette(for: spec.scheme), isPresented: .constant(true))
             } else {
                 RootView()
             }
@@ -128,8 +124,8 @@ enum Snapshot {
         // not the owner's real preferences.
         .injectEnvironment(model)
         .environment(\.colorScheme, spec.scheme)
-        .frame(width: spec.phase == .settings ? 380 : 360,
-               height: spec.phase == .settings ? 760 : 480)
+        .frame(width: spec.phase == .settings ? SettingsPanelView.width : 360,
+               height: spec.phase == .settings ? nil : 480)
     }
 
     private static func renderView<V: View>(_ view: V, to path: String) {

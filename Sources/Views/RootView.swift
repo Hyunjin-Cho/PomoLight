@@ -1,8 +1,11 @@
 import SwiftUI
 
 /// The main window: a calm pastel card with the timer dial at its heart, the
-/// duration controls below, and a quiet gear in the top bar. The settings panel
-/// slides over this same window — you never leave the timer.
+/// duration controls below, and a quiet gear in the top bar. Settings come down as a
+/// sheet from this window's title bar — you never leave the timer.
+/// 2026-11-20 (#72, 오너 결정 시안 B): 예전엔 설정을 이 창 안에 겹쳐 그려서 320 폭 창에 갇혀 4화면을 스크롤했다.
+/// 시트는 부모 창보다 넓게 뜬다(2026-11-20 실측 580 폭, 시트 위 NSAlert 정상). 시트는 모달이라 뒤 화면의 단축키
+/// (Space·R·숫자)도 들어가지 않는다(#70 F-10).
 struct RootView: View {
     @Environment(TimerEngine.self) private var engine
     @Environment(ThemeStore.self) private var theme
@@ -11,7 +14,6 @@ struct RootView: View {
     // is a false requirement on every place that assembles this view by hand
     // (`Snapshot.swift` does).
     @Environment(\.colorScheme) private var scheme
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var showSettings = false
 
@@ -33,31 +35,17 @@ struct RootView: View {
                     Spacer(minLength: 6)
                 }
                 .padding(20)
-
-                if showSettings {
-                    Color.black.opacity(0.28)
-                        .ignoresSafeArea()
-                        .onTapGesture { showSettings = false }
-                        .transition(.opacity)
-
-                    SettingsPanelView(palette: palette, isPresented: $showSettings)
-                        // 2026-08-21: the dial, the chips and the hover lifts have
-                        // honoured Reduce Motion since they were written; this screen
-                        // — the settings card zooming in on a spring, the biggest
-                        // movement in the app — did not. A cross-fade is the
-                        // substitution Apple asks for, so the panel still reads as
-                        // arriving without anything travelling.
-                        .transition(reduceMotion ? AnyTransition.opacity
-                                                 : AnyTransition.scale(scale: 0.96).combined(with: .opacity))
-                }
             }
             // The theme swap stays animated either way: it is a colour cross-fade,
             // which is what Reduce Motion asks for INSTEAD of movement, not a thing
             // to switch off.
             .animation(.easeInOut(duration: 0.5), value: theme.current)
-            .animation(reduceMotion ? .easeInOut(duration: 0.2)
-                                    : .spring(response: 0.35, dampingFraction: 0.85),
-                       value: showSettings)
+        }
+        // The sheet's arrival is the system's own animation (it follows Reduce Motion
+        // as macOS does for every sheet). The palette is passed in fresh on every
+        // change, so a theme picked inside the sheet recolours the sheet at once.
+        .sheet(isPresented: $showSettings) {
+            SettingsPanelView(palette: palette, isPresented: $showSettings)
         }
         .onChange(of: showSettings) { _, open in
             // Make sure the window is key so the panel's controls take the first click.
