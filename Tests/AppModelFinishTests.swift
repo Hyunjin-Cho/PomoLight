@@ -201,20 +201,56 @@ final class AppModelFinishTests: XCTestCase {
 
     // MARK: - Duration restore
 
-    /// A duration used for one session must not become the next launch's default.
-    /// `restoreChosenDuration()` is the guard, and it runs on both exits from a run.
-    func testDismissingReturnsToTheStoredDurationNotTheOneThatJustRan() {
+    // 2026-11-20 (#67): 여기 있던 `testDismissingReturnsToTheStoredDurationNotTheOneThatJustRan`
+    // 은 "엔진에 넣고 돌린 시간이 저장값을 바꾸면 안 된다"를 계약으로 박아 두고 있었다.
+    // 그 계약이 바로 #67 의 버그였다 — 대기 상태에서 엔진 시간을 바꾸는 건 시간 고르기
+    // 화면뿐이라, "엔진에 넣었지만 저장 안 된 시간"은 실제로는 "직접 입력하고 포커스를
+    // 둔 채 시작한 시간"이다. 아래 세 시험이 새 계약이다.
+
+    /// The #67 case, as the picker leaves it: the custom entry has pushed 17 minutes
+    /// into the engine but, with a field still focused, has not saved it. Start →
+    /// Reset must come back to 17, not to the 15 saved earlier.
+    func testResetAfterStartingAnUnsavedCustomDurationKeepsThatDuration() {
+        defaults.set(15.0, forKey: "pl.lastDurationMinutes")
+        let app = makeModel()
+        app.engine.setDuration(seconds: 17 * 60)     // what pushToEngine() does
+
+        app.startTimer()
+        app.resetTimer()
+
+        XCTAssertEqual(app.engine.configuredDuration, 17 * 60, accuracy: 0.001,
+                       "reset must not fall back to the duration saved before")
+        XCTAssertEqual(app.settings.lastDurationMinutes, 17, accuracy: 0.001)
+        XCTAssertEqual(defaults.double(forKey: "pl.lastDurationMinutes"), 17, accuracy: 0.001,
+                       "and it has to reach the preferences, so the next launch has it too")
+    }
+
+    /// The other exit from a run: finishing and dismissing. Same duration back.
+    func testDismissingAfterAFinishReturnsToTheDurationThatWasStarted() {
         defaults.set(25.0, forKey: "pl.lastDurationMinutes")
         let app = makeModel()
         XCTAssertEqual(app.engine.configuredDuration, 25 * 60, accuracy: 0.001)
 
-        runATimerToTheEnd(app)                    // this run was one second
+        runATimerToTheEnd(app)                    // chosen and started: one second
         app.dismissFinished()
 
-        XCTAssertEqual(app.engine.configuredDuration, 25 * 60, accuracy: 0.001,
-                       "the one-second session must not survive the dismiss")
-        XCTAssertEqual(app.settings.lastDurationMinutes, 25, accuracy: 0.001,
-                       "and nothing may have quietly rewritten the stored choice")
+        XCTAssertEqual(app.engine.configuredDuration, 1, accuracy: 0.001)
+        XCTAssertEqual(app.settings.lastDurationMinutes, 1.0 / 60, accuracy: 0.0001)
+    }
+
+    /// Starting with the duration that is already saved must not write at all —
+    /// the point of #46 was to keep needless writes off the preferences file.
+    func testStartingWithTheSavedDurationDoesNotWriteIt() {
+        defaults.set(25.0, forKey: "pl.lastDurationMinutes")
+        let app = makeModel()
+        defaults.removeObject(forKey: "pl.lastDurationMinutes")   // a write would put it back
+
+        app.startTimer()
+
+        // Read the suite's own file, not `object(forKey:)`: SettingsStore registers a
+        // 30-minute default, and the registration domain would answer for it.
+        XCTAssertNil(defaults.persistentDomain(forName: suiteName)?["pl.lastDurationMinutes"],
+                     "an unchanged duration was written again")
     }
 
     // MARK: - Preview

@@ -91,6 +91,7 @@ struct DurationPickerView: View {
                              font: .system(size: 12, weight: .bold)) {
                 value.wrappedValue = max(range.lowerBound, value.wrappedValue - 1)
                 pushToEngine()
+                persistChosenDuration()
             }
             VStack(spacing: 0) {
                 TextField("", value: value, format: .number)
@@ -113,6 +114,7 @@ struct DurationPickerView: View {
                              font: .system(size: 12, weight: .bold)) {
                 value.wrappedValue = min(range.upperBound, value.wrappedValue + 1)
                 pushToEngine()
+                persistChosenDuration()
             }
         }
     }
@@ -146,8 +148,15 @@ struct DurationPickerView: View {
         // Mid-typing the fields may briefly read 0:00 — leave them alone while
         // focused. 2026-08-21: persisting moved in here too. It used to run on every
         // keystroke (`lastDurationMinutes` writes through to UserDefaults on `didSet`),
-        // so typing "120" wrote 1, then 12, then 120. Button-driven changes are
-        // discrete and still persist immediately; typing waits for focus to leave.
+        // so typing "120" wrote 1, then 12, then 120.
+        // 2026-11-20 (#67): 위 주석은 "버튼으로 바꾼 값은 지금도 바로 저장된다"고 했지만
+        // 사실이 아니었다. Custom 을 열면 분 칸에 포커스가 가고 −/+ 버튼은 포커스를
+        // 가져가지 않으므로, 버튼으로 바꿔도 이 조건에 막혀 저장되지 않았다. 게다가
+        // 포커스가 있는 채 시작을 누르면 이 뷰가 사라지면서 `onChange(of: focusedField)`
+        // 도 돌지 않아, 다음 리셋·끄기에서 옛 저장값으로 되돌아갔다.
+        // 지금은 세 곳에서 저장한다 — 시작할 때(`AppModel.startTimer()`, 빠짐없이
+        // 잡는 곳), 포커스가 빠질 때, −/+ 버튼을 누를 때. 키 하나마다 쓰지 않는다는
+        // #46 의 목적은 그대로다: 타이핑 중에는 여기서 저장하지 않는다.
         if focusedField == nil {
             syncFieldsToEngine()
             persistChosenDuration()

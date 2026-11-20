@@ -87,10 +87,16 @@ final class AppModel {
 
     // MARK: - Actions used by the views
 
-    /// Start the timer. We do NOT persist the duration here — otherwise a session
-    /// extended mid-run would silently become the next launch's default. The chosen
-    /// duration is saved only when the user explicitly picks it (preset chip /
-    /// custom entry).
+    /// Start the timer, and remember the duration it starts with.
+    ///
+    /// 2026-11-20 (#67): 예전에는 "여기서는 저장하지 않는다 — 실행 중에 늘린 시간이
+    /// 다음 실행의 기본값이 되면 안 된다"고 적혀 있었다. 실행 중에 시간을 늘리는 기능은
+    /// 이제 없고, 대기 상태의 엔진 시간을 바꾸는 길은 시간 고르기 화면(프리셋·직접 입력)과
+    /// `restoreChosenDuration()` 둘뿐이다. 그래서 시작하는 순간 엔진이 쥔 시간이 곧
+    /// 사용자가 고른 시간이다. 직접 입력은 키 하나마다 쓰지 않으려고(#46) 저장을
+    /// "포커스가 빠질 때"로 미뤘는데, 포커스를 둔 채 시작하면 그 순간이 오지 않아
+    /// 리셋·끄기 뒤 옛 값으로 돌아갔다. 시작은 모든 길이 지나는 한 곳이라 여기서 한 번
+    /// 저장한다. 값이 같으면 쓰지 않는다.
     ///
     /// 2026-08-21: this used to call `requestAuthorizationIfNeeded()` as well. Once
     /// `AppModel.init` asks at launch the status is never `.notDetermined` again
@@ -98,6 +104,11 @@ final class AppModel {
     /// call could only ever be a no-op — and if it did race the launch request, both
     /// would see `.notDetermined` at once. One asker, at one moment.
     func startTimer() {
+        let chosenMinutes = engine.configuredDuration / 60
+        // 저장값 × 60 ÷ 60 이 부동소수 끝자리에서 어긋날 수 있어 같음을 허용오차로 본다.
+        if abs(settings.lastDurationMinutes - chosenMinutes) > 1e-9 {
+            settings.lastDurationMinutes = chosenMinutes
+        }
         engine.start()
         updatePowerAssertion()
     }
