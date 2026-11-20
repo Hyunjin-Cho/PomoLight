@@ -33,3 +33,5 @@
 "Time's up — your timer finished." = "Tiden er gået – din timer er færdig.";
 "Otherwise the alarm rings 3 times." = "Ellers ringer alarmen 3 gange.";
 "%@ remaining" = "%@ tilbage";
+"UPDATES" = "Opdateringer";
+"Stop the timer first to install the update." = "Stop timeren først for at installere opdateringen.";

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# Notarize + staple PomoLight for a Gatekeeper-clean Gumroad release.
+# Notarize + staple PomoLight for a Gatekeeper-clean GitHub release.
+# 2026-11-20 (#73): releases go to GitHub (never Gumroad — that section of the README was
+# stale), and the in-app updater (OnePercent) downloads `PomoLight_<version>.zip`, so the
+# stapled ZIP is also written under that name.
 # Run Scripts/build_app.sh first (Developer ID signed app in dist/).
 #
 # ONE-TIME setup — create an app-specific password at https://appleid.apple.com
@@ -33,7 +36,12 @@ xcrun stapler staple dist/PomoLight.app
 xcrun stapler validate dist/PomoLight.app
 
 echo "▸ Repackaging stapled app…"
-( cd dist && rm -f PomoLight.zip PomoLight-notary.zip && ditto -c -k --keepParent PomoLight.app PomoLight.zip )
+VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" dist/PomoLight.app/Contents/Info.plist)
+BUILD=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" dist/PomoLight.app/Contents/Info.plist)
+RELEASE_ZIP="PomoLight_${VERSION}.zip"
+( cd dist && rm -f PomoLight.zip PomoLight-notary.zip "$RELEASE_ZIP" \
+    && ditto -c -k --keepParent PomoLight.app PomoLight.zip \
+    && ditto -c -k --keepParent PomoLight.app "$RELEASE_ZIP" )
 ./Scripts/make_dmg.sh
 
 # Clean loose .app copies so Spotlight/the app launcher only ever sees the one
@@ -41,4 +49,11 @@ echo "▸ Repackaging stapled app…"
 echo "▸ Cleaning loose app copies (zip/dmg keep the distributable)…"
 rm -rf dist/PomoLight.app build-release
 
-echo "✅ Notarized & stapled. Ship dist/PomoLight.dmg (or dist/PomoLight.zip) on Gumroad."
+echo "✅ Notarized & stapled — PomoLight ${VERSION} (build ${BUILD})."
+echo "   Release on GitHub: tag ${VERSION}, attach dist/${RELEASE_ZIP} (the in-app updater looks for exactly this name)"
+echo "   and dist/PomoLight.dmg for people downloading by hand."
+echo "   Check the ZIP first with the updater's own code (OnePercent checkout, previous release's version and build):"
+echo "     swift run --package-path <OnePercent> onepercent-check --zip dist/${RELEASE_ZIP} --tag ${VERSION} \\"
+echo "       --repository Hyunjin-Cho/PomoLight --team 6RH6FXY82P --bundle-id com.vismo.pomolight --app-name PomoLight \\"
+echo "       --previous-version <x> --previous-build <n>"
+echo "   Every release must raise CFBundleVersion (CURRENT_PROJECT_VERSION in project.yml) as well as the version."

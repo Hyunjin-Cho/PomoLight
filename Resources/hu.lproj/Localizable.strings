@@ -33,3 +33,5 @@
 "Time's up — your timer finished." = "Lejárt az idő – az időzítő befejeződött.";
 "Otherwise the alarm rings 3 times." = "Egyébként a riasztó 3-szor szól.";
 "%@ remaining" = "%@ van hátra";
+"UPDATES" = "Frissítések";
+"Stop the timer first to install the update." = "A frissítés telepítéséhez először állítsa le az időzítőt.";

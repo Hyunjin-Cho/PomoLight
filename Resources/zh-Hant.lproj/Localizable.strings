@@ -33,3 +33,5 @@
 "Time's up — your timer finished." = "時間到 — 你的計時器已結束。";
 "Otherwise the alarm rings 3 times." = "否則鬧鈴會響 3 次。";
 "%@ remaining" = "剩餘%@";
+"UPDATES" = "更新";
+"Stop the timer first to install the update." = "請先停止計時器，再安裝更新。";

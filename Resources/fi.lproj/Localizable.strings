@@ -33,3 +33,5 @@
 "Time's up — your timer finished." = "Aika loppui — ajastimesi päättyi.";
 "Otherwise the alarm rings 3 times." = "Muuten hälytys soi 3 kertaa.";
 "%@ remaining" = "%@ jäljellä";
+"UPDATES" = "Päivitykset";
+"Stop the timer first to install the update." = "Pysäytä ajastin ensin, jotta voit asentaa päivityksen.";

@@ -33,3 +33,5 @@
 "Time's up — your timer finished." = "Čas vypršel — váš časovač skončil.";
 "Otherwise the alarm rings 3 times." = "Jinak budík zazvoní 3krát.";
 "%@ remaining" = "Zbývá %@";
+"UPDATES" = "Aktualizace";
+"Stop the timer first to install the update." = "Nejprve zastavte časovač, abyste mohli nainstalovat aktualizaci.";

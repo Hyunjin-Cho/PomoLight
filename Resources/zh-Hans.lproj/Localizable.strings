@@ -33,3 +33,5 @@
 "Time's up — your timer finished." = "时间到——你的计时已结束。";
 "Otherwise the alarm rings 3 times." = "否则闹钟将响 3 次。";
 "%@ remaining" = "剩余%@";
+"UPDATES" = "更新";
+"Stop the timer first to install the update." = "请先停止计时，再安装更新。";

@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import OnePercent
 
 /// The settings sheet: everything on one page, nothing to scroll. The left column is
 /// what you see and hear (theme, alarm sound, volume); the right is what happens
@@ -14,6 +15,7 @@ struct SettingsPanelView: View {
     @Environment(ThemeStore.self) private var theme
     @Environment(SettingsStore.self) private var settings
     @Environment(AppModel.self) private var app
+    @Environment(OnePercentUpdater.self) private var updater
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let palette: Palette
     @Binding var isPresented: Bool
@@ -40,6 +42,7 @@ struct SettingsPanelView: View {
                 }
                 .frame(width: Self.columnWidth, alignment: .leading)
             }
+            updatesSection
             footer
         }
         .padding(20)
@@ -231,6 +234,103 @@ struct SettingsPanelView: View {
         .padding(.vertical, 9)
     }
 
+    // MARK: Updates (#73)
+
+    /// Across both columns, just above the version in the footer: what is installed, what
+    /// GitHub has, one button for the next step, and the monthly-check switch.
+    /// 2026-11-20 (#73, 오너 결정 "조용히 표시"): 새 버전은 창을 띄우지 않고 여기와 메뉴바 팝오버에만 보인다.
+    /// 문구는 전부 OnePercent 의 29개 언어 문구(`OnePercentText`)를 쓴다 — 섹션 제목만 PomoLight 쪽이다.
+    private var updatesSection: some View {
+        let presentation = updater.presentation
+        return section("UPDATES") {
+            HStack(alignment: .center, spacing: 12) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(verbatim: updateHeadline(presentation))
+                        .font(.system(size: 13, design: .rounded))
+                        .foregroundStyle(palette.primaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+                    HStack(spacing: 8) {
+                        Text(verbatim: updateDetail(presentation))
+                        if let page = releasePage(presentation) {
+                            Link(destination: page) { Text(verbatim: OnePercentText.releaseNotes) }
+                                .buttonStyle(.plain)
+                                .underline()
+                        }
+                    }
+                    .font(.system(size: 11, design: .rounded))
+                    .foregroundStyle(palette.secondaryText)
+                    if let error = presentation.errorText {
+                        Label { Text(verbatim: error) } icon: { Image(systemName: "exclamationmark.triangle") }
+                            .font(.system(size: 11, design: .rounded))
+                            .foregroundStyle(palette.secondaryText)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .textSelection(.enabled)
+                    }
+                }
+                Spacer(minLength: 0)
+                updateButton(presentation)
+            }
+            .padding(12)
+            rowDivider
+            HStack(spacing: 12) {
+                Text(verbatim: OnePercentText.automaticChecks)
+                    .font(.system(size: 13, design: .rounded))
+                    .foregroundStyle(palette.primaryText)
+                    .accessibilityHidden(true)
+                Spacer(minLength: 0)
+                Toggle(isOn: Binding(get: { updater.automaticChecksEnabled },
+                                     set: { updater.setAutomaticChecksEnabled($0) })) {
+                    Text(verbatim: OnePercentText.automaticChecks)
+                }
+                .toggleStyle(PaletteSwitchStyle(on: palette.controlIcon,
+                                                off: palette.primaryText.opacity(0.16),
+                                                reduceMotion: reduceMotion))
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+        }
+    }
+
+    /// The one line that says where things stand.
+    private func updateHeadline(_ presentation: UpdateStatusPresentation) -> String {
+        if let line = presentation.text { return line }
+        if let updated = updater.justUpdatedTo { return OnePercentText.updated(to: updated) }
+        // 2026-11-20: 직접 확인한 뒤 최신이면 그렇다고 말한다(하늘키보드는 이 줄을 뺐지만, 여기선 버튼을 누른 결과가 안 보이면 눌렸는지 모른다).
+        if updater.phase == .upToDate { return OnePercentText.upToDate }
+        return OnePercentText.installedVersion + " " + updater.currentVersion
+    }
+
+    /// The small line under it: with a new version, both numbers, so it is clear what
+    /// would be installed ("설치된 버전 1.0 · 최신 버전 1.1"); otherwise when it last checked.
+    private func updateDetail(_ presentation: UpdateStatusPresentation) -> String {
+        if presentation.line == .newVersion, let latest = updater.latestVersion {
+            return OnePercentText.installedVersion + " " + updater.currentVersion
+                + " · " + OnePercentText.latestVersion + " " + latest
+        }
+        return updater.lastCheck.map(OnePercentText.lastChecked) ?? OnePercentText.neverChecked
+    }
+
+    private func releasePage(_ presentation: UpdateStatusPresentation) -> URL? {
+        if case .available(let update) = updater.phase { return update.pageURL }
+        if presentation.line == .none, let updated = updater.justUpdatedTo { return updater.releasePageURL(forVersion: updated) }
+        return nil
+    }
+
+    @ViewBuilder
+    private func updateButton(_ presentation: UpdateStatusPresentation) -> some View {
+        if presentation.showsCancelButton {
+            Button(OnePercentText.cancel) { updater.cancel() }
+                .buttonStyle(PillButtonStyle(fill: palette.accentSoft, label: palette.onAccentSoft))
+        } else if presentation.showsInstallButton {
+            Button(OnePercentText.install) { Task { await updater.installAvailableUpdate() } }
+                .buttonStyle(PillButtonStyle(fill: palette.buttonFill, label: palette.buttonLabel))
+        } else {
+            Button(OnePercentText.checkNow) { Task { await updater.checkNow(userInitiated: true, showNotice: false) } }
+                .buttonStyle(PillButtonStyle(fill: palette.accentSoft, label: palette.onAccentSoft))
+                .disabled(presentation.line != .none)
+        }
+    }
+
     // MARK: Remove (#52)
 
     /// Deliberately quiet. A destructive control does not need to catch the eye in a
@@ -241,6 +341,8 @@ struct SettingsPanelView: View {
             VStack(alignment: .leading, spacing: 3) {
                 Button("Remove PomoLight…") { confirmRemoval() }
                     .buttonStyle(.plain)
+                    // 2026-11-20 (#73): never while an update is replacing the app.
+                    .disabled(PomoLightUpdates.isInstalling)
                     .font(.system(size: 13, design: .rounded))
                     .foregroundStyle(palette.secondaryText)
                 note("Moves PomoLight to the Trash and deletes what it saved.")
@@ -276,11 +378,22 @@ struct SettingsPanelView: View {
         alert.buttons[1].keyEquivalent = "\r"
 
         guard alert.runModal() == .alertFirstButtonReturn else { return }
+        // 2026-11-20 (#73): stop the updater before the settings go — a check that answers
+        // late would otherwise write its keys back into the domain we are about to delete.
+        // `suspend()` refuses (false) only while an install is starting or running.
+        guard PomoLightUpdates.shared.suspend() else { return }
 
         do {
-            try Uninstaller.performUninstall(settings: settings)
+            let bundleURL = Bundle.main.bundleURL
+            try Uninstaller.performUninstall(settings: settings) {
+                // 2026-11-20 (#73): the hidden copy an interrupted update can leave next to the app,
+                // and its work folders. Only after the app itself went to the Trash.
+                OnePercentUpdater.removeLeftovers(configuration: PomoLightUpdates.configuration,
+                                                  installedApp: bundleURL, olderThan: 0)
+            }
             NSApp.terminate(nil)
         } catch {
+            PomoLightUpdates.shared.resume()   // nothing was removed — carry on as before
             let failed = NSAlert()
             failed.alertStyle = .critical
             failed.messageText = String(localized: "PomoLight could not be moved to the Trash")

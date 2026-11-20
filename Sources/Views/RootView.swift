@@ -14,8 +14,9 @@ struct RootView: View {
     // is a false requirement on every place that assembles this view by hand
     // (`Snapshot.swift` does).
     @Environment(\.colorScheme) private var scheme
-
-    @State private var showSettings = false
+    // 2026-11-20 (#73): needed now — the sheet's open state lives on the model so the
+    // menu-bar popover can open Settings as well.
+    @Environment(AppModel.self) private var app
 
     var body: some View {
         let palette = theme.palette(for: scheme)
@@ -44,13 +45,17 @@ struct RootView: View {
         // The sheet's arrival is the system's own animation (it follows Reduce Motion
         // as macOS does for every sheet). The palette is passed in fresh on every
         // change, so a theme picked inside the sheet recolours the sheet at once.
-        .sheet(isPresented: $showSettings) {
-            SettingsPanelView(palette: palette, isPresented: $showSettings)
+        .sheet(isPresented: showSettings) {
+            SettingsPanelView(palette: palette, isPresented: showSettings)
         }
-        .onChange(of: showSettings) { _, open in
+        .onChange(of: app.showSettings) { _, open in
             // Make sure the window is key so the panel's controls take the first click.
             if open { AppActivation.openMainWindow() }
         }
+    }
+
+    private var showSettings: Binding<Bool> {
+        Binding(get: { app.showSettings }, set: { app.showSettings = $0 })
     }
 
     private func topBar(_ palette: Palette) -> some View {
@@ -59,7 +64,7 @@ struct RootView: View {
                              tint: palette.controlIcon,
                              soft: palette.accentSoft, size: 32,
                              font: .system(size: 14)) {
-                showSettings = true
+                app.showSettings = true
             }
             .keyboardShortcut(",", modifiers: .command)
             .help("Settings")

@@ -33,3 +33,5 @@
 "Time's up — your timer finished." = "Timpul a expirat — cronometrul s-a încheiat.";
 "Otherwise the alarm rings 3 times." = "Altfel, alarma sună de 3 ori.";
 "%@ remaining" = "Au mai rămas %@";
+"UPDATES" = "Actualizări";
+"Stop the timer first to install the update." = "Oprește mai întâi cronometrul pentru a instala actualizarea.";

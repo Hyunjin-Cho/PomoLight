@@ -33,3 +33,5 @@
 "Time's up — your timer finished." = "Süre doldu — zamanlayıcın bitti.";
 "Otherwise the alarm rings 3 times." = "Aksi halde alarm 3 kez çalar.";
 "%@ remaining" = "%@ kaldı";
+"UPDATES" = "Güncellemeler";
+"Stop the timer first to install the update." = "Güncellemeyi yüklemek için önce zamanlayıcıyı durdurun.";

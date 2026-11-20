@@ -33,3 +33,5 @@
 "Time's up — your timer finished." = "Время вышло — ваш таймер завершён.";
 "Otherwise the alarm rings 3 times." = "Иначе сигнал прозвучит 3 раза.";
 "%@ remaining" = "Осталось %@";
+"UPDATES" = "Обновления";
+"Stop the timer first to install the update." = "Сначала остановите таймер, чтобы установить обновление.";

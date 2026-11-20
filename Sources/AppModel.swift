@@ -9,6 +9,9 @@ final class AppModel {
     let settings: SettingsStore
     let theme: ThemeStore
     let engine: TimerEngine
+    /// Whether the settings sheet is up. Here rather than in `RootView` so the menu-bar
+    /// popover can open it too (2026-11-20 #73: "a new version is available" leads there).
+    var showSettings = false
 
     // 2026-08-21: these were `= ChimePlayer()` etc., built in place. They are now
     // taken as protocols (see FinishEffects.swift) so the finish wiring can be

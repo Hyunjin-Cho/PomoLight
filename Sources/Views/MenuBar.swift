@@ -1,4 +1,5 @@
 import SwiftUI
+import OnePercent
 
 /// The live countdown shown in the macOS menu bar (MM:SS while active, a small
 /// timer glyph when idle). The engine's 0.2 s ticker bumps `menuBarTick` only when
@@ -27,6 +28,7 @@ struct MenuBarContent: View {
     @Environment(ThemeStore.self) private var theme
     @Environment(\.colorScheme) private var scheme
     @Environment(\.openWindow) private var openWindow
+    @Environment(OnePercentUpdater.self) private var updater
 
     var body: some View {
         let palette = theme.palette(for: scheme)
@@ -66,6 +68,21 @@ struct MenuBarContent: View {
                     }
                     .controlSize(.large)
                 }
+            }
+
+            // 2026-11-20 (#73, 오너 결정 "조용히 표시"): 새 버전은 창을 띄우지 않고 이 한 줄로만 알린다.
+            // 누르면 창과 설정 시트를 연다 — 설치는 거기서 버튼으로.
+            if updater.presentation.showsMenuNotice {
+                Button {
+                    app.showSettings = true
+                    openWindow(id: WindowID.main)
+                    NSApp.activate(ignoringOtherApps: true)
+                } label: {
+                    Label { Text(verbatim: OnePercentText.available) } icon: { Image(systemName: "arrow.down.circle") }
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .foregroundStyle(palette.primaryText)
             }
 
             Button("Open PomoLight") {

@@ -33,3 +33,5 @@
 "Time's up — your timer finished." = "Tempo esgotado — seu timer terminou.";
 "Otherwise the alarm rings 3 times." = "Caso contrário, o alarme toca 3 vezes.";
 "%@ remaining" = "Faltam %@";
+"UPDATES" = "Atualizações";
+"Stop the timer first to install the update." = "Pare o timer primeiro para instalar a atualização.";

@@ -79,7 +79,8 @@ enum Uninstaller {
                                  defaults: UserDefaults = .standard,
                                  domainName: String? = nil,
                                  paths: [URL]? = nil,
-                                 bundleURL: URL = Bundle.main.bundleURL) throws {
+                                 bundleURL: URL = Bundle.main.bundleURL,
+                                 alsoAfterTrashing: () -> Void = {}) throws {
         let domainName = domainName ?? bundleIdentifier
         let paths = paths ?? tracePaths(home: URL(fileURLWithPath: NSHomeDirectory()))
 
@@ -89,6 +90,10 @@ enum Uninstaller {
         } catch {
             throw Failure.couldNotTrash(error.localizedDescription)
         }
+        // 2026-11-20 (#73): whatever the caller adds (the updater's leftovers). It comes
+        // from outside so this file — compiled straight into the host-less tests — stays
+        // free of the update package.
+        alsoAfterTrashing()
 
         // 2. Silence everything that could still write a preference. This is the
         //    belt, not the braces: `Scripts/uninstall_check.sh` still passes with

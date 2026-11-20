@@ -33,3 +33,5 @@
 "Time's up — your timer finished." = "Masa tamat — pemasa anda telah selesai.";
 "Otherwise the alarm rings 3 times." = "Jika tidak, penggera berbunyi 3 kali.";
 "%@ remaining" = "Tinggal %@";
+"UPDATES" = "Kemas Kini";
+"Stop the timer first to install the update." = "Hentikan pemasa dahulu untuk memasang kemas kini.";

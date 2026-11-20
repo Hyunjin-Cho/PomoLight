@@ -33,3 +33,5 @@
 "Time's up — your timer finished." = "Tijd is om — je timer is afgelopen.";
 "Otherwise the alarm rings 3 times." = "Anders gaat het alarm 3 keer af.";
 "%@ remaining" = "Nog %@";
+"UPDATES" = "Updates";
+"Stop the timer first to install the update." = "Stop eerst de timer om de update te installeren.";

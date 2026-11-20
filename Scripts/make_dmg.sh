@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Wraps dist/PomoLight.app into a simple drag-to-Applications .dmg for Gumroad.
+# Wraps dist/PomoLight.app into a simple drag-to-Applications .dmg for the GitHub release (2026-11-20 #73: was "for Gumroad" — never used).
 # Run build_app.sh first.
 set -euo pipefail
 cd "$(dirname "$0")/.."

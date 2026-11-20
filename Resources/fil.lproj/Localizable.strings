@@ -33,3 +33,5 @@
 "Time's up — your timer finished." = "Tapos na ang oras — natapos na ang iyong timer.";
 "Otherwise the alarm rings 3 times." = "Kung hindi, 3 beses tutunog ang alarma.";
 "%@ remaining" = "Natitirang %@";
+"UPDATES" = "Mga Update";
+"Stop the timer first to install the update." = "Ihinto muna ang timer para ma-install ang update.";

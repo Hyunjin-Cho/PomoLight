@@ -33,3 +33,5 @@
 "Time's up — your timer finished." = "時間です — タイマーが終了しました。";
 "Otherwise the alarm rings 3 times." = "オフのときは、アラームが3回鳴って止まります。";
 "%@ remaining" = "残り%@";
+"UPDATES" = "アップデート";
+"Stop the timer first to install the update." = "アップデートをインストールするには、先にタイマーを止めてください。";

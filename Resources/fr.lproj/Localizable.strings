@@ -33,3 +33,5 @@
 "Time's up — your timer finished." = "Temps écoulé — votre minuteur est terminé.";
 "Otherwise the alarm rings 3 times." = "Sinon, l'alarme sonne 3 fois.";
 "%@ remaining" = "Il reste %@";
+"UPDATES" = "Mises à jour";
+"Stop the timer first to install the update." = "Arrêtez d'abord le minuteur pour installer la mise à jour.";

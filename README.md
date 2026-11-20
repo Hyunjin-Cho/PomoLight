@@ -4,7 +4,7 @@ A calm, pastel **focus timer** for macOS. Free.
 
 PomoLight is a small desk-clock-like timer: pick any number of minutes, hit Start, and a **gentle synthesized bell** chimes when time's up. The whole UI is soft pastel, and you can switch the accent color live (8 built-in soft pastel themes). Light & dark mode and a live menu-bar countdown.
 
-> Native SwiftUI · macOS 14+ (built on macOS 26 / Xcode 26) · Apple Silicon · zero third-party dependencies.
+> Native SwiftUI · macOS 14+ (built on macOS 26 / Xcode 26) · Apple Silicon · zero third-party dependencies (in-app updates use [OnePercent](https://github.com/Hyunjin-Cho/OnePercent), the same author's MIT package) · MIT licensed.
 
 ---
 
@@ -19,6 +19,8 @@ PomoLight is a small desk-clock-like timer: pick any number of minutes, hit Star
 - 🪟 **Compact, fixed window** — a timer never needs to grow, so the window is capped at a tidy size (no ballooning / full screen); you can still shrink it.
 - 🌍 **29 languages** — the UI follows the system language: English, Korean, Japanese, Chinese (Simp/Trad), Thai, Vietnamese, Indonesian, Malay, Filipino, German, French, Italian, Spanish, Portuguese (PT/BR), Dutch, Swedish, Norwegian, Danish, Finnish, Polish, Russian, Ukrainian, Czech, Turkish, Greek, Romanian, Hungarian.
 - ♿ **Accessible** — WCAG-checked contrast (timer digits ≥ 7:1 in every theme), VoiceOver labels, Reduce Motion support, keyboard shortcuts.
+- ⚙️ **Settings on one sheet** — everything at a glance in a two-column sheet, nothing to scroll (2026-11-20, #72).
+- 🔄 **Quiet in-app updates** — once a month PomoLight asks GitHub whether a newer release exists. It never pops a window over your session: a new version shows only as a line in the menu-bar popover and in Settings, and installs when you press **Install New Version** (not while a timer is running). The download must be signed by the developer's Developer ID, notarized by Apple and exactly the announced version, or nothing is replaced. The monthly check can be switched off in Settings. (2026-11-20, #73)
 - 🔗 **Developer link** — the foot of Settings shows the developer's GitHub address (`github.com/Hyunjin-Cho`). No donations: dropped 2026-11-19 (#6).
 
 Keyboard: **Space** = Start/Pause/Resume · **R** = Reset · **1–5** = presets · **⌘,** = Settings.
@@ -62,9 +64,11 @@ These are placeholders the owner needs to fill in:
 |------|-------|---------|
 | **Bundle ID** | `project.yml` → `PRODUCT_BUNDLE_IDENTIFIER` | `com.vismo.pomolight` |
 
-### Distribution (Gumroad)
-- `build_app.sh` archives and exports with your **Developer ID** (`Scripts/ExportOptions.plist`), ready for `Scripts/notarize.sh` — Gatekeeper accepts it once notarized/stapled, no right-click-Open needed.
-- For a **clean public release**, you need an **Apple Developer account ($99/yr)** to Developer-ID-sign + **notarize** (`xcrun notarytool` + `stapler staple`). Then ship the `.dmg` on Gumroad.
+### Releases (GitHub)
+2026-11-20 (#73): releases are GitHub releases of this repository — PomoLight was never sold on Gumroad, which an older version of this section described.
+- `build_app.sh` archives and exports with your **Developer ID** (`Scripts/ExportOptions.plist`); `notarize.sh` notarizes, staples and writes `dist/PomoLight_<version>.zip` (plus the `.dmg`).
+- Tag the release with the bare version (`1.1`, no `v`) and attach `PomoLight_<version>.zip` — the in-app updater looks for exactly that name. Check it first with `onepercent-check` (the command `notarize.sh` prints).
+- **Raise `CURRENT_PROJECT_VERSION` with every release**, not only `MARKETING_VERSION`: the updater refuses a download whose build number did not go up.
 
 ---
 
@@ -184,6 +188,10 @@ It runs the checks in the order that catches problems soonest:
 
 ---
 
+## Privacy
+
+PomoLight collects nothing and has no account, analytics or crash reporting. Its only network access is the update check (2026-11-20, #73): about once a month — and when you press **Check Now** — it sends an HTTPS `GET` to GitHub (`api.github.com`) for the latest release, and only after you press **Install New Version** does it download the release file from GitHub. Those requests carry three headers (`Accept`, `User-Agent: PomoLight/<version>`, `Accept-Language: en` — fixed, so your language list is not sent), no cookies and nothing about you or your timers. GitHub sees them as it sees any web request, including your IP address. Turn the monthly check off in Settings ▸ Updates.
+
 ## License
 
-PomoLight is free.
+MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Hyunjin Cho. PomoLight is free.

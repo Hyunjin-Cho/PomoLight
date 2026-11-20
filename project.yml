@@ -30,6 +30,15 @@ settings:
       CODE_SIGN_IDENTITY: "Apple Development"
       DEVELOPMENT_TEAM: 6RH6FXY82P
 
+# 2026-11-20 (#73): in-app updates. OnePercent is the owner's own updater (MIT, the
+# HaneulKeyboard updater generalised) — first-party source, no binaries, so the
+# "zero third-party dependencies" line in the README still holds. Pinned to an exact
+# tag: an updater changes only when we decide to move it.
+packages:
+  OnePercent:
+    url: https://github.com/Hyunjin-Cho/OnePercent
+    exactVersion: 0.1.0
+
 targets:
   PomoLight:
     type: application
@@ -37,6 +46,8 @@ targets:
     sources:
       - path: Sources
       - path: Resources
+    dependencies:
+      - package: OnePercent
     settings:
       base:
         PRODUCT_NAME: PomoLight
@@ -53,10 +64,16 @@ targets:
       path: Sources/Info.plist
       properties:
         CFBundleDisplayName: PomoLight
+        # 2026-11-20 (#73): the version now comes from MARKETING_VERSION /
+        # CURRENT_PROJECT_VERSION above. XcodeGen used to write a literal 1.0 / 1 here,
+        # so changing the build settings did not change the app. The updater compares
+        # both, and refuses a release whose CFBundleVersion did not go up.
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         LSApplicationCategoryType: "public.app-category.productivity"
         LSMinimumSystemVersion: "$(MACOSX_DEPLOYMENT_TARGET)"
         LSUIElement: NO
-        NSHumanReadableCopyright: "© 2026 PomoLight. Free & donation-supported."
+        NSHumanReadableCopyright: "© 2026 Hyunjin Cho. Free, MIT licensed."
         NSPrincipalClass: NSApplication
         # The pomolight:// scheme is gone with the widget: nothing else ever
         # opened it (the widget body used it as its tap target).

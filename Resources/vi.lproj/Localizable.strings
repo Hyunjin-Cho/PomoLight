@@ -33,3 +33,5 @@
 "Time's up — your timer finished." = "Hết giờ — bộ đếm của bạn đã kết thúc.";
 "Otherwise the alarm rings 3 times." = "Nếu tắt, chuông báo sẽ reo 3 lần.";
 "%@ remaining" = "Còn lại %@";
+"UPDATES" = "Cập nhật";
+"Stop the timer first to install the update." = "Hãy dừng bộ đếm trước để cài bản cập nhật.";

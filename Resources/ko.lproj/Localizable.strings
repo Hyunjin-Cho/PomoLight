@@ -33,3 +33,5 @@
 "Time's up — your timer finished." = "시간이 다 됐어요 — 타이머가 끝났습니다.";
 "Otherwise the alarm rings 3 times." = "끄면 종료 알람이 3번 울리고 멈춰요.";
 "%@ remaining" = "%@ 남음";
+"UPDATES" = "업데이트";
+"Stop the timer first to install the update." = "업데이트를 설치하려면 먼저 타이머를 멈춰 주세요.";

@@ -1,4 +1,5 @@
 import SwiftUI
+import OnePercent
 
 enum WindowID {
     static let main = "main"
@@ -7,7 +8,15 @@ enum WindowID {
 @main
 struct PomoLightApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @State private var model = AppModel()
+    @State private var model: AppModel
+
+    init() {
+        let model = AppModel()
+        _model = State(initialValue: model)
+        // 2026-11-20 (#73): updates start with the app, not with the window — the window
+        // can be closed while the app stays in the menu bar.
+        PomoLightUpdates.start(model: model)
+    }
 
     var body: some Scene {
         // A single, reopenable window (so "Open PomoLight" from the menu bar can
@@ -56,5 +65,6 @@ extension View {
             .environment(model.engine)
             .environment(model.theme)
             .environment(model.settings)
+            .environment(PomoLightUpdates.shared)
     }
 }
