@@ -85,7 +85,12 @@ struct DurationPickerView: View {
 
     private func stepperField(value: Binding<Int>, field: Field, range: ClosedRange<Int>,
                               width: CGFloat, label: LocalizedStringKey) -> some View {
-        HStack(spacing: 6) {
+        // 2026-11-20 (#70 F-8): VoiceOver read these as "Remove" / "Add" — the names SwiftUI takes
+        // from the minus/plus symbols (measured through the AX API) — the same for the minutes and
+        // the seconds pair, and "Remove" next to a duration sounds like deleting something.
+        let less: LocalizedStringKey = field == .minutes ? "One minute less" : "One second less"
+        let more: LocalizedStringKey = field == .minutes ? "One minute more" : "One second more"
+        return HStack(spacing: 6) {
             CircleIconButton(systemName: "minus", tint: palette.secondaryText,
                              soft: palette.accentSoft, size: 28,
                              font: .system(size: 12, weight: .bold)) {
@@ -93,6 +98,7 @@ struct DurationPickerView: View {
                 pushToEngine()
                 persistChosenDuration()
             }
+            .accessibilityLabel(less)
             VStack(spacing: 0) {
                 TextField("", value: value, format: .number)
                     .focused($focusedField, equals: field)
@@ -102,6 +108,7 @@ struct DurationPickerView: View {
                     .foregroundStyle(palette.primaryText)
                     .frame(width: width)
                     .onChange(of: value.wrappedValue) { _, _ in pushToEngine() }
+                    .accessibilityLabel(label)   // "min" / "sec" — the field had no name at all
                 Text(label)
                     .font(.system(size: 11, weight: .regular, design: .rounded))
                     .foregroundStyle(palette.secondaryText)
@@ -116,6 +123,7 @@ struct DurationPickerView: View {
                 pushToEngine()
                 persistChosenDuration()
             }
+            .accessibilityLabel(more)
         }
     }
 
