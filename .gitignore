@@ -22,3 +22,6 @@ dist/*.zip
 
 # Xcode-exported notarized app (lives in repo root after Organizer export)
 /PomoLight.app
+
+# Local build tools (dmgbuild venv — Scripts/make_dmg.sh, 2026-11-22 #11)
+.tools/

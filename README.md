@@ -40,7 +40,7 @@ Then press ⌘R. (To archive for distribution: Product → Archive.)
 ```bash
 ./Scripts/install_local.sh   # build, sign, install to /Applications, clean up
 ./Scripts/build_app.sh       # just the Release build → dist/PomoLight.app + .zip
-./Scripts/make_dmg.sh        # optional: dist/PomoLight.dmg (drag-to-Applications)
+./Scripts/make_dmg.sh        # dist/PomoLight.dmg — the install window (notarize.sh runs it for you)
 ```
 
 > Use `install_local.sh` to update your own copy. Every build drops a
@@ -66,7 +66,8 @@ These are placeholders the owner needs to fill in:
 
 ### Releases (GitHub)
 2026-11-20 (#73): releases are GitHub releases of this repository — PomoLight was never sold on Gumroad, which an older version of this section described.
-- `build_app.sh` archives and exports with your **Developer ID** (`Scripts/ExportOptions.plist`); `notarize.sh` notarizes, staples and writes `dist/PomoLight_<version>.zip` (plus the `.dmg`).
+- `build_app.sh` archives and exports with your **Developer ID** (`Scripts/ExportOptions.plist`); `notarize.sh` notarizes, staples and writes `dist/PomoLight_<version>.zip`, then runs `make_dmg.sh` for `dist/PomoLight.dmg`.
+- 2026-11-22 (#11): the DMG opens as an install window — a background with "drag the icon into Applications" in Korean and English, the app and an Applications link side by side, and a reminder to move it before opening. It is drawn by `Scripts/dmg/background.swift` and laid out by [dmgbuild](https://github.com/dmgbuild/dmgbuild) (`Scripts/dmg/settings.py`), because on macOS 27 Finder silently ignores a background set by AppleScript. The DMG itself is signed and notarized too. One-time setup: `python3 -m venv .tools/venv && .tools/venv/bin/python -m pip install "dmgbuild>=1.6.7"`.
 - Tag the release with the bare version (`1.1`, no `v`) and attach `PomoLight_<version>.zip` — the in-app updater looks for exactly that name. Check it first with `onepercent-check` (the command `notarize.sh` prints).
 - **Raise `CURRENT_PROJECT_VERSION` with every release**, not only `MARKETING_VERSION`: the updater refuses a download whose build number did not go up.
 
