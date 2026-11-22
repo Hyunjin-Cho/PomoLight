@@ -88,8 +88,9 @@ final class SettingsStore {
         defaults.set(value, forKey: key)
     }
 
-    /// Stop writing. There is no way back on purpose — the only caller is the
-    /// uninstaller, and the process is about to end.
+    /// Stop writing. There is no way back on purpose — the callers are the
+    /// uninstaller, whose process is about to end, and (2026-11-22, #16) the DEBUG
+    /// check launches, which must not write the owner's real preferences.
     func stopPersisting() { persists = false }
 
     init(defaults: UserDefaults = .standard) {

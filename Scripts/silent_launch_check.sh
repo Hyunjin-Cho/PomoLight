@@ -52,6 +52,11 @@ MIN_PNG_BYTES=20480
 # The log is queried by PID, so the window must start BEFORE the process does or
 # a fast exit can leave the query looking at the wrong slice of time.
 START="$(date '+%Y-%m-%d %H:%M:%S')"
+# 2026-11-22 (#16): this launch once wrote `pl.showInMenuBar` into the owner's real
+# preferences. Fingerprinted through cfprefsd (`defaults export`), not the file — the
+# file is written seconds later, which is how the write surfaced in the NEXT check.
+real_prefs() { defaults export com.vismo.pomolight - 2>/dev/null | shasum | cut -c1-12; }
+REAL_BEFORE=$(real_prefs)
 POMO_SNAPSHOT="$SHOTS" "$APP" >/dev/null 2>"$SHOTS/stderr.txt" &
 PID=$!
 echo "▸ Launched PID $PID (offscreen snapshot mode)…"
@@ -71,6 +76,14 @@ if [ "$EXIT_CODE" -ne 0 ]; then
   echo "   It did not get far enough to make a sound, which is why the audio check"
   echo "   below would have passed. Something is wrong at startup, not with audio."
   [ -s "$SHOTS/stderr.txt" ] && { echo; sed -n '1,15p' "$SHOTS/stderr.txt"; }
+  exit 1
+fi
+
+if [ "$(real_prefs)" != "$REAL_BEFORE" ]; then
+  echo "❌ FAIL — the snapshot run changed the real preferences (com.vismo.pomolight):"
+  defaults export com.vismo.pomolight - 2>/dev/null | plutil -p - | sed 's/^/     /'
+  echo "   A check launch must leave them alone. (If the real PomoLight was running and"
+  echo "   you changed a setting during the check, run it again.)"
   exit 1
 fi
 

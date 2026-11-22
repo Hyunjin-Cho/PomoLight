@@ -61,10 +61,14 @@ trap cleanup EXIT
 # Fingerprint the tester's real install before touching anything. The self-test
 # runs the real code, so "it did not reach past its substituted targets" is the
 # claim that most needs proving.
-REAL_PLIST="$HOME/Library/Preferences/com.vismo.pomolight.plist"
+# 2026-11-22 (#16): this used to fingerprint the plist FILE (mtime + size). cfprefsd
+# writes that file seconds after the fact, so a write made by an earlier check — the
+# snapshot run in silent_launch_check.sh, measured — could land on disk during this
+# one and fail it, while a write made by this check could land after it had passed.
+# `defaults export` reads through cfprefsd, so it sees a write the moment it is made.
 real_state() {
   printf '%s|%s' \
-    "$(stat -f '%m %z' "$REAL_PLIST" 2>/dev/null || echo absent)" \
+    "$(defaults export com.vismo.pomolight - 2>/dev/null | shasum | cut -c1-12)" \
     "$([ -d /Applications/PomoLight.app ] && echo installed || echo absent)"
 }
 BEFORE=$(real_state)
@@ -73,23 +77,41 @@ cp -R "$APP_SRC" "$APP"
 echo "▸ Throwaway app:   $APP"
 echo "▸ Throwaway suite: $SUITE"
 
-# Run it in the foreground and wait — the app performs the uninstall and exits.
-POMO_UNINSTALL_SELFTEST="$SUITE" "$APP/Contents/MacOS/PomoLight" >/dev/null 2>"$WORK/stderr.txt"
-STATUS=$?
-if [ "$STATUS" -ne 0 ]; then
-  echo "❌ FAIL — the app exited $STATUS instead of performing the uninstall."
-  [ -s "$WORK/stderr.txt" ] && sed -n '1,10p' "$WORK/stderr.txt"
-  exit 1
-fi
-grep -q "SELFTEST performed" "$WORK/stderr.txt" || {
-  echo "❌ FAIL — the app exited cleanly without running the self-test."
+# Launch it the way people do — through Launch Services, with `open` — and wait for
+# it to exit; the app performs the uninstall and quits.
+# 🚨 2026-11-22 (#16): this used to run the binary directly, and that hid a real bug.
+# Opened from Finder, the Dock or `open`, the app is a launchd job, and launchd sends
+# SIGTERM to whatever the job leaves behind, a fraction of a second after it exits —
+# the detached cleanup shell included, which then died before its `rm`, leaving an
+# empty preferences file behind on 3 of 4 real removals. Run directly, there is no
+# job and no SIGTERM, so this check passed every time.
+# `open -W` does not pass the exit status through, so success is the app's own
+# "SELFTEST performed" line, and every failure path writes its reason to stderr.
+open -n -W --env "POMO_UNINSTALL_SELFTEST=$SUITE" --stdout /dev/null --stderr "$WORK/stderr.txt" "$APP"
+grep -q "SELFTEST performed" "$WORK/stderr.txt" 2>/dev/null || {
+  echo "❌ FAIL — the app quit without performing the self-test."
   echo "   (POMO_UNINSTALL_SELFTEST is DEBUG-only; a Release build cannot be checked.)"
+  [ -s "$WORK/stderr.txt" ] && sed -n '1,10p' "$WORK/stderr.txt"
   exit 1
 }
 
-# The detached cleanup waits for the process, stops cfprefsd, then deletes. Give it
-# room: the two sleeps inside it are half a second each.
-sleep 4
+# Do what launchd does, without the race. Measured: the SIGTERM reached the shell
+# 0.6 s after a real quit, but about a second after this self-test's quicker exit —
+# just after its `rm` — so even launched with `open` the old cleanup still passed
+# here. Sending it ourselves the moment the app is gone makes the check independent
+# of that timing. The shell is found by the suite name in its command line (it holds
+# the paths it will delete), which is unique to this run.
+# Negative-tested 2026-11-22: with the cleanup as it was before #16, this fails.
+if ! pkill -TERM -f "$SUITE.plist"; then
+  echo "❌ FAIL — no cleanup shell was running when the app quit, so nothing would"
+  echo "   remove what cfprefsd writes back."
+  exit 1
+fi
+
+# The detached cleanup waits for the process, stops cfprefsd, then deletes — about a
+# second. Wait well past the moment the bug shows: left alone, cfprefsd writes the
+# emptied domain back as a 42-byte file about 3 s after the app exits (measured).
+sleep 6
 
 FAILED=0
 
