@@ -5,6 +5,9 @@ import AppKit
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // 2026-11-22 (#14): quitting closes the settings sheet first — without it, quit was ignored
+        // while the sheet was open (Remove PomoLight left the app running). See QuitClosesSheets.
+        QuitClosesSheets.install()
         #if DEBUG
         Snapshot.runIfRequested()
         Uninstaller.runSelfTestIfRequested()

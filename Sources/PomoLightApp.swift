@@ -16,6 +16,8 @@ struct PomoLightApp: App {
         // 2026-11-20 (#73): updates start with the app, not with the window — the window
         // can be closed while the app stays in the menu bar.
         PomoLightUpdates.start(model: model)
+        // 2026-11-22 (#14): quitting closes the settings sheet first, through the app's own state.
+        QuitClosesSheets.dismissSettings = { model.showSettings = false }
     }
 
     var body: some Scene {
