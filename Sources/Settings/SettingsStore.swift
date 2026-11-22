@@ -98,7 +98,8 @@ final class SettingsStore {
             Key.lastDurationMinutes: 30.0,
             Key.selectedThemeID: "coral",
             Key.alarmSound: AlarmSound.marimba.rawValue,
-            Key.alarmVolume: 0.7,
+            // 2026-11-22 (#9): 0.7 → 0.5, owner's call — the slider stays (it is the only way to quiet or mute just the alarm).
+            Key.alarmVolume: 0.5,
             Key.repeatUntilDismissed: false,
             Key.showInMenuBar: true,
             Key.keepAwake: false,
