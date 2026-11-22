@@ -197,7 +197,7 @@ It runs the checks in the order that catches problems soonest:
 
 - **State** — three `@Observable @MainActor` stores injected via `.environment`: `TimerEngine` (deadline-based countdown state machine), `ThemeStore` (the active preset theme, switched live), `SettingsStore` (typed UserDefaults). `AppModel` wires the "timer finished" behavior (chime + notification + window-raise).
 - **Timer** — stores an absolute `deadline: Date`; remaining/ring are derived from the wall clock inside a `TimelineView(.animation)` whose redraw cadence comes from `DialFrameRate` — 30 / 12 / 6 / 2 fps, chosen from how fast the ring is actually moving — while a 0.2 s ticker + wake/active observers catch the zero crossing.
-- **Audio** — `BellSynth` renders a soft additive-synthesis bell into a PCM buffer; `ChimePlayer` plays it via `AVAudioEngine`/`AVAudioPlayerNode`.
+- **Audio** — `BellSynth` renders the five alarm voices into PCM buffers, built from the blocks in `AlarmDSP` (models of struck and plucked objects, a filtered-saw pad) and levelled to one loudness; `ChimePlayer` plays them through `AVAudioEngine`/`AVAudioPlayerNode`, and builds that graph only when a sound is about to play.
 - **Color/contrast** — `Color+Contrast.swift` enforces WCAG floors (timer text 7:1, body 4.5:1, ring 3:1) by nudging colors toward ink/white only as much as needed; the user's accent never colors the timer digits.
 
 ---

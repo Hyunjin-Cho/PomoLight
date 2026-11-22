@@ -44,9 +44,11 @@ enum Snapshot {
 
     private static let specs: [Spec] = [
         Spec(name: "01_idle_sky_light", themeID: "sky", scheme: .light, phase: .idle),
-        Spec(name: "02_running_lime_light", themeID: "lime", scheme: .light, phase: .running),
+        // 2026-11-22 (#19): 02 and 04 were "lime" and "rose", ids the eight-preset palette no longer
+        // has, so both silently rendered the default (coral) under the wrong name. render() now refuses.
+        Spec(name: "02_running_green_light", themeID: "green", scheme: .light, phase: .running),
         Spec(name: "03_running_violet_dark", themeID: "violet", scheme: .dark, phase: .running),
-        Spec(name: "04_finished_rose_light", themeID: "rose", scheme: .light, phase: .finished),
+        Spec(name: "04_finished_pink_light", themeID: "pink", scheme: .light, phase: .finished),
         Spec(name: "05_settings_mint_light", themeID: "mint", scheme: .light, phase: .settings),
         Spec(name: "06_idle_yellow_light", themeID: "yellow", scheme: .light, phase: .idle),
     ]
@@ -61,6 +63,13 @@ enum Snapshot {
     /// A pleasant side effect: every spec now renders from registered defaults, so
     /// snapshots look the same on any machine instead of mirroring whoever ran them.
     static func render(into dir: String) {
+        // A spec naming a theme that is not a preset would quietly render the default under
+        // a misleading file name. Exit non-zero instead, so silent_launch_check.sh fails.
+        for spec in specs where Theme.preset(id: spec.themeID) == nil {
+            FileHandle.standardError.write(
+                "PomoLight snapshot \(spec.name) names theme \"\(spec.themeID)\", which is not a preset\n".data(using: .utf8)!)
+            exit(5)
+        }
         let suiteName = "pl.snapshot.\(UUID().uuidString)"
         guard let scratchDefaults = UserDefaults(suiteName: suiteName) else {
             FileHandle.standardError.write(

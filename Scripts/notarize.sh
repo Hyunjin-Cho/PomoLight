@@ -47,6 +47,14 @@ RELEASE_ZIP="PomoLight_${VERSION}.zip"
 # Clean loose .app copies so Spotlight/the app launcher only ever sees the one
 # in /Applications (duplicates here made the launcher list PomoLight 2-3 times).
 echo "▸ Cleaning loose app copies (zip/dmg keep the distributable)…"
+# 2026-11-22 (#19): unregister them from Launch Services first, as install_local.sh does. Deleting
+# alone left the archive's intermediate copy
+# (build-release/…/InstallationBuildProductsLocation/Applications/PomoLight.app) registered with no
+# folder behind it — seen after two notarize runs. Found rather than listed: those paths are xcodebuild's.
+LSREG=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
+{ find dist build-release -name PomoLight.app -type d -prune 2>/dev/null || true; } | while IFS= read -r p; do
+  "$LSREG" -u "$PWD/$p" >/dev/null 2>&1 || true
+done
 rm -rf dist/PomoLight.app build-release
 
 echo "✅ Notarized & stapled — PomoLight ${VERSION} (build ${BUILD})."
