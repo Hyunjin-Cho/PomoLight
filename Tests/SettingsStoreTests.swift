@@ -39,7 +39,7 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertEqual(s.lastDurationMinutes, 30, accuracy: 0.001)
         XCTAssertEqual(s.selectedThemeID, "coral")
         XCTAssertEqual(s.alarmSound, .marimba)
-        XCTAssertEqual(s.alarmVolume, 0.7, accuracy: 0.001)
+        XCTAssertEqual(s.alarmVolume, 0.5, accuracy: 0.001)
         XCTAssertFalse(s.repeatUntilDismissed)
         XCTAssertTrue(s.showInMenuBar, "the menu bar is on out of the box")
         XCTAssertFalse(s.keepAwake)

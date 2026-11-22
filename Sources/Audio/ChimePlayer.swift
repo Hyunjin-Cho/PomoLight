@@ -33,7 +33,7 @@ final class ChimePlayer {
     private static let ringsWhenNotRepeating = 3
     private var ringsLeft = 0
     private var alarmSound: AlarmSound = .marimba
-    private var alarmVolume: Double = 0.7
+    private var alarmVolume: Double = 0.5   // same as the settings default (2026-11-22, #9)
 
     /// How long after the last sound has rung out the engine is switched off. Long
     /// enough that auditioning one voice after another in the settings panel does
