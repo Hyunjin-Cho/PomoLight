@@ -45,11 +45,13 @@ echo
 echo "▸ Removing the in-project copies (this is the whole point)…"
 # Unregister BEFORE deleting: lsregister -u needs the bundle to still be there to
 # identify it. A path that is already gone stays in the database forever.
-for p in dist/PomoLight.app \
-         build-release/export/PomoLight.app \
-         build-release/PomoLight.xcarchive/Products/Applications/PomoLight.app \
-         build/Build/Products/Debug/PomoLight.app; do
-  [ -d "$p" ] && "$LSREG" -u "$PWD/$p" >/dev/null 2>&1 || true
+# 2026-11-22 (#19): on macOS 27.2 `-u` also removed three entries whose folders were
+# already gone (measured), so "forever" no longer holds there — unregistering first is
+# still the order that does not depend on it. The paths are now found rather than
+# listed: the list missed the archive's intermediate copy
+# (build-release/…/InstallationBuildProductsLocation/Applications/PomoLight.app).
+{ find dist build-release build -name PomoLight.app -type d -prune 2>/dev/null || true; } | while IFS= read -r p; do
+  "$LSREG" -u "$PWD/$p" >/dev/null 2>&1 || true
 done
 rm -rf build build-release dist
 # Spotlight needs a moment to notice the deletions before we count.

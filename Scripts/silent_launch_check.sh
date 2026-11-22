@@ -12,10 +12,13 @@
 # constructs the app — so it took a human noticing a noise, twice.
 #
 # The check runs the DEBUG snapshot renderer (POMO_SNAPSHOT), which is a real
-# launch of the real binary: it builds six AppModels, and therefore six
-# ChimePlayers, renders offscreen and terminates itself. `debugForceFinish()`
-# sets the finished phase WITHOUT calling onFinish, so nothing legitimately plays
-# — every CoreAudio event this sees is a regression.
+# launch of the real binary: the app's own AppModel — and with it the one real
+# ChimePlayer — comes up as it does for a person, six screens render offscreen,
+# and the app terminates itself. (2026-11-22, #19: this said "six AppModels, and
+# therefore six ChimePlayers"; since 2026-08-21 the six snapshot models use
+# InertAlarm, so the app's own player is the one being checked.)
+# `debugForceFinish()` sets the finished phase WITHOUT calling onFinish, so nothing
+# legitimately plays — every CoreAudio event this sees is a regression.
 #
 #   bash Scripts/silent_launch_check.sh
 set -euo pipefail
@@ -167,7 +170,7 @@ echo
 echo "   Something now opens the output device before any sound is meant to play."
 echo "   On this hardware that is an audible click on every launch. Look for a"
 echo "   reference to AVAudioEngine's outputNode / mainMixerNode that runs outside"
-echo "   ChimePlayer.prepareGraphIfNeeded() — merely TOUCHING mainMixerNode opens"
+echo "   ChimePlayer.graph() — merely TOUCHING mainMixerNode opens"
 echo "   the device, no start() required."
 echo
 printf '%s\n' "$FOUND" | sed -n '2,9p'
