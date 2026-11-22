@@ -47,11 +47,9 @@ enum PomoLightUpdates {
     /// update, refuse installs during a session, and start the monthly check.
     static func start(model: AppModel) {
         #if DEBUG
-        // The snapshot renderer and the uninstall self-test are real launches that must
-        // leave no trace (see Snapshot.swift): no network, nothing written to the
-        // owner's preferences.
-        let environment = ProcessInfo.processInfo.environment
-        if environment["POMO_SNAPSHOT"] != nil || environment["POMO_UNINSTALL_SELFTEST"] != nil { return }
+        // The check launches are real launches that must leave no trace (see CheckLaunch):
+        // no network, nothing written to the owner's preferences.
+        if CheckLaunch.isActive { return }
         #endif
         let updater = shared
         updater.noteLaunch()

@@ -13,16 +13,15 @@ struct PomoLightApp: App {
     init() {
         let model = AppModel()
         #if DEBUG
-        // 2026-11-22 (#16): the snapshot renderer and the uninstall self-test launch this same
-        // app, its own model and menu-bar scene included, and SwiftUI writes `pl.showInMenuBar`
-        // through the menu-bar binding — into the owner's real preferences (measured: one
+        // 2026-11-22 (#16): the check launches (see CheckLaunch) build this same app, its own
+        // model and menu-bar scene included, and SwiftUI writes `pl.showInMenuBar` through the
+        // menu-bar binding — into the owner's real preferences (measured: one
         // silent_launch_check run added it to an empty domain). cfprefsd puts that on disk
         // seconds later, so it also failed the NEXT check's "real install untouched" test.
         // Those runs work on throwaway suites of their own; the real model only reads.
-        let environment = ProcessInfo.processInfo.environment
-        if environment["POMO_SNAPSHOT"] != nil || environment["POMO_UNINSTALL_SELFTEST"] != nil {
-            model.settings.stopPersisting()
-        }
+        if CheckLaunch.isActive { model.settings.stopPersisting() }
+        // 2026-11-22 (#17): quit_check.sh opens the settings sheet through the same state.
+        QuitSelfTest.openSettings = { model.showSettings = true }
         #endif
         _model = State(initialValue: model)
         // 2026-11-20 (#73): updates start with the app, not with the window — the window

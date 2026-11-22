@@ -167,6 +167,14 @@ It runs the checks in the order that catches problems soonest:
   ```bash
   bash Scripts/uninstall_check.sh
   ```
+- **Quit with the settings sheet open** — opens a throwaway copy with its settings
+  sheet up and quits it twice, once from inside (what ⌘Q, Remove PomoLight… and an
+  update install do) and once with the quit Apple Event (what the Dock and logging
+  out do). With the sheet open macOS once refused to quit at all, and nothing above
+  ever opened the sheet:
+  ```bash
+  bash Scripts/quit_check.sh
+  ```
 - **Silent launch** — starts the real binary in offscreen snapshot mode and checks
   that it exits cleanly, leaves your real settings alone, actually renders its
   screens, and opens the audio device zero times (which on some hardware is an

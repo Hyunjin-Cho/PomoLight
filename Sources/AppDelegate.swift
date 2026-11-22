@@ -11,6 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #if DEBUG
         Snapshot.runIfRequested()
         Uninstaller.runSelfTestIfRequested()
+        QuitSelfTest.runIfRequested()
         #endif
         // Become the active app so the window is key and controls respond to the
         // very first click (otherwise the first click only focuses the window).
