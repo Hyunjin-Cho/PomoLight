@@ -135,7 +135,18 @@ enum Uninstaller {
         // `pl.showInMenuBar` that SwiftUI wrote while tearing the menu-bar scene
         // down) and once deliberately, by putting the old order back and watching
         // `Scripts/uninstall_check.sh` fail. Stop the cache first, delete second.
+        //
+        // 🚨 2026-11-22 (#16): `trap '' TERM` keeps this shell alive long enough to do it.
+        // Opened the normal way (Finder, Dock, `open`), the app is a launchd job, and when
+        // it exits launchd sends SIGTERM to what the job left behind — this shell too,
+        // though it has its own process group and launchd is already its parent. Measured:
+        // the signal arrived 0.6 s after the app quit, before `rm`, and cfprefsd then wrote
+        // the emptied domain back as a 42-byte file about 3 s later — an empty
+        // preferences file left behind on 3 of 4 real removals. With TERM ignored the
+        // shell ran on for 25 s untouched (no SIGKILL followed) and the file went.
+        // The check missed it because it ran the binary directly, outside any launchd job.
         let script = """
+        trap '' TERM
         while kill -0 \(pid) 2>/dev/null; do sleep 0.2; done
         sleep 0.5
         killall cfprefsd 2>/dev/null

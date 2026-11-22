@@ -160,17 +160,19 @@ It runs the checks in the order that catches problems soonest:
   ```
 - **Uninstall** — the in-app "Remove PomoLight…" is the one feature that cannot be
   tried by hand without cost, so it is driven against a throwaway copy of the app
-  and a throwaway preferences suite. It checks the app reaches the Trash (not
-  oblivion), the settings file goes AND stays gone, and your own install is
-  untouched:
+  and a throwaway preferences suite. The copy is opened the way Finder opens it, so
+  what macOS does to an app's leftovers at quit is part of the test. It checks the
+  app reaches the Trash (not oblivion), the settings file goes AND stays gone, and
+  your own install is untouched:
   ```bash
   bash Scripts/uninstall_check.sh
   ```
 - **Silent launch** — starts the real binary in offscreen snapshot mode and checks
-  three things: it exits cleanly, it actually rendered its screens, and it opened
-  the audio device zero times (which on some hardware is an audible click on every
-  launch). The first two matter because an app that CRASHES on launch also makes no
-  sound — without them a dead app scored a clean pass:
+  that it exits cleanly, leaves your real settings alone, actually renders its
+  screens, and opens the audio device zero times (which on some hardware is an
+  audible click on every launch). The exit and the renders matter because an app
+  that CRASHES on launch also makes no sound — without them a dead app scored a
+  clean pass:
   ```bash
   bash Scripts/silent_launch_check.sh
   ```
