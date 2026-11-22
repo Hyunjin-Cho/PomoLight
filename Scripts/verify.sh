@@ -78,6 +78,10 @@ stage "Contrast audit (every theme x light/dark)" bash Scripts/contrast_audit.sh
 # a foreground, each invisible on every theme (2026-08-21).
 stage "Palette roles (no FILL colour drawn as a foreground)" bash Scripts/palette_role_check.sh
 stage "Silent launch (starting the app must not open the audio device)" needs_fresh_app bash Scripts/silent_launch_check.sh
+# 2026-11-22 (#17): with the settings sheet open the app refused to quit (#14), and every
+# stage here passed — none of them ever opened the sheet. This one does, then quits it
+# both ways: from inside (⌘Q, Remove, update install) and by Apple Event (Dock, logout).
+stage "Quit with the settings sheet open" needs_fresh_app bash Scripts/quit_check.sh
 # Last, because it needs the Debug build the first stage produced. Uninstalling is
 # the one feature nobody can rehearse by hand — every try costs the tester their
 # own install — so it is checked against a throwaway copy instead (#52).
