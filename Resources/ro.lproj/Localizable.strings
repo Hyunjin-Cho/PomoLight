@@ -46,6 +46,8 @@
 "Cancel" = "Anulează";
 "PomoLight could not be moved to the Trash" = "PomoLight nu a putut fi mutat la Coș";
 "Nothing was removed. You can move it yourself:" = "Nu s-a eliminat nimic. Îl poți muta singur:";
+"PomoLight can't be removed right now" = "PomoLight nu poate fi eliminat acum";
+"An update is being installed. Nothing was removed. Try again once it has finished." = "Se instalează o actualizare. Nu s-a eliminat nimic. Încearcă din nou după ce se termină.";
 "Show in Finder" = "Afișează în Finder";
 "OK" = "OK";
 "One minute less" = "Cu un minut mai puțin";

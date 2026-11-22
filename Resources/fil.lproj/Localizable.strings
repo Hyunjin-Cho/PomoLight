@@ -46,6 +46,8 @@
 "Cancel" = "Kanselahin";
 "PomoLight could not be moved to the Trash" = "Hindi mailipat ang PomoLight sa Trash";
 "Nothing was removed. You can move it yourself:" = "Walang inalis. Maaari mo itong ilipat nang mano-mano:";
+"PomoLight can't be removed right now" = "Hindi maaalis ang PomoLight sa ngayon";
+"An update is being installed. Nothing was removed. Try again once it has finished." = "May ini-install na update. Walang inalis. Subukan ulit kapag tapos na ito.";
 "Show in Finder" = "Ipakita sa Finder";
 "OK" = "OK";
 "One minute less" = "Bawasan ng 1 minuto";

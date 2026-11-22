@@ -46,6 +46,8 @@
 "Cancel" = "Скасувати";
 "PomoLight could not be moved to the Trash" = "Не вдалося перемістити PomoLight у Смітник";
 "Nothing was removed. You can move it yourself:" = "Нічого не видалено. Можна перемістити його вручну:";
+"PomoLight can't be removed right now" = "Зараз не можна видалити PomoLight";
+"An update is being installed. Nothing was removed. Try again once it has finished." = "Установлюється оновлення. Нічого не видалено. Спробуйте ще раз, коли встановлення завершиться.";
 "Show in Finder" = "Показати у Finder";
 "OK" = "OK";
 "One minute less" = "На хвилину менше";

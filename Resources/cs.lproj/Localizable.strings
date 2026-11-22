@@ -46,6 +46,8 @@
 "Cancel" = "Zrušit";
 "PomoLight could not be moved to the Trash" = "PomoLight se nepodařilo přesunout do koše";
 "Nothing was removed. You can move it yourself:" = "Nic nebylo odstraněno. Můžete ho přesunout sami:";
+"PomoLight can't be removed right now" = "PomoLight teď nelze odstranit";
+"An update is being installed. Nothing was removed. Try again once it has finished." = "Instaluje se aktualizace. Nic nebylo odstraněno. Zkuste to znovu, až instalace skončí.";
 "Show in Finder" = "Zobrazit ve Finderu";
 "OK" = "OK";
 "One minute less" = "O minutu méně";

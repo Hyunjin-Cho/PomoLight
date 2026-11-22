@@ -46,6 +46,8 @@
 "Cancel" = "Ακύρωση";
 "PomoLight could not be moved to the Trash" = "Δεν ήταν δυνατή η μεταφορά του PomoLight στον Κάδο";
 "Nothing was removed. You can move it yourself:" = "Δεν αφαιρέθηκε τίποτα. Μπορείτε να το μετακινήσετε μόνοι σας:";
+"PomoLight can't be removed right now" = "Δεν είναι δυνατή η αφαίρεση του PomoLight αυτή τη στιγμή";
+"An update is being installed. Nothing was removed. Try again once it has finished." = "Εγκαθίσταται μια ενημέρωση. Δεν αφαιρέθηκε τίποτα. Δοκιμάστε ξανά όταν ολοκληρωθεί.";
 "Show in Finder" = "Εμφάνιση στο Finder";
 "OK" = "OK";
 "One minute less" = "Ένα λεπτό λιγότερο";

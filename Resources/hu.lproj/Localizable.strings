@@ -46,6 +46,8 @@
 "Cancel" = "Mégsem";
 "PomoLight could not be moved to the Trash" = "A PomoLightot nem sikerült a Kukába helyezni";
 "Nothing was removed. You can move it yourself:" = "Semmi sem lett eltávolítva. Saját kezűleg is áthelyezheti:";
+"PomoLight can't be removed right now" = "A PomoLight most nem távolítható el";
+"An update is being installed. Nothing was removed. Try again once it has finished." = "Frissítés telepítése van folyamatban. Semmi sem lett eltávolítva. Próbálja újra, ha befejeződött.";
 "Show in Finder" = "Megjelenítés a Finderben";
 "OK" = "OK";
 "One minute less" = "Egy perccel kevesebb";

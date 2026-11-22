@@ -46,6 +46,8 @@
 "Cancel" = "Vazgeç";
 "PomoLight could not be moved to the Trash" = "PomoLight Çöp Sepeti'ne taşınamadı";
 "Nothing was removed. You can move it yourself:" = "Hiçbir şey kaldırılmadı. Kendiniz taşıyabilirsiniz:";
+"PomoLight can't be removed right now" = "PomoLight şu anda kaldırılamıyor";
+"An update is being installed. Nothing was removed. Try again once it has finished." = "Bir güncelleme yükleniyor. Hiçbir şey kaldırılmadı. Yükleme bittiğinde yeniden deneyin.";
 "Show in Finder" = "Finder'da Göster";
 "OK" = "Tamam";
 "One minute less" = "Bir dakika az";

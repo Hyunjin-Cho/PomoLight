@@ -46,6 +46,8 @@
 "Cancel" = "取消";
 "PomoLight could not be moved to the Trash" = "無法將 PomoLight 移到垃圾桶";
 "Nothing was removed. You can move it yourself:" = "沒有刪除任何項目。你可以自行移動它：";
+"PomoLight can't be removed right now" = "目前無法移除 PomoLight";
+"An update is being installed. Nothing was removed. Try again once it has finished." = "正在安裝更新。沒有刪除任何項目。請在安裝完成後再試一次。";
 "Show in Finder" = "在 Finder 中顯示";
 "OK" = "好";
 "One minute less" = "減少 1 分鐘";
