@@ -46,6 +46,8 @@
 "Cancel" = "Hủy";
 "PomoLight could not be moved to the Trash" = "Không thể chuyển PomoLight vào Thùng rác";
 "Nothing was removed. You can move it yourself:" = "Chưa có gì bị xóa. Bạn có thể tự di chuyển ứng dụng:";
+"PomoLight can't be removed right now" = "Hiện chưa thể xóa PomoLight";
+"An update is being installed. Nothing was removed. Try again once it has finished." = "Đang cài bản cập nhật. Chưa có gì bị xóa. Hãy thử lại khi cài xong.";
 "Show in Finder" = "Hiển thị trong Finder";
 "OK" = "OK";
 "One minute less" = "Bớt 1 phút";

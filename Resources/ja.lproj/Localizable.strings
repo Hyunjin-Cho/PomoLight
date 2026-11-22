@@ -46,6 +46,8 @@
 "Cancel" = "キャンセル";
 "PomoLight could not be moved to the Trash" = "PomoLightをゴミ箱に移動できませんでした";
 "Nothing was removed. You can move it yourself:" = "何も削除していません。次の場所から自分で移動できます：";
+"PomoLight can't be removed right now" = "今はPomoLightを削除できません";
+"An update is being installed. Nothing was removed. Try again once it has finished." = "アップデートをインストールしています。何も削除していません。インストールが終わってから、もう一度お試しください。";
 "Show in Finder" = "Finderで表示";
 "OK" = "OK";
 "One minute less" = "1分減らす";

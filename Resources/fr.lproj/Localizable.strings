@@ -46,6 +46,8 @@
 "Cancel" = "Annuler";
 "PomoLight could not be moved to the Trash" = "Impossible de placer PomoLight dans la corbeille";
 "Nothing was removed. You can move it yourself:" = "Rien n'a été supprimé. Vous pouvez le déplacer vous-même :";
+"PomoLight can't be removed right now" = "Impossible de supprimer PomoLight pour le moment";
+"An update is being installed. Nothing was removed. Try again once it has finished." = "Une mise à jour est en cours d'installation. Rien n'a été supprimé. Réessayez une fois qu'elle sera terminée.";
 "Show in Finder" = "Afficher dans le Finder";
 "OK" = "OK";
 "One minute less" = "Une minute de moins";

@@ -46,6 +46,8 @@
 "Cancel" = "Avbryt";
 "PomoLight could not be moved to the Trash" = "PomoLight kunde inte flyttas till papperskorgen";
 "Nothing was removed. You can move it yourself:" = "Ingenting togs bort. Du kan flytta det själv:";
+"PomoLight can't be removed right now" = "PomoLight kan inte tas bort just nu";
+"An update is being installed. Nothing was removed. Try again once it has finished." = "En uppdatering installeras. Ingenting togs bort. Försök igen när den är klar.";
 "Show in Finder" = "Visa i Finder";
 "OK" = "OK";
 "One minute less" = "En minut mindre";

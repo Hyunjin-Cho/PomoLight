@@ -381,7 +381,20 @@ struct SettingsPanelView: View {
         // 2026-11-20 (#73): stop the updater before the settings go — a check that answers
         // late would otherwise write its keys back into the domain we are about to delete.
         // `suspend()` refuses (false) only while an install is starting or running.
-        guard PomoLightUpdates.shared.suspend() else { return }
+        // 2026-11-22 (#18): this used to `return` without a word — the person had just
+        // confirmed, and nothing happened. Reachable in principle (read from OnePercent
+        // 0.1.0, not reproduced): Install first asks GitHub again, which can take seconds,
+        // and this button stays enabled until the download starts — so an install can
+        // begin while the confirmation above is still open.
+        guard PomoLightUpdates.shared.suspend() else {
+            let busy = NSAlert()
+            busy.alertStyle = .informational
+            busy.messageText = String(localized: "PomoLight can't be removed right now")
+            busy.informativeText = String(localized: "An update is being installed. Nothing was removed. Try again once it has finished.")
+            busy.addButton(withTitle: String(localized: "OK"))
+            busy.runModal()
+            return
+        }
 
         do {
             let bundleURL = Bundle.main.bundleURL

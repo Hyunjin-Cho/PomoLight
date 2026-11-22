@@ -46,6 +46,8 @@
 "Cancel" = "Cancel";
 "PomoLight could not be moved to the Trash" = "PomoLight could not be moved to the Trash";
 "Nothing was removed. You can move it yourself:" = "Nothing was removed. You can move it yourself:";
+"PomoLight can't be removed right now" = "PomoLight can't be removed right now";
+"An update is being installed. Nothing was removed. Try again once it has finished." = "An update is being installed. Nothing was removed. Try again once it has finished.";
 "Show in Finder" = "Show in Finder";
 "OK" = "OK";
 "One minute less" = "One minute less";
