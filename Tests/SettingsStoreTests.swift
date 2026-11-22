@@ -154,13 +154,14 @@ final class SettingsStoreTests: XCTestCase {
     /// Pins the one link Settings still shows to the owner's public profile over
     /// https. The footer draws `host + path` as its label, so a change here changes
     /// what people read as well as where the click goes — both are worth a red test.
-    /// The repository itself is private, which is why this must stay a PROFILE path
-    /// (one component) and not grow a `/PomoLight` on the end.
+    /// It stays a PROFILE path (one component) and does not grow a `/PomoLight` on the
+    /// end — the owner's choice, kept when the repository went public (2026-11-23, #25;
+    /// before that the repository was private and a link to it would have been a 404).
     func testTheDeveloperLinkIsTheOwnersPublicGitHubProfile() {
         let url = SettingsStore.developerPage
         XCTAssertEqual(url.scheme, "https")
         XCTAssertEqual(url.host(), "github.com")
         XCTAssertEqual(url.path(), "/Hyunjin-Cho",
-                       "a profile, not a repository — the PomoLight repository is private")
+                       "a profile, not a repository — the owner's choice (2026-11-23, #25)")
     }
 }

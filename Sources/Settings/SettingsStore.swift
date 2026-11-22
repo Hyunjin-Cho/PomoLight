@@ -42,8 +42,10 @@ final class SettingsStore {
     ///
     /// 2026-11-19 (#6): the owner dropped donations — the heart and its Toss / Buy Me a
     /// Coffee menu were never connected to real accounts — and asked for this address
-    /// instead. It is the PROFILE, not the PomoLight repository: the repository is
-    /// private, so a link to it would open a 404 for everyone but the owner.
+    /// instead. It is the PROFILE, not the PomoLight repository.
+    /// 2026-11-23 (#25): the reason here used to be "the repository is private, so a link
+    /// to it would open a 404". It goes public with 1.0, and the owner kept the profile
+    /// anyway: it is the developer's own page, and the public repository is one click away.
     static let developerPage = URL(string: "https://github.com/Hyunjin-Cho")!
 
     private let defaults: UserDefaults
