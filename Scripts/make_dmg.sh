@@ -38,8 +38,8 @@ VOLUME="PomoLight $VERSION"
 IDENTITY=$(security find-identity -v -p codesigning | awk -v team="($TEAM)" '/Developer ID Application/ && index($0, team) {print $2; exit}')
 [ -n "$IDENTITY" ] || { echo "✗ No Developer ID Application identity for team $TEAM in the keychain"; exit 1; }
 
-# No EXIT trap on purpose. 2026-11-22 (measured): under macOS's bash 3.2 an unbound-variable error inside a
-# script with an EXIT trap exits 0 — even with `rc=$?; …; exit $rc` in the trap — so notarize.sh would
+# No EXIT trap on purpose. 2026-11-22 (measured, #13): under macOS's bash 3.2, `set -e` + `set -u` + an EXIT
+# trap make an unbound-variable error exit 0 — even with `rc=$?; …; exit $rc` in the trap — so notarize.sh would
 # carry on after a DMG that was never built. Without the trap the same error exits 1. The scratch folder
 # lives in build/ (ignored) and is cleared at the start and on success instead.
 WORK="build/dmg-work"

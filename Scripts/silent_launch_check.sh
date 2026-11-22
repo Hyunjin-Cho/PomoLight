@@ -30,7 +30,20 @@ if [ ! -x "$APP" ]; then
 fi
 
 SHOTS="$(mktemp -d)"
-trap 'rm -rf "$SHOTS"' EXIT
+# 2026-11-22 (#13): under macOS's bash 3.2, `set -e` + `set -u` + an EXIT trap make an unbound variable exit 0
+# — even with `rc=$?; exit $rc` in the trap (measured; `set -u` alone, or no trap, exits 1). verify.sh would
+# have shown a crashed check as ✅, so the trap also checks that the script reached one of its intended ends.
+REACHED_END=0
+on_exit() {
+  local rc=$?
+  rm -rf "$SHOTS"
+  if [ "$rc" -eq 0 ] && [ "$REACHED_END" -ne 1 ]; then
+    echo "❌ FAIL — the check stopped before its end (an error bash 3.2 reports as success)." >&2
+    exit 1
+  fi
+  exit "$rc"
+}
+trap on_exit EXIT
 
 # A blank or failed render still writes a PNG, just a tiny one — the real screens
 # are 170-460 KB, a flat colour compresses to a few. 20 KB sits far from both.
@@ -132,6 +145,7 @@ EVENTS=$(printf '%s' "$FOUND" | grep -c "coreaudio" || true)
 if [ "$EVENTS" -eq 0 ]; then
   echo "✅ PASS — started cleanly, rendered $RENDERED screens, touched the audio device 0 times"
   echo "   (the log was readable: $SEEN line(s) from this PID, none from CoreAudio)."
+  REACHED_END=1
   exit 0
 fi
 
