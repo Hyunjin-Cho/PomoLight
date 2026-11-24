@@ -38,10 +38,14 @@ settings:
 # tag: an updater changes only when we decide to move it.
 # 2026-11-24 (#27): 0.1.0 → 0.1.2 before 1.0 ships — 1.0 users get the next version through
 # the updater inside 1.0. No public API changed between the two tags; see OnePercent's CHANGELOG.
+# 2026-11-24 (#35): 0.1.2 → 0.2.1. 0.2.x refuses a version this Mac cannot open (minimum macOS,
+# processor) before replacing anything — but only from the version *after* the one that ships it.
+# So a release with 0.2.x must go out before PomoLight raises its minimum macOS or drops Intel.
+# What PomoLight changed for it: the Settings update headline (SettingsPanelView.updateHeadline).
 packages:
   OnePercent:
     url: https://github.com/Hyunjin-Cho/OnePercent
-    exactVersion: 0.1.2
+    exactVersion: 0.2.1
 
 targets:
   PomoLight:

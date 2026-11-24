@@ -102,4 +102,8 @@ echo "     swift run --package-path <OnePercent> onepercent-check --zip dist/${R
 echo "       --repository Hyunjin-Cho/PomoLight --team 6RH6FXY82P --bundle-id com.vismo.pomolight --app-name PomoLight \\"
 echo "       --max-asset-mb 100 --max-entries 5000 --max-unpacked-mb 300 --unpack-seconds 120 \\"
 echo "       --previous-version <x> --previous-build <n>"
+# 2026-11-24 (#35): OnePercent 0.2.0 added --published — it asks GitHub for the latest release the way
+# apps do and checks the ZIP they would get. Measured on the live 1.0 with these limits: "would be accepted".
+echo "   About a minute after publishing, run it again with --published in place of --zip/--tag/--previous-*"
+echo "   (same --repository … --unpack-seconds): it checks the release exactly as users' apps will get it."
 echo "   Every release must raise CFBundleVersion (CURRENT_PROJECT_VERSION in project.yml) as well as the version."

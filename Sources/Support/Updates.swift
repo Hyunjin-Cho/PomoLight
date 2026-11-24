@@ -16,6 +16,10 @@ import OnePercent
 ///   with Developer ID and notarized. Every release must raise CFBundleVersion as well (project.yml).
 /// · The administrator-password path stays off (OnePercent's default) until it has been
 ///   tried on a real Mac.
+/// · 2026-11-24 (#35, OnePercent 0.2.x): a version this Mac cannot open (its LSMinimumSystemVersion,
+///   its processors) is refused before anything is replaced — but only by apps that already carry
+///   0.2.x. 1.0 carries 0.1.2, so a 0.2.x release must go out before the minimum macOS rises or
+///   Intel is dropped. The refused version is stored as `pl.update.incompatibleUpdate`.
 @MainActor
 enum PomoLightUpdates {
     static let configuration: OnePercentConfiguration = {

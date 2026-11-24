@@ -20,7 +20,7 @@ import ObjectiveC
 /// - the wait happens inside `terminate`, not after it: OnePercent 0.1.0 treats a `terminate` that
 ///   returns as "the app refused to quit" and reports an error, so a deferred quit is not an option.
 ///   2026-11-24 (#27): still so in 0.1.2 — its live `relaunch` opens the new copy, calls
-///   `NSApp.terminate`, and throws `quitCancelled` if that returns.
+///   `NSApp.terminate`, and throws `quitCancelled` if that returns. 2026-11-24 (#35): unchanged in 0.2.1.
 ///
 /// Two hooks, installed at launch:
 /// 1. `terminate(_:)` on the running app's own class — the menu's Quit (⌘Q), Remove PomoLight, the updater.
