@@ -11,8 +11,9 @@ import OnePercent
 /// · **Installing is always a button press**, and refused while a timer is running,
 ///   paused or ringing — replacing the app reopens it, which would end the session.
 /// · Releases are GitHub releases of this repository, tag = version (`1.1`), asset
-///   `PomoLight_<tag>.zip` made with `ditto -c -k --keepParent`, signed with Developer ID
-///   and notarized. Every release must raise CFBundleVersion as well (project.yml).
+///   `PomoLight_<tag>.zip` made with `ditto -c -k --norsrc --keepParent` (2026-11-24, #30: no
+///   `._` entries, so a plain `unzip` cannot break the signature — notarize.sh checks it), signed
+///   with Developer ID and notarized. Every release must raise CFBundleVersion as well (project.yml).
 /// · The administrator-password path stays off (OnePercent's default) until it has been
 ///   tried on a real Mac.
 @MainActor
