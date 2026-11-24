@@ -54,17 +54,26 @@ RELEASE_ZIP="PomoLight_${VERSION}.zip"
 echo "▸ Checking the release ZIP unpacks intact with every tool…"
 APPLEDOUBLE=$(zipinfo -1 "dist/$RELEASE_ZIP" | grep -c '/\._' || true)
 [ "$APPLEDOUBLE" -eq 0 ] || { echo "✗ dist/$RELEASE_ZIP has $APPLEDOUBLE AppleDouble (._) entries — unzip would break the signature"; exit 1; }
+LSREG=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
 ZIPCHECK=$(mktemp -d)
+# 2026-11-24 (#30 follow-up): the unpacked copies get registered with Launch Services while they are
+# checked (seen: both copies of the first run were still listed after their folder was gone). So they
+# are unregistered before the folder goes, as every other copy in this script is (#19).
+drop_zipcheck() {
+  local copy
+  for copy in "$ZIPCHECK"/*/PomoLight.app; do [ -d "$copy" ] && "$LSREG" -u "$copy" >/dev/null 2>&1 || true; done
+  rm -rf "${ZIPCHECK:?}"
+}
 for tool in unzip ditto; do
   mkdir "$ZIPCHECK/$tool"
   if [ "$tool" = unzip ]; then unzip -q "dist/$RELEASE_ZIP" -d "$ZIPCHECK/$tool"; else ditto -x -k "dist/$RELEASE_ZIP" "$ZIPCHECK/$tool"; fi
   codesign --verify --deep --strict "$ZIPCHECK/$tool/PomoLight.app" \
-    || { echo "✗ dist/$RELEASE_ZIP unpacked with $tool fails its signature check"; rm -rf "${ZIPCHECK:?}"; exit 1; }
+    || { echo "✗ dist/$RELEASE_ZIP unpacked with $tool fails its signature check"; drop_zipcheck; exit 1; }
   xcrun stapler validate -q "$ZIPCHECK/$tool/PomoLight.app" \
-    || { echo "✗ dist/$RELEASE_ZIP unpacked with $tool has no stapled ticket"; rm -rf "${ZIPCHECK:?}"; exit 1; }
+    || { echo "✗ dist/$RELEASE_ZIP unpacked with $tool has no stapled ticket"; drop_zipcheck; exit 1; }
   echo "   ✓ unpacked with $tool: signature intact, ticket stapled"
 done
-rm -rf "${ZIPCHECK:?}"
+drop_zipcheck
 
 ./Scripts/make_dmg.sh
 
@@ -75,7 +84,7 @@ echo "▸ Cleaning loose app copies (zip/dmg keep the distributable)…"
 # alone left the archive's intermediate copy
 # (build-release/…/InstallationBuildProductsLocation/Applications/PomoLight.app) registered with no
 # folder behind it — seen after two notarize runs. Found rather than listed: those paths are xcodebuild's.
-LSREG=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
+# ($LSREG is set above, at the ZIP check.)
 { find dist build-release -name PomoLight.app -type d -prune 2>/dev/null || true; } | while IFS= read -r p; do
   "$LSREG" -u "$PWD/$p" >/dev/null 2>&1 || true
 done
