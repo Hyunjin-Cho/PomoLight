@@ -78,7 +78,8 @@ echo "$SIGN_INFO" | grep -q "TeamIdentifier=6RH6FXY82P" \
   || { echo "✗ Unexpected TeamIdentifier (want 6RH6FXY82P)"; exit 1; }
 
 echo "▸ Zipping…"
-( cd dist && rm -f PomoLight.zip && ditto -c -k --keepParent PomoLight.app PomoLight.zip )
+# 2026-11-24 (#30): --norsrc, as in notarize.sh — no `._` entries, so even a plain `unzip` keeps the signature.
+( cd dist && rm -f PomoLight.zip && ditto -c -k --norsrc --keepParent PomoLight.app PomoLight.zip )
 
 echo "✅ Done:"
 echo "   dist/PomoLight.app   (Developer ID signed, notarization-ready)"

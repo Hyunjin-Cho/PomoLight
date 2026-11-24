@@ -39,9 +39,33 @@ echo "▸ Repackaging stapled app…"
 VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" dist/PomoLight.app/Contents/Info.plist)
 BUILD=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" dist/PomoLight.app/Contents/Info.plist)
 RELEASE_ZIP="PomoLight_${VERSION}.zip"
+# 2026-11-24 (#30): --norsrc — the ZIP carries the files only, no extended attributes. Without it,
+# ditto stores each file's attributes (here com.apple.provenance) as an AppleDouble `._` entry: 131
+# of them in the first 1.0 ZIP. Finder, Safari and the in-app updater (`ditto -x -k`) fold those back
+# into attributes, but a plain `unzip` writes them into the bundle as files, and the app then fails
+# its signature check ("a sealed resource is missing or invalid"). Measured: the same notarized app
+# zipped with --norsrc unpacks intact with unzip, ditto and Archive Utility, and onepercent-check
+# accepts it. The stapled ticket is a file (Contents/CodeResources), so it is kept.
+# (The notary submission ZIP above stays as Apple documents it: Apple unpacks it, nobody downloads it.)
 ( cd dist && rm -f PomoLight.zip PomoLight-notary.zip "$RELEASE_ZIP" \
-    && ditto -c -k --keepParent PomoLight.app PomoLight.zip \
-    && ditto -c -k --keepParent PomoLight.app "$RELEASE_ZIP" )
+    && ditto -c -k --norsrc --keepParent PomoLight.app PomoLight.zip \
+    && ditto -c -k --norsrc --keepParent PomoLight.app "$RELEASE_ZIP" )
+
+echo "▸ Checking the release ZIP unpacks intact with every tool…"
+APPLEDOUBLE=$(zipinfo -1 "dist/$RELEASE_ZIP" | grep -c '/\._' || true)
+[ "$APPLEDOUBLE" -eq 0 ] || { echo "✗ dist/$RELEASE_ZIP has $APPLEDOUBLE AppleDouble (._) entries — unzip would break the signature"; exit 1; }
+ZIPCHECK=$(mktemp -d)
+for tool in unzip ditto; do
+  mkdir "$ZIPCHECK/$tool"
+  if [ "$tool" = unzip ]; then unzip -q "dist/$RELEASE_ZIP" -d "$ZIPCHECK/$tool"; else ditto -x -k "dist/$RELEASE_ZIP" "$ZIPCHECK/$tool"; fi
+  codesign --verify --deep --strict "$ZIPCHECK/$tool/PomoLight.app" \
+    || { echo "✗ dist/$RELEASE_ZIP unpacked with $tool fails its signature check"; rm -rf "${ZIPCHECK:?}"; exit 1; }
+  xcrun stapler validate -q "$ZIPCHECK/$tool/PomoLight.app" \
+    || { echo "✗ dist/$RELEASE_ZIP unpacked with $tool has no stapled ticket"; rm -rf "${ZIPCHECK:?}"; exit 1; }
+  echo "   ✓ unpacked with $tool: signature intact, ticket stapled"
+done
+rm -rf "${ZIPCHECK:?}"
+
 ./Scripts/make_dmg.sh
 
 # Clean loose .app copies so Spotlight/the app launcher only ever sees the one
