@@ -296,18 +296,36 @@ struct SettingsPanelView: View {
         if let line = presentation.text { return line }
         if let updated = updater.justUpdatedTo { return OnePercentText.updated(to: updated) }
         // 2026-11-20: 직접 확인한 뒤 최신이면 그렇다고 말한다(하늘키보드는 이 줄을 뺐지만, 여기선 버튼을 누른 결과가 안 보이면 눌렸는지 모른다).
-        if updater.phase == .upToDate { return OnePercentText.upToDate }
+        // 2026-11-24 (#35, OnePercent 0.2.0): 이 맥에서 못 여는 새 버전이 있으면 phase 는 .upToDate 인데 lastError 가 그 이유다.
+        // 그때 "최신 버전이에요"는 거짓이라 설치된 버전만 보이고, 이유는 아래 오류 줄이 말한다(OnePercent 기본 섹션과 같은 규칙).
+        if updater.phase == .upToDate, !Self.isIncompatibility(updater.lastError) { return OnePercentText.upToDate }
         return OnePercentText.installedVersion + " " + updater.currentVersion
     }
 
     /// The small line under it: with a new version, both numbers, so it is clear what
     /// would be installed ("설치된 버전 1.0 · 최신 버전 1.1"); otherwise when it last checked.
     private func updateDetail(_ presentation: UpdateStatusPresentation) -> String {
+        let lastChecked = updater.lastCheck.map(OnePercentText.lastChecked) ?? OnePercentText.neverChecked
         if presentation.line == .newVersion, let latest = updater.latestVersion {
             return OnePercentText.installedVersion + " " + updater.currentVersion
                 + " · " + OnePercentText.latestVersion + " " + latest
         }
-        return updater.lastCheck.map(OnePercentText.lastChecked) ?? OnePercentText.neverChecked
+        // 2026-11-24 (#35, OnePercent 0.2.1 #50): 업데이트 직후엔 머리줄이 "…로 업데이트했어요"라 [지금 확인]의 결과가
+        // 어디에도 안 보였다 — 확인해서 최신이면 이 줄에 붙인다.
+        if presentation.text == nil, updater.justUpdatedTo != nil, updater.phase == .upToDate,
+           !Self.isIncompatibility(updater.lastError) {
+            return OnePercentText.upToDate + " · " + lastChecked
+        }
+        return lastChecked
+    }
+
+    /// A newer version exists that this Mac cannot open (OnePercent 0.2.0): its macOS
+    /// minimum is higher than this Mac's, or it has no slice for this processor.
+    private static func isIncompatibility(_ error: OnePercentError?) -> Bool {
+        switch error {
+        case .requiresNewerSystem, .unsupportedProcessor: true
+        default: false
+        }
     }
 
     private func releasePage(_ presentation: UpdateStatusPresentation) -> URL? {
