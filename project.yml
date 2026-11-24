@@ -36,10 +36,12 @@ settings:
 # HaneulKeyboard updater generalised) — first-party source, no binaries, so the
 # "zero third-party dependencies" line in the README still holds. Pinned to an exact
 # tag: an updater changes only when we decide to move it.
+# 2026-11-24 (#27): 0.1.0 → 0.1.2 before 1.0 ships — 1.0 users get the next version through
+# the updater inside 1.0. No public API changed between the two tags; see OnePercent's CHANGELOG.
 packages:
   OnePercent:
     url: https://github.com/Hyunjin-Cho/OnePercent
-    exactVersion: 0.1.0
+    exactVersion: 0.1.2
 
 targets:
   PomoLight:
