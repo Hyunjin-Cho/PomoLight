@@ -12,8 +12,10 @@ settings:
   base:
     SWIFT_VERSION: "5.0"
     SWIFT_STRICT_CONCURRENCY: minimal
-    MARKETING_VERSION: "1.0"
-    CURRENT_PROJECT_VERSION: "1"
+    # 2026-11-24 (#29): 1.1 — OnePercent 0.2.1 (#35). The build number must rise with every
+    # release: 1.0 users' updater (OnePercent 0.1.2) refuses a ZIP whose CFBundleVersion is not higher.
+    MARKETING_VERSION: "1.1"
+    CURRENT_PROJECT_VERSION: "2"
     CODE_SIGN_STYLE: Manual
     PROVISIONING_PROFILE_SPECIFIER: ""
     ENABLE_HARDENED_RUNTIME: YES
