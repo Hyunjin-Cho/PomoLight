@@ -1,211 +1,54 @@
+<!-- 2026-11-24 (#33): cut from 211 lines to what someone downloading or building PomoLight needs. The longer text (feature history, every check explained, architecture) is in git history; each check script explains itself at the top. -->
 # PomoLight 🍅✨
 
 A calm, pastel **focus timer** for macOS. Free.
 
-PomoLight is a small desk-clock-like timer: pick any number of minutes, hit Start, and a **gentle synthesized bell** chimes when time's up. The whole UI is soft pastel, and you can switch the accent color live (8 built-in soft pastel themes). Light & dark mode and a live menu-bar countdown.
+Pick any number of minutes, press Start, and a gentle bell chimes when time's up.
 
-> Native SwiftUI · macOS 14+ (built on macOS 26 / Xcode 26) · Apple Silicon · zero third-party dependencies (in-app updates use [OnePercent](https://github.com/Hyunjin-Cho/OnePercent), the same author's MIT package) · MIT licensed.
-
----
+**[Download PomoLight](https://github.com/Hyunjin-Cho/PomoLight/releases/latest)**: open `PomoLight.dmg` and drag PomoLight into Applications. Requires macOS 14 or later on Apple Silicon. Signed and notarized by Apple.
 
 ## Features
 
-- ⏱️ **Free duration** — quick presets (10 / 15 / 30 / 45 / 60) **or** type any value in Custom (optional seconds).
-- 🔔 **Gentle alarm** — five self-synthesized voices (Marimba, Kalimba, Handpan, Wood Blocks, Soft Synth): modelled on how the real instruments vibrate, plus one filtered-saw pad, each a short C-major motif levelled to the same loudness (no audio files, license-clean), clearly an alarm but never harsh. macOS system sounds are deliberately not offered — they read as notification blips. Live Preview + volume in Settings.
-- 🎨 **Pastel themes** — 8 soft pastels spaced around the color wheel (Pink, Coral, Yellow, Green, Mint, Sky, Blue, Violet), default Coral. Each role has one fixed OKLCH lightness and one requested chroma (hues sRGB can't hold at that lightness come out a little less saturated — corrected 2026-11-20, #70), so every hue reads about equally soft; the ring's inner disc is part of the contrast contract too. Switching crossfades live. (Until 2026-11-19 there were 15 brighter "candy" pastels — #66.)
-- 🌗 **Light & dark** — every theme is authored for both (no muddy auto-darkened pastels).
-- 📊 **Drift-free timer** — deadline/wall-clock based, so it stays correct across App Nap and system sleep; the alarm fires on wake even if the Mac slept through zero.
-- 🖥️ **Menu-bar countdown** — glanceable MM:SS in the menu bar (toggle off if you want a pure window app), with mini controls.
-- 🪟 **Compact, fixed window** — a timer never needs to grow, so the window is capped at a tidy size (no ballooning / full screen); you can still shrink it.
-- 🌍 **29 languages** — the UI follows the system language: English, Korean, Japanese, Chinese (Simp/Trad), Thai, Vietnamese, Indonesian, Malay, Filipino, German, French, Italian, Spanish, Portuguese (PT/BR), Dutch, Swedish, Norwegian, Danish, Finnish, Polish, Russian, Ukrainian, Czech, Turkish, Greek, Romanian, Hungarian.
-- ♿ **Accessible** — WCAG-checked contrast (timer digits ≥ 7:1 in every theme), VoiceOver labels, Reduce Motion support, keyboard shortcuts.
-- ⚙️ **Settings on one sheet** — everything at a glance in a two-column sheet, nothing to scroll (2026-11-20, #72).
-- 🔄 **Quiet in-app updates** — once a month PomoLight asks GitHub whether a newer release exists. It never pops a window over your session: a new version shows only as a line in the menu-bar popover and in Settings, and installs when you press **Install New Version** (not while a timer is running). The download must be signed by the developer's Developer ID, notarized by Apple and exactly the announced version, or nothing is replaced. The monthly check can be switched off in Settings. (2026-11-20, #73)
-- 🔗 **Developer link** — the foot of Settings shows the developer's GitHub address (`github.com/Hyunjin-Cho`). No donations: dropped 2026-11-19 (#6).
+- **Any duration**: presets (10 / 15 / 30 / 45 / 60 minutes), or type your own.
+- **Gentle alarm**: five synthesized sounds, with preview and volume.
+- **8 pastel themes**, each made for light and dark mode.
+- **Menu-bar countdown** with mini controls. You can turn it off.
+- **Stays accurate through sleep**: the timer follows the clock, not a counter.
+- **29 languages**, following your system language.
+- **Accessible**: WCAG-checked contrast (timer digits at least 7:1 in every theme), VoiceOver labels, Reduce Motion and keyboard shortcuts.
+- **Quiet updates**: checks once a month and never pops up a window. An update installs only when you press Install.
 
-Keyboard: **Space** = Start/Pause/Resume · **R** = Reset · **1–5** = presets · **⌘,** = Settings.
-
----
-
-## Run it
-
-**In Xcode (recommended for development & distribution):**
-```bash
-xcodegen generate      # regenerates PomoLight.xcodeproj from project.yml
-open PomoLight.xcodeproj
-```
-Then press ⌘R. (To archive for distribution: Product → Archive.)
-
-**From the command line:**
-```bash
-./Scripts/install_local.sh   # build, sign, install to /Applications, clean up
-./Scripts/build_app.sh       # just the Release build → dist/PomoLight.app + .zip
-./Scripts/make_dmg.sh        # dist/PomoLight.dmg — the install window (notarize.sh runs it for you)
-```
-
-> Use `install_local.sh` to update your own copy. Every build drops a
-> `PomoLight.app` inside the project — `dist/`, `build-release/export/`, and
-> `build/…/Debug/` — and **Spotlight indexes each one as an app**. Installing by
-> hand and leaving those behind is how searching "pomo" ended up showing four
-> PomoLights, with eleven registered in Launch Services (seven of them pointing at
-> directories that no longer existed — macOS never unregisters an app just because
-> its files are gone). The script deletes the in-project copies after installing
-> and refuses to finish unless exactly one copy is left on the whole Mac.
-
-> The project file (`PomoLight.xcodeproj`) is generated by [XcodeGen](https://github.com/yonaskolb/XcodeGen) from `project.yml`. If you add/rename source files, re-run `xcodegen generate`.
-
----
-
-## Before you publish — set these
-
-These are placeholders the owner needs to fill in:
-
-| What | Where | Default |
-|------|-------|---------|
-| **Bundle ID** | `project.yml` → `PRODUCT_BUNDLE_IDENTIFIER` | `com.vismo.pomolight` |
-
-### Releases (GitHub)
-2026-11-20 (#73): releases are GitHub releases of this repository — PomoLight was never sold on Gumroad, which an older version of this section described.
-- `build_app.sh` archives and exports with your **Developer ID** (`Scripts/ExportOptions.plist`); `notarize.sh` notarizes, staples and writes `dist/PomoLight_<version>.zip`, then runs `make_dmg.sh` for `dist/PomoLight.dmg`.
-- 2026-11-22 (#11): the DMG opens as an install window — a background with "drag the icon into Applications" in Korean and English, the app and an Applications link side by side, and a reminder to move it before opening. It is drawn by `Scripts/dmg/background.swift` and laid out by [dmgbuild](https://github.com/dmgbuild/dmgbuild) (`Scripts/dmg/settings.py`), because on macOS 27 Finder silently ignores a background set by AppleScript. The DMG itself is signed and notarized too. One-time setup: `python3 -m venv .tools/venv && .tools/venv/bin/python -m pip install "dmgbuild>=1.6.7"`.
-- Tag the release with the bare version (`1.1`, no `v`) and attach `PomoLight_<version>.zip` — the in-app updater looks for exactly that name. Check it first with `onepercent-check` (the command `notarize.sh` prints).
-- **Raise `CURRENT_PROJECT_VERSION` with every release**, not only `MARKETING_VERSION`: the updater refuses a download whose build number did not go up.
-
----
-
-## Uninstall
-
-Dragging the app to the Trash removes the app. It does **not** remove what the app
-saved — macOS does that for no app, which is why "I deleted it and it's still
-there" is a fair thing for someone to say.
-
-PomoLight leaves exactly one file:
-
-```
-~/Library/Preferences/com.vismo.pomolight.plist     # settings + window positions, ~4 KB
-```
-
-That is the whole list. The app is not sandboxed and has no App Group, so macOS
-never creates a container for it, and it writes nothing to Application Support,
-Caches or anywhere else. To remove it:
-
-```bash
-rm ~/Library/Preferences/com.vismo.pomolight.plist
-killall cfprefsd     # preferences are served from a cache; without this the file comes back
-```
-
-From inside the app: **Settings ▸ Remove PomoLight…**. It moves PomoLight to the
-Trash — so you can put it back if you change your mind — deletes the file above,
-and clears anything older builds left. Available any time.
-
-Or, with the repository, let the script find everything:
-
-```bash
-bash Scripts/uninstall.sh                            # lists what is there, deletes nothing
-bash Scripts/uninstall.sh --yes                      # removes it
-bash Scripts/uninstall.sh --yes --keep-settings      # keep themes, sounds, durations
-bash Scripts/uninstall.sh --yes --leftovers-only     # keep the app AND settings,
-                                                     # clear only what old builds left
-```
-
-Two things worth knowing:
-
-- **If you ever ran a build with the widget** (removed in PR #33, never shipped
-  publicly), it left containers behind — `~/Library/Containers/com.vismo.pomolight.widget`,
-  `~/Library/Group Containers/group.com.vismo.pomolight`, a
-  `group.com.vismo.pomolight.plist`, and a daemon transcript that can reach a
-  megabyte or two. The reverted sandbox experiment of the same week added empty
-  `Application Scripts` directories. Nothing reads any of it now. The script lists
-  those separately, so it is clear they are the past and not the present, and
-  `--leftovers-only` clears them without touching the app you are still using.
-- **System Settings ▸ Notifications** keeps its own entry for the app. No script
-  can remove that one; macOS drops it on its own schedule.
-
----
-
-## Verify
-
-Everything below in one command:
-
-```bash
-bash Scripts/verify.sh
-```
-
-It runs the checks in the order that catches problems soonest:
-
-- **Build the app** — first, and not redundant with the tests. The test bundle is
-  HOST-LESS: it compiles only the files listed under `PomoLightTests` in
-  `project.yml` — the timer engine, the palette, settings, and `AppModel` with the
-  collaborators it reaches through protocols — and never compiles `AppDelegate`,
-  the app's entry point or the views (`DialFrameRate` aside). A green suite says
-  nothing about whether the app builds at all. *(Corrected 2026-11-20, #70: this
-  used to say `AppModel` is never compiled; it has been under test since 2026-08-21.)*
-- **Unit tests** — timer state machine, dial frame rate, contrast invariants,
-  settings persistence. Nothing launches and no chime plays.
-  ```bash
-  xcodebuild test -project PomoLight.xcodeproj -scheme PomoLightTests -destination 'platform=macOS'
-  ```
-- **Contrast audit** (no Xcode needed) — every theme × light/dark against its WCAG
-  tier. Compiles the app's own `ResolvedPalette`/`LegibleFill`, so it can't drift
-  from what ships:
-  ```bash
-  bash Scripts/contrast_audit.sh
-  ```
-- **Palette roles** — the audit above proves the palette *can* be legible; this
-  proves the app *uses* it that way. It fails the build if any view draws a FILL
-  role (`accent`) with `.foregroundStyle`/`.tint`, which had shipped three separate
-  times — the donation heart, the alarm-sound radio, and the menu-bar button:
-  ```bash
-  bash Scripts/palette_role_check.sh
-  ```
-- **Uninstall** — the in-app "Remove PomoLight…" is the one feature that cannot be
-  tried by hand without cost, so it is driven against a throwaway copy of the app
-  and a throwaway preferences suite. The copy is opened the way Finder opens it, so
-  what macOS does to an app's leftovers at quit is part of the test. It checks the
-  app reaches the Trash (not oblivion), the settings file goes AND stays gone, and
-  your own install is untouched:
-  ```bash
-  bash Scripts/uninstall_check.sh
-  ```
-- **Quit with the settings sheet open** — opens a throwaway copy with its settings
-  sheet up and quits it twice, once from inside (what ⌘Q, Remove PomoLight… and an
-  update install do) and once with the quit Apple Event (what the Dock and logging
-  out do). With the sheet open macOS once refused to quit at all, and nothing above
-  ever opened the sheet:
-  ```bash
-  bash Scripts/quit_check.sh
-  ```
-- **Silent launch** — starts the real binary in offscreen snapshot mode and checks
-  that it exits cleanly, leaves your real settings alone, actually renders its
-  screens, and opens the audio device zero times (which on some hardware is an
-  audible click on every launch). The exit and the renders matter because an app
-  that CRASHES on launch also makes no sound — without them a dead app scored a
-  clean pass:
-  ```bash
-  bash Scripts/silent_launch_check.sh
-  ```
-
-- **UI snapshots** — render the real screens to PNGs offscreen (no Screen Recording
-  permission needed):
-  ```bash
-  POMO_SNAPSHOT=/tmp/pomo_shots ./build/Build/Products/Debug/PomoLight.app/Contents/MacOS/PomoLight
-  ```
-
----
-
-## Architecture (brief)
-
-- **State** — three `@Observable @MainActor` stores injected via `.environment`: `TimerEngine` (deadline-based countdown state machine), `ThemeStore` (the active preset theme, switched live), `SettingsStore` (typed UserDefaults). `AppModel` wires the "timer finished" behavior (chime + notification + window-raise).
-- **Timer** — stores an absolute `deadline: Date`; remaining/ring are derived from the wall clock inside a `TimelineView(.animation)` whose redraw cadence comes from `DialFrameRate` — 30 / 12 / 6 / 2 fps, chosen from how fast the ring is actually moving — while a 0.2 s ticker + wake/active observers catch the zero crossing.
-- **Audio** — `BellSynth` renders the five alarm voices into PCM buffers, built from the blocks in `AlarmDSP` (models of struck and plucked objects, a filtered-saw pad) and levelled to one loudness; `ChimePlayer` plays them through `AVAudioEngine`/`AVAudioPlayerNode`, and builds that graph only when a sound is about to play.
-- **Color/contrast** — `Color+Contrast.swift` enforces WCAG floors (timer text 7:1, body 4.5:1, ring 3:1) by nudging colors toward ink/white only as much as needed; the user's accent never colors the timer digits.
-
----
+Keyboard: **Space** start/pause · **R** reset · **1–5** presets · **⌘,** settings.
 
 ## Privacy
 
-PomoLight collects nothing and has no account, analytics or crash reporting. Its only network access is the update check (2026-11-20, #73): about once a month — and when you press **Check Now** — it sends an HTTPS `GET` to GitHub (`api.github.com`) for the latest release, and only after you press **Install New Version** does it download the release file from GitHub. Those requests carry three headers (`Accept`, `User-Agent: PomoLight/<version>`, `Accept-Language: en` — fixed, so your language list is not sent), no cookies and nothing about you or your timers. GitHub sees them as it sees any web request, including your IP address. Turn the monthly check off in Settings ▸ Updates.
+PomoLight collects nothing. It has no account, no analytics and no crash reporting.
+
+Its only network access is the update check. About once a month, or when you press **Check Now**, it asks GitHub for the latest release. It downloads an update only when you press **Install New Version**.
+
+You can turn the monthly check off in Settings ▸ Updates.
+
+## Uninstall
+
+**Settings ▸ Remove PomoLight…** moves the app to the Trash and deletes its settings.
+
+If you drag the app to the Trash yourself, its settings file stays behind: `~/Library/Preferences/com.vismo.pomolight.plist`.
+
+## Build from source
+
+```bash
+xcodegen generate && open PomoLight.xcodeproj   # then ⌘R
+bash Scripts/verify.sh                          # build, unit tests and the app checks
+```
+
+Native SwiftUI, built with Xcode 26. It has zero third-party dependencies. In-app updates use [OnePercent](https://github.com/Hyunjin-Cho/OnePercent), the same author's MIT package.
+
+To release:
+1. Run `Scripts/build_app.sh`, then `Scripts/notarize.sh`.
+2. Create a GitHub release tagged with the bare version (`1.1`).
+3. Attach `PomoLight.dmg` and `PomoLight_<version>.zip`. The in-app updater downloads the ZIP.
+4. Raise `CURRENT_PROJECT_VERSION` with every release.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Hyunjin Cho. PomoLight is free.
+MIT. See [LICENSE](LICENSE).
