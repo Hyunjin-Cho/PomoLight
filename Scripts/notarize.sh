@@ -60,8 +60,13 @@ rm -rf dist/PomoLight.app build-release
 echo "✅ Notarized & stapled — PomoLight ${VERSION} (build ${BUILD})."
 echo "   Release on GitHub: tag ${VERSION}, attach dist/${RELEASE_ZIP} (the in-app updater looks for exactly this name)"
 echo "   and dist/PomoLight.dmg for people downloading by hand."
-echo "   Check the ZIP first with the updater's own code (OnePercent checkout, previous release's version and build):"
+# 2026-11-24 (#27): OnePercent 0.1.2's check takes the app's own limits (OnePercent#20). Without them
+# it checked against OnePercent's defaults, which are far looser than PomoLight's, so a ZIP could
+# pass here and be refused on users' Macs. Keep these in step with `limits` in Sources/Support/Updates.swift.
+echo "   Check the ZIP first with the updater's own code — a OnePercent checkout at the tag project.yml pins,"
+echo "   and PomoLight's own limits (Sources/Support/Updates.swift). Leave out --previous-* for the first release:"
 echo "     swift run --package-path <OnePercent> onepercent-check --zip dist/${RELEASE_ZIP} --tag ${VERSION} \\"
 echo "       --repository Hyunjin-Cho/PomoLight --team 6RH6FXY82P --bundle-id com.vismo.pomolight --app-name PomoLight \\"
+echo "       --max-asset-mb 100 --max-entries 5000 --max-unpacked-mb 300 --unpack-seconds 120 \\"
 echo "       --previous-version <x> --previous-build <n>"
 echo "   Every release must raise CFBundleVersion (CURRENT_PROJECT_VERSION in project.yml) as well as the version."
